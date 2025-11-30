@@ -4,7 +4,7 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { CalendarIcon, Check, ChevronRight, MapPin, Package, Truck } from "lucide-react";
+import { CalendarIcon, Check, ChevronRight, MapPin, Package, Truck, User, Mail, Phone } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
@@ -46,6 +46,9 @@ const formSchema = z.object({
         message: "L'adresse d'arrivée doit contenir au moins 5 caractères.",
     }),
     transportDate: z.date(),
+    fullName: z.string().min(2, "Le nom est requis"),
+    email: z.string().email("Email invalide"),
+    phone: z.string().min(10, "Le téléphone est requis"),
 });
 
 export function QuoteWizard() {
@@ -56,14 +59,20 @@ export function QuoteWizard() {
             itemType: "",
             pickupLocation: "",
             dropoffLocation: "",
+            fullName: "",
+            email: "",
+            phone: "",
         },
     });
 
     function onSubmit(values: z.infer<typeof formSchema>) {
-        console.log(values);
-        toast.success("Demande de devis envoyée avec succès !", {
+        const refNumber = `DEV-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+        console.log({ ...values, refNumber });
+        toast.success(`Demande #${refNumber} envoyée avec succès !`, {
             description: "Nous vous contacterons dans les plus brefs délais."
         });
+        form.reset();
+        setStep(1);
     }
 
     const nextStep = async () => {
@@ -71,6 +80,8 @@ export function QuoteWizard() {
         if (step === 1) fieldsToValidate = ["itemType"];
         if (step === 2) fieldsToValidate = ["pickupLocation"];
         if (step === 3) fieldsToValidate = ["dropoffLocation"];
+        if (step === 4) fieldsToValidate = ["transportDate"];
+        if (step === 5) fieldsToValidate = ["fullName", "email", "phone"];
 
         // @ts-ignore
         const isValid = await form.trigger(fieldsToValidate);
@@ -87,7 +98,7 @@ export function QuoteWizard() {
                     Obtenez une estimation pour votre transport en quelques clics.
                 </CardDescription>
                 <div className="flex justify-center gap-2 mt-4">
-                    {[1, 2, 3, 4].map((i) => (
+                    {[1, 2, 3, 4, 5].map((i) => (
                         <div
                             key={i}
                             className={cn(
@@ -224,25 +235,78 @@ export function QuoteWizard() {
                                 />
                             </div>
                         )}
+
+                        {step === 5 && (
+                            <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                                <FormField
+                                    control={form.control}
+                                    name="fullName"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-lg font-semibold flex items-center gap-2">
+                                                <User className="h-5 w-5 text-primary" />
+                                                Votre nom complet
+                                            </FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Jean Dupont" className="h-12 text-lg" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="email"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-lg font-semibold flex items-center gap-2">
+                                                <Mail className="h-5 w-5 text-primary" />
+                                                Votre adresse email
+                                            </FormLabel>
+                                            <FormControl>
+                                                <Input type="email" placeholder="jean.dupont@example.com" className="h-12 text-lg" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="phone"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-lg font-semibold flex items-center gap-2">
+                                                <Phone className="h-5 w-5 text-primary" />
+                                                Votre numéro de téléphone
+                                            </FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="06 12 34 56 78" className="h-12 text-lg" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                        )}
                     </form>
                 </Form>
             </CardContent>
             <CardFooter className="flex justify-between">
                 {step > 1 ? (
                     <Button variant="outline" onClick={prevStep}>
-                        Précédent
+                        ← Retour
                     </Button>
                 ) : (
                     <div />
                 )}
 
-                {step < 4 ? (
+                {step < 5 ? (
                     <Button onClick={nextStep} className="gap-2">
-                        Suivant <ChevronRight className="h-4 w-4" />
+                        Continuer <ChevronRight className="h-4 w-4" />
                     </Button>
                 ) : (
-                    <Button onClick={form.handleSubmit(onSubmit)} className="gap-2 bg-primary hover:bg-primary/90">
-                        Recevoir mon devis <Check className="h-4 w-4" />
+                    <Button onClick={form.handleSubmit(onSubmit)} className="gap-2">
+                        Envoyer ma demande <Check className="h-4 w-4" />
                     </Button>
                 )}
             </CardFooter>
