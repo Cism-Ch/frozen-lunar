@@ -1,3 +1,5 @@
+"use client";
+
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
@@ -5,8 +7,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Lock } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function AdminLoginPage() {
+    const router = useRouter();
+
+    const handleLogin = () => {
+        // Pour la démo, on redirige directement
+        router.push("/admin/dashboard");
+    };
+
     return (
         <div className="flex min-h-screen flex-col">
             <Header />
@@ -32,12 +42,9 @@ export default function AdminLoginPage() {
                             <Label htmlFor="password">Mot de passe</Label>
                             <Input id="password" type="password" />
                         </div>
-                        <Button className="w-full" disabled>
+                        <Button className="w-full" onClick={handleLogin}>
                             Se connecter
                         </Button>
-                        <p className="text-xs text-center text-muted-foreground">
-                            Fonctionnalité disponible en Phase 2
-                        </p>
                     </CardContent>
                 </Card>
             </main>

@@ -10,6 +10,7 @@ import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
+import { quoteStorage } from "@/lib/quote-storage";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -66,9 +67,18 @@ export function QuoteWizard() {
     });
 
     function onSubmit(values: z.infer<typeof formSchema>) {
-        const refNumber = `DEV-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
-        console.log({ ...values, refNumber });
-        toast.success(`Demande #${refNumber} envoyée avec succès !`, {
+        const newQuote = quoteStorage.add({
+            client: values.fullName,
+            email: values.email,
+            phone: values.phone,
+            type: values.itemType,
+            pickup: values.pickupLocation,
+            dropoff: values.dropoffLocation,
+            transportDate: values.transportDate.toISOString(),
+        });
+
+        console.log({ ...values, refNumber: newQuote.id });
+        toast.success(`Demande #${newQuote.id} envoyée avec succès !`, {
             description: "Nous vous contacterons dans les plus brefs délais."
         });
         form.reset();
@@ -83,7 +93,6 @@ export function QuoteWizard() {
         if (step === 4) fieldsToValidate = ["transportDate"];
         if (step === 5) fieldsToValidate = ["fullName", "email", "phone"];
 
-        // @ts-ignore
         const isValid = await form.trigger(fieldsToValidate);
         if (isValid) setStep(step + 1);
     };
