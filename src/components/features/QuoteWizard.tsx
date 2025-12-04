@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { LocationPicker } from "./LocationPicker";
 
 const formSchema = z.object({
     itemType: z.string().min(2, {
@@ -204,14 +205,12 @@ export function QuoteWizard() {
                                         <FormItem>
                                             <FormLabel className="text-lg font-medium">Adresse complète de départ</FormLabel>
                                             <FormControl>
-                                                <div className="relative">
-                                                    <MapPin className="absolute left-4 top-4 h-6 w-6 text-muted-foreground" />
-                                                    <Input
-                                                        placeholder="Ex: 12 Rue de l'Industrie, 75000 Paris"
-                                                        className="h-14 pl-12 text-lg bg-muted/20 border-muted-foreground/20 focus:ring-primary/20"
-                                                        {...field}
-                                                    />
-                                                </div>
+                                                <LocationPicker
+                                                    value={field.value}
+                                                    onChange={field.onChange}
+                                                    placeholder="Ex: 12 Rue de l'Industrie, 75000 Paris"
+                                                    icon={<MapPin className="h-6 w-6 text-muted-foreground" />}
+                                                />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -229,14 +228,12 @@ export function QuoteWizard() {
                                         <FormItem>
                                             <FormLabel className="text-lg font-medium">Adresse complète d'arrivée</FormLabel>
                                             <FormControl>
-                                                <div className="relative">
-                                                    <Truck className="absolute left-4 top-4 h-6 w-6 text-muted-foreground" />
-                                                    <Input
-                                                        placeholder="Ex: Zone Industrielle Nord, 69000 Lyon"
-                                                        className="h-14 pl-12 text-lg bg-muted/20 border-muted-foreground/20 focus:ring-primary/20"
-                                                        {...field}
-                                                    />
-                                                </div>
+                                                <LocationPicker
+                                                    value={field.value}
+                                                    onChange={field.onChange}
+                                                    placeholder="Ex: Zone Industrielle Nord, 69000 Lyon"
+                                                    icon={<Truck className="h-6 w-6 text-muted-foreground" />}
+                                                />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
