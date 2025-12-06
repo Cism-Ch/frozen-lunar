@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Separator } from "@/components/ui/separator";
+import { AdminNotifications } from "@/components/features/AdminNotifications";
 
 export default function AdminLayout({
     children,
@@ -121,10 +122,7 @@ export default function AdminLayout({
                     </div>
 
                     <div className="flex items-center gap-4 ml-auto">
-                        <Button variant="ghost" size="icon" className="relative">
-                            <Bell className="h-5 w-5 text-muted-foreground" />
-                            <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 ring-2 ring-background" />
-                        </Button>
+                        <AdminNotifications />
 
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>

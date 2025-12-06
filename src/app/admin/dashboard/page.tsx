@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/table";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { QuoteDetailsSheet } from "@/components/features/QuoteDetailsSheet";
 
 export default function DashboardPage() {
     const [quotes, setQuotes] = useState<Quote[]>([]);
@@ -65,6 +66,17 @@ export default function DashboardPage() {
     ];
 
     const recentQuotes = quotes.slice(0, 5);
+    const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
+    const [detailsOpen, setDetailsOpen] = useState(false);
+
+    const handleQuoteClick = (quote: Quote) => {
+        setSelectedQuote(quote);
+        setDetailsOpen(true);
+    };
+
+    const refreshQuotes = () => {
+        setQuotes(quoteStorage.getAll());
+    };
 
     return (
         <div className="space-y-8">
@@ -149,7 +161,11 @@ export default function DashboardPage() {
                                     </TableRow>
                                 ) : (
                                     recentQuotes.map((quote) => (
-                                        <TableRow key={quote.id}>
+                                        <TableRow
+                                            key={quote.id}
+                                            className="cursor-pointer hover:bg-muted/50 transition-colors"
+                                            onClick={() => handleQuoteClick(quote)}
+                                        >
                                             <TableCell className="font-medium">
                                                 <div className="flex flex-col">
                                                     <span>{quote.client}</span>
@@ -180,6 +196,13 @@ export default function DashboardPage() {
                     </CardContent>
                 </Card>
             </div>
+
+            <QuoteDetailsSheet
+                quote={selectedQuote}
+                open={detailsOpen}
+                onOpenChange={setDetailsOpen}
+                onUpdate={refreshQuotes}
+            />
         </div>
     );
 }

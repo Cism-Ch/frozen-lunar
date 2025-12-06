@@ -33,6 +33,7 @@ import { quoteStorage, Quote } from "@/lib/quote-storage";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
+import { QuoteDetailsSheet } from "@/components/features/QuoteDetailsSheet";
 
 export default function QuotesPage() {
     const [quotes, setQuotes] = useState<Quote[]>([]);
@@ -67,6 +68,18 @@ export default function QuotesPage() {
 
         return matchesSearch && matchesStatus;
     });
+
+    const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
+    const [detailsOpen, setDetailsOpen] = useState(false);
+
+    const handleQuoteClick = (quote: Quote) => {
+        setSelectedQuote(quote);
+        setDetailsOpen(true);
+    };
+
+    const refreshQuotes = () => {
+        setQuotes(quoteStorage.getAll());
+    };
 
     return (
         <div className="space-y-8">
@@ -134,7 +147,15 @@ export default function QuotesPage() {
                                 </TableHeader>
                                 <TableBody>
                                     {filteredQuotes.map((quote) => (
-                                        <TableRow key={quote.id}>
+                                        <TableRow
+                                            key={quote.id}
+                                            className="cursor-pointer hover:bg-muted/50 transition-colors"
+                                            onClick={(e) => {
+                                                // Prevent sheet opening if clicking on actions dropdown
+                                                if ((e.target as HTMLElement).closest('[data-radix-collection-item], [role="menuitem"], button')) return;
+                                                handleQuoteClick(quote);
+                                            }}
+                                        >
                                             <TableCell className="font-medium font-mono text-xs">
                                                 {quote.id.slice(0, 8)}...
                                             </TableCell>
@@ -201,7 +222,10 @@ export default function QuotesPage() {
                                                         <DropdownMenuSeparator />
                                                         <DropdownMenuItem
                                                             className="text-red-600 focus:text-red-600"
-                                                            onClick={() => handleDelete(quote.id)}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleDelete(quote.id)
+                                                            }}
                                                         >
                                                             <Trash2 className="mr-2 h-4 w-4" />
                                                             Supprimer
@@ -217,6 +241,13 @@ export default function QuotesPage() {
                     )}
                 </CardContent>
             </Card>
+
+            <QuoteDetailsSheet
+                quote={selectedQuote}
+                open={detailsOpen}
+                onOpenChange={setDetailsOpen}
+                onUpdate={refreshQuotes}
+            />
         </div>
     );
 }
