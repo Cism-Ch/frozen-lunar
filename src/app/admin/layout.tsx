@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, FileText, Settings, LogOut, Menu, Truck, Bell, Search, User } from "lucide-react";
+import { LayoutDashboard, FileText, Settings, LogOut, Menu, Truck, Bell, Search, User, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import {
@@ -37,6 +37,11 @@ export default function AdminLayout({
             title: "Devis",
             href: "/admin/quotes",
             icon: FileText,
+        },
+        {
+            title: "Contacts",
+            href: "/admin/contacts",
+            icon: User,
         },
         {
             title: "Paramètres",
@@ -143,13 +148,17 @@ export default function AdminLayout({
                                     </div>
                                 </DropdownMenuLabel>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem>
-                                    <User className="mr-2 h-4 w-4" />
-                                    <span>Profil</span>
+                                <DropdownMenuItem asChild>
+                                    <Link href="/admin/contacts" className="cursor-pointer flex w-full">
+                                        <Users className="mr-2 h-4 w-4" />
+                                        <span>Carnet d'adresses</span>
+                                    </Link>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                    <Settings className="mr-2 h-4 w-4" />
-                                    <span>Paramètres</span>
+                                <DropdownMenuItem asChild>
+                                    <Link href="/admin/settings" className="cursor-pointer flex w-full">
+                                        <Settings className="mr-2 h-4 w-4" />
+                                        <span>Paramètres</span>
+                                    </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem className="text-red-500 focus:text-red-500">

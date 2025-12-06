@@ -180,6 +180,11 @@ export function QuoteDetailsSheet({ quote, open, onOpenChange, onUpdate }: Quote
                             Réinitialiser le statut
                         </Button>
                     )}
+                    <a href={`/admin/quotes/${encodeURIComponent(quote.id)}`} className="w-full sm:w-auto">
+                        <Button variant="ghost" className="w-full">
+                            Ouvrir l'espace de travail
+                        </Button>
+                    </a>
                 </SheetFooter>
             </SheetContent >
         </Sheet >

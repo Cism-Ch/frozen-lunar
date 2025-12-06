@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Search, Filter, Download, Trash2, CheckCircle, XCircle, Clock } from "lucide-react";
+import { MoreHorizontal, Search, Filter, Download, Trash2, CheckCircle, XCircle, Clock, FileText } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -218,6 +218,12 @@ export default function QuotesPage() {
                                                         <DropdownMenuItem onClick={() => handleStatusChange(quote.id, "En attente")}>
                                                             <Clock className="mr-2 h-4 w-4 text-orange-500" />
                                                             Mettre en attente
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem asChild>
+                                                            <a href={`/admin/quotes/${encodeURIComponent(quote.id)}`} className="cursor-pointer">
+                                                                <FileText className="mr-2 h-4 w-4" />
+                                                                Voir le dossier complet
+                                                            </a>
                                                         </DropdownMenuItem>
                                                         <DropdownMenuSeparator />
                                                         <DropdownMenuItem

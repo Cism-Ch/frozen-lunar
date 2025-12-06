@@ -37,6 +37,7 @@ import {
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LocationPicker } from "./LocationPicker";
+import { QuoteSummaryDialog } from "./QuoteSummaryDialog";
 
 const formSchema = z.object({
     itemType: z.string().min(2, {
@@ -59,6 +60,8 @@ const formSchema = z.object({
 export function QuoteWizard() {
     const [step, setStep] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    // Use 'any' for now or define the full type to match both formSchema and extra ID
+    const [summaryData, setSummaryData] = useState<any>(null);
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -87,15 +90,17 @@ export function QuoteWizard() {
             transportDate: values.transportDate.toISOString(),
         });
 
-        console.log({ ...values, refNumber: newQuote.id });
-        toast.success(`Demande #${newQuote.id} envoyée !`, {
-            description: "Un expert vous contactera sous 2h avec votre devis."
-        });
+        // Store data for summary and open modal
+        setSummaryData({ ...values, id: newQuote.id });
 
-        form.reset();
-        setStep(1);
         setIsSubmitting(false);
     }
+
+    const handleCloseSummary = () => {
+        setSummaryData(null);
+        form.reset();
+        setStep(1);
+    };
 
     const nextStep = async () => {
         let fieldsToValidate: any[] = [];
@@ -374,6 +379,13 @@ export function QuoteWizard() {
                     </Button>
                 )}
             </CardFooter>
-        </Card>
+
+
+            <QuoteSummaryDialog
+                isOpen={!!summaryData}
+                onClose={handleCloseSummary}
+                data={summaryData}
+            />
+        </Card >
     );
 }
