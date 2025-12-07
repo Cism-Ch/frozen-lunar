@@ -80,6 +80,7 @@ export function Footer() {
                 { name: "Contact", href: "/contact" },
                 { name: "Mentions légales", href: "/legal/mentions-legales" },
                 { name: "CGV", href: "/legal/cgv" },
+                { name: "Espace Admin", href: "/admin/dashboard" },
               ].map((item) => (
                 <li key={item.name}>
                   <Link
