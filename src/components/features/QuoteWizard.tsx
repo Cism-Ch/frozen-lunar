@@ -140,7 +140,10 @@ export function QuoteWizard() {
                 isSubmitting={isSubmitting}
                 onNext={nextStep}
                 onPrev={prevStep}
-                onSubmit={form.handleSubmit(onSubmit)}
+                onSubmit={form.handleSubmit(onSubmit, (errors) => {
+                    console.error("Form validation errors:", errors);
+                    toast.error("Veuillez vérifier les informations saisies.");
+                })}
             />
 
             <QuoteSummaryDialog
