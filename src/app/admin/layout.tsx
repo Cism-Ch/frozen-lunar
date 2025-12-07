@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, FileText, Settings, LogOut, Menu, Truck, Bell, Search, User, Users } from "lucide-react";
+import { LayoutDashboard, FileText, Settings, LogOut, Menu, Truck, Bell, Search, User, Users, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import {
@@ -83,6 +83,12 @@ export default function AdminLayout({
                     <ThemeToggle />
                 </div>
                 <Separator />
+                <Button variant="ghost" className="w-full justify-start gap-3" asChild>
+                    <Link href="/">
+                        <Home className="h-4 w-4" />
+                        Retour au site
+                    </Link>
+                </Button>
                 <Button variant="ghost" className="w-full justify-start gap-3 text-red-500 hover:text-red-600 hover:bg-red-50">
                     <LogOut className="h-4 w-4" />
                     Déconnexion
@@ -102,18 +108,26 @@ export default function AdminLayout({
             <div className="flex-1 md:ml-64 flex flex-col min-h-screen">
                 {/* Header */}
                 <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b bg-background/95 backdrop-blur px-6 shadow-sm">
-                    <Sheet>
-                        <SheetTrigger asChild>
-                            <Button variant="ghost" size="icon" className="md:hidden shrink-0">
-                                <Menu className="h-5 w-5" />
-                                <span className="sr-only">Toggle menu</span>
-                            </Button>
-                        </SheetTrigger>
-                        <SheetContent side="left" className="w-[280px] p-0">
-                            <SheetTitle className="sr-only">Menu Admin</SheetTitle>
-                            <SidebarContent />
-                        </SheetContent>
-                    </Sheet>
+                    <div className="flex items-center gap-2 md:hidden">
+                        <Sheet>
+                            <SheetTrigger asChild>
+                                <Button variant="ghost" size="icon" className="shrink-0">
+                                    <Menu className="h-5 w-5" />
+                                    <span className="sr-only">Menu</span>
+                                </Button>
+                            </SheetTrigger>
+                            <SheetContent side="left" className="w-[280px] p-0">
+                                <SheetTitle className="sr-only">Menu Admin</SheetTitle>
+                                <SidebarContent />
+                            </SheetContent>
+                        </Sheet>
+                        <Link href="/admin/dashboard" className="font-bold text-lg flex items-center gap-2">
+                            <div className="p-1 rounded-md bg-primary/10">
+                                <Truck className="h-4 w-4 text-primary" />
+                            </div>
+                            <span className="hidden sm:inline-block">HBC Admin</span>
+                        </Link>
+                    </div>
 
                     <div className="w-full flex-1 md:w-auto md:flex-none">
                         <form className="relative">
@@ -121,8 +135,11 @@ export default function AdminLayout({
                             <Input
                                 type="search"
                                 placeholder="Rechercher..."
-                                className="w-full bg-background pl-8 md:w-[300px] lg:w-[400px]"
+                                className="w-full bg-background pl-8 md:w-[300px] lg:w-[400px] hidden sm:block"
                             />
+                            <Button variant="ghost" size="icon" className="sm:hidden absolute left-0 top-0 h-9 w-9">
+                                <Search className="h-4 w-4 text-muted-foreground" />
+                            </Button>
                         </form>
                     </div>
 

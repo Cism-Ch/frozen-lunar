@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Bell, Check, Clock, Info, MessageSquare, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,44 +26,62 @@ type Notification = {
     timestamp: Date;
 };
 
-// Initial mock data
-const initialNotifications: Notification[] = [
-    {
-        id: "1",
-        title: "Nouveau devis reçu",
-        description: "Un client a demandé un devis pour un transport Paris-Lyon.",
-        type: "info",
-        read: false,
-        timestamp: new Date(Date.now() - 1000 * 60 * 5), // 5 mins ago
-    },
-    {
-        id: "2",
-        title: "Paiement confirmé",
-        description: "Le paiement pour la commande #INV-2024-001 a été reçu.",
-        type: "success",
-        read: false,
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-    },
-    {
-        id: "3",
-        title: "Maintenance système",
-        description: "Une maintenance est prévue ce soir à 23h00.",
-        type: "warning",
-        read: true,
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-    },
-    {
-        id: "4",
-        title: "Nouveau message",
-        description: "Sophie Martin vous a envoyé un message concernant sa commande.",
-        type: "message",
-        read: true,
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 48), // 2 days ago
-    },
-];
+// Initial mock data with stable dates for server rendering
+// We will update them to "relative" times on client mount if needed, 
+// but for now, let's just use fixed ISO strings or ensure we only render them on client.
+const initialNotifications: Notification[] = [];
+
 
 export function AdminNotifications() {
-    const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+        setNotifications([
+            {
+                id: "1",
+                title: "Nouveau devis reçu",
+                description: "Un client a demandé un devis pour un transport Paris-Lyon.",
+                type: "info",
+                read: false,
+                timestamp: new Date(Date.now() - 1000 * 60 * 5), // 5 mins ago
+            },
+            {
+                id: "2",
+                title: "Paiement confirmé",
+                description: "Le paiement pour la commande #INV-2024-001 a été reçu.",
+                type: "success",
+                read: false,
+                timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
+            },
+            {
+                id: "3",
+                title: "Maintenance système",
+                description: "Une maintenance est prévue ce soir à 23h00.",
+                type: "warning",
+                read: true,
+                timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
+            },
+            {
+                id: "4",
+                title: "Nouveau message",
+                description: "Sophie Martin vous a envoyé un message concernant sa commande.",
+                type: "message",
+                read: true,
+                timestamp: new Date(Date.now() - 1000 * 60 * 60 * 48), // 2 days ago
+            },
+        ]);
+    }, []);
+
+    if (!isMounted) {
+        return (
+            <Button variant="ghost" size="icon" className="relative">
+                <Bell className="h-5 w-5 text-muted-foreground" />
+            </Button>
+        );
+    }
+
     const unreadCount = notifications.filter((n) => !n.read).length;
 
     const markAllAsRead = () => {
