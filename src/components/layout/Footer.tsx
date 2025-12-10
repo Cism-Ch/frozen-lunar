@@ -10,9 +10,9 @@ export function Footer() {
     <footer className="w-full border-t bg-muted/30">
       <div className="container mx-auto px-4 md:px-6 lg:px-8 py-12 md:py-16">
         {/* Main Footer Content */}
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4 text-center sm:text-left">
           {/* Company Info */}
-          <div className="space-y-4">
+          <div className="space-y-4 flex flex-col items-center sm:items-start">
             <Link href="/" className="flex items-center gap-2 group">
               <div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
                 <Truck className="h-6 w-6 text-primary" />
@@ -21,7 +21,7 @@ export function Footer() {
                 HBC LOGISTIQUE
               </span>
             </Link>
-            <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-xs mx-auto sm:mx-0">
               Votre sécurité, notre priorité. Solutions logistiques complètes pour professionnels et particuliers.
             </p>
             {/* Social Links */}
@@ -55,7 +55,7 @@ export function Footer() {
                 { name: "Transport de Machines", href: "/services" },
                 { name: "Tous nos services", href: "/services" },
               ].map((item) => (
-                <li key={item.name}>
+                <li key={item.name} className="flex justify-center sm:justify-start">
                   <Link
                     href={item.href}
                     className="text-muted-foreground hover:text-primary transition-colors inline-flex items-center group"
@@ -82,7 +82,7 @@ export function Footer() {
                 { name: "CGV", href: "/legal/cgv" },
                 { name: "Espace Admin", href: "/admin/dashboard" },
               ].map((item) => (
-                <li key={item.name}>
+                <li key={item.name} className="flex justify-center sm:justify-start">
                   <Link
                     href={item.href}
                     className="text-muted-foreground hover:text-primary transition-colors inline-flex items-center group"
@@ -102,17 +102,17 @@ export function Footer() {
               Contact
             </h3>
             <ul className="space-y-3 text-sm text-muted-foreground">
-              <li className="flex items-start gap-2">
+              <li className="flex items-start gap-2 justify-center sm:justify-start">
                 <MapPin className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
                 <span>123 Rue de la Logistique<br />75000 Paris, France</span>
               </li>
-              <li className="flex items-center gap-2">
+              <li className="flex items-center gap-2 justify-center sm:justify-start">
                 <Mail className="h-4 w-4 text-primary flex-shrink-0" />
                 <a href="mailto:contact@hbc-logistique.com" className="hover:text-primary transition-colors">
                   contact@hbc-logistique.com
                 </a>
               </li>
-              <li className="flex items-center gap-2">
+              <li className="flex items-center gap-2 justify-center sm:justify-start">
                 <Phone className="h-4 w-4 text-primary flex-shrink-0" />
                 <a href="tel:+33123456789" className="hover:text-primary transition-colors">
                   +33 1 23 45 67 89
@@ -123,7 +123,7 @@ export function Footer() {
             {/* Newsletter */}
             <div className="pt-4 space-y-2">
               <p className="text-sm font-medium">Newsletter</p>
-              <div className="flex gap-2">
+              <div className="flex gap-2 justify-center sm:justify-start">
                 <Input
                   type="email"
                   placeholder="Votre email"
@@ -139,7 +139,7 @@ export function Footer() {
 
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t text-center">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground text-balance">
             © {currentYear} HBC Service Cash Logistique Immobilière. Tous droits réservés.
           </p>
         </div>

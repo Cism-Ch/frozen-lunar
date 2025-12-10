@@ -99,6 +99,13 @@ export default function QuoteModerationPage() {
     const applyEstimation = () => {
         if (aiEstimation) {
             setAmount(aiEstimation.price.replace(/[^0-9,]/g, '') + "€ HT"); // Basic parsing
+            quoteStorage.addNote(quote?.id || "", `Estimation IA appliquée: ${aiEstimation.price}`);
+            toast.success("Prix appliqué");
+            // Refresh quote to see history
+            if (quote) {
+                const updated = quoteStorage.getById(quote.id);
+                if (updated) setQuote(updated);
+            }
         }
     };
 
@@ -161,16 +168,16 @@ export default function QuoteModerationPage() {
     return (
         <div className="space-y-6 max-w-7xl mx-auto">
             {/* Header */}
-            <div className="flex flex-col gap-4 md:flex-row md:items-center justify-between">
-                <div className="flex items-center gap-4">
+            <div className="flex flex-col gap-4">
+                <div className="flex items-start gap-3 sm:gap-4">
                     <Link href="/admin/quotes">
-                        <Button variant="outline" size="icon" className="h-9 w-9">
+                        <Button variant="outline" size="icon" className="h-9 w-9 shrink-0">
                             <ArrowLeft className="h-4 w-4" />
                         </Button>
                     </Link>
-                    <div>
-                        <div className="flex items-center gap-3">
-                            <h1 className="text-2xl font-bold tracking-tight">Dossier {quote.id}</h1>
+                    <div className="flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                            <h1 className="text-lg sm:text-2xl font-bold tracking-tight truncate">Dossier {quote.id.slice(0, 8)}...</h1>
                             <Badge
                                 variant="outline"
                                 className={
@@ -188,28 +195,27 @@ export default function QuoteModerationPage() {
                     </div>
                 </div>
 
-
-
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                     <Button
                         variant="outline"
-                        onClick={() => generateQuotePDF(quote)}
-                        className="hidden md:flex"
+                        size="sm"
+                        onClick={() => {
+                            generateQuotePDF(quote);
+                            quoteStorage.addNote(quote.id, "PDF généré et téléchargé");
+                            const updated = quoteStorage.getById(quote.id);
+                            if (updated) setQuote(updated);
+                        }}
+                        className="gap-2"
                     >
-                        <Download className="mr-2 h-4 w-4" />
-                        PDF
+                        <Download className="h-4 w-4" />
+                        <span className="hidden sm:inline">Télécharger</span> PDF
                     </Button>
 
                     {hasChanges && (
-                        <div className="flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
-                            <span className="text-sm text-muted-foreground hidden sm:inline-block">
-                                Modifications non enregistrées
-                            </span>
-                            <Button onClick={handleSaveChanges} className="bg-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all">
-                                <Save className="mr-2 h-4 w-4" />
-                                Enregistrer
-                            </Button>
-                        </div>
+                        <Button onClick={handleSaveChanges} size="sm" className="bg-primary text-primary-foreground shadow-lg gap-2">
+                            <Save className="h-4 w-4" />
+                            <span className="hidden sm:inline">Enregistrer</span>
+                        </Button>
                     )}
                 </div>
             </div>
@@ -252,7 +258,7 @@ export default function QuoteModerationPage() {
 
                             <Separator className="my-6" />
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="flex items-center gap-3 p-3 bg-muted/20 rounded-lg">
                                     <CalendarIcon className="h-5 w-5 text-muted-foreground" />
                                     <div>
@@ -345,7 +351,7 @@ export default function QuoteModerationPage() {
                                 </div>
                                 {aiEstimation && (
                                     <div className="mt-4 p-3 bg-purple-500/5 border border-purple-200/20 rounded-lg text-sm space-y-2 animate-in fade-in slide-in-from-top-2">
-                                        <div className="flex justify-between font-medium text-purple-700">
+                                        <div className="flex flex-col sm:flex-row sm:justify-between gap-1 font-medium text-purple-700">
                                             <span>Estimation: {aiEstimation.price}</span>
                                             <span>{aiEstimation.distance} / {aiEstimation.duration}</span>
                                         </div>
@@ -424,12 +430,12 @@ export default function QuoteModerationPage() {
 
                             <Separator className="my-2" />
 
-                            <div className="grid grid-cols-2 gap-2">
-                                <Button size="sm" variant="ghost" onClick={() => handleGenerateEmail("validation")}>
-                                    <Sparkles className="mr-2 h-3 w-3 text-purple-500" /> Validation
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <Button size="sm" variant="ghost" className="justify-start sm:justify-center" onClick={() => handleGenerateEmail("validation")}>
+                                    <Sparkles className="mr-2 h-3 w-3 text-purple-500" /> Email Validation
                                 </Button>
-                                <Button size="sm" variant="ghost" onClick={() => handleGenerateEmail("refusal")}>
-                                    <Sparkles className="mr-2 h-3 w-3 text-purple-500" /> Refus
+                                <Button size="sm" variant="ghost" className="justify-start sm:justify-center" onClick={() => handleGenerateEmail("refusal")}>
+                                    <Sparkles className="mr-2 h-3 w-3 text-purple-500" /> Email Refus
                                 </Button>
                             </div>
                         </CardContent>

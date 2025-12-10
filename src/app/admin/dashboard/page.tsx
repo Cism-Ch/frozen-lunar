@@ -80,14 +80,14 @@ export default function DashboardPage() {
 
     return (
         <div className="space-y-8">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">Tableau de bord</h1>
                     <p className="text-muted-foreground mt-1">
                         Vue d'ensemble de votre activité et des demandes récentes.
                     </p>
                 </div>
-                <Button asChild>
+                <Button asChild className="w-full sm:w-auto">
                     <Link href="/admin/quotes">
                         Voir tous les devis
                     </Link>
@@ -119,7 +119,7 @@ export default function DashboardPage() {
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
                 {/* Revenue Chart Placeholder */}
-                <Card className="col-span-4">
+                <Card className="col-span-full lg:col-span-4">
                     <CardHeader>
                         <CardTitle>Activité Mensuelle</CardTitle>
                         <CardDescription>Nombre de demandes de devis par jour sur les 30 derniers jours.</CardDescription>
@@ -138,7 +138,7 @@ export default function DashboardPage() {
                 </Card>
 
                 {/* Recent Quotes */}
-                <Card className="col-span-3">
+                <Card className="col-span-full lg:col-span-3">
                     <CardHeader>
                         <CardTitle>Devis Récents</CardTitle>
                         <CardDescription>Les 5 dernières demandes reçues.</CardDescription>

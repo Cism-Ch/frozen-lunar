@@ -9,6 +9,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { HelpCircle } from "lucide-react";
+import { ScrollReveal, StaggerContainer, StaggerItem, motion } from "@/components/ui/motion";
 
 const faqs = [
   {
@@ -40,7 +41,7 @@ const faqs = [
 export function FAQSection() {
   return (
     <SectionContainer className="bg-background">
-      <div className="text-center space-y-4 mb-16">
+      <ScrollReveal className="text-center space-y-4 mb-16">
         <Badge variant="outline" className="mb-2">FAQ</Badge>
         <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
           Questions Fréquentes
@@ -48,34 +49,46 @@ export function FAQSection() {
         <p className="max-w-[700px] mx-auto text-lg md:text-xl text-muted-foreground">
           Trouvez rapidement les réponses à vos questions
         </p>
-      </div>
+      </ScrollReveal>
 
       <div className="max-w-3xl mx-auto">
-        <Accordion type="single" collapsible className="w-full space-y-4">
-          {faqs.map((faq, index) => (
-            <AccordionItem
-              key={index}
-              value={`item-${index}`}
-              className="border-2 rounded-lg px-6 hover:border-primary/50 transition-colors"
-            >
-              <AccordionTrigger className="text-left hover:no-underline py-6">
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 mt-1">
-                    <div className="p-2 rounded-lg bg-primary/10">
-                      <HelpCircle className="h-5 w-5 text-primary" />
-                    </div>
-                  </div>
-                  <span className="font-semibold text-lg">
-                    {faq.question}
-                  </span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="text-muted-foreground leading-relaxed pl-16 pb-6">
-                {faq.answer}
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
+        <StaggerContainer staggerSpeed="fast">
+          <Accordion type="single" collapsible className="w-full space-y-4">
+            {faqs.map((faq, index) => (
+              <StaggerItem key={index}>
+                <motion.div
+                  whileHover={{ scale: 1.01 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                >
+                  <AccordionItem
+                    value={`item-${index}`}
+                    className="border-2 rounded-lg px-6 hover:border-primary/50 transition-colors data-[state=open]:border-primary/50"
+                  >
+                    <AccordionTrigger className="text-left hover:no-underline py-6 group">
+                      <div className="flex items-start gap-4">
+                        <div className="flex-shrink-0 mt-1">
+                          <motion.div
+                            className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors"
+                            whileHover={{ rotate: 15 }}
+                            transition={{ type: "spring", stiffness: 300 }}
+                          >
+                            <HelpCircle className="h-5 w-5 text-primary" />
+                          </motion.div>
+                        </div>
+                        <span className="font-semibold text-lg group-hover:text-primary transition-colors">
+                          {faq.question}
+                        </span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="text-muted-foreground leading-relaxed pl-16 pb-6">
+                      {faq.answer}
+                    </AccordionContent>
+                  </AccordionItem>
+                </motion.div>
+              </StaggerItem>
+            ))}
+          </Accordion>
+        </StaggerContainer>
       </div>
     </SectionContainer>
   );

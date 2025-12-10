@@ -17,7 +17,7 @@ export default function SettingsPage() {
 
     return (
         <div className="space-y-6">
-            <div>
+            <div className="text-center sm:text-left">
                 <h3 className="text-3xl font-bold tracking-tight">Paramètres</h3>
                 <p className="text-muted-foreground mt-2">
                     Gérez les préférences de votre compte et de l'application.
@@ -25,11 +25,11 @@ export default function SettingsPage() {
             </div>
 
             <Tabs defaultValue="general" className="space-y-4">
-                <TabsList>
-                    <TabsTrigger value="general" className="gap-2"><User className="h-4 w-4" /> Général</TabsTrigger>
-                    <TabsTrigger value="notifications" className="gap-2"><Bell className="h-4 w-4" /> Notifications</TabsTrigger>
-                    <TabsTrigger value="company" className="gap-2"><Building className="h-4 w-4" /> Entreprise</TabsTrigger>
-                    <TabsTrigger value="security" className="gap-2"><Lock className="h-4 w-4" /> Sécurité</TabsTrigger>
+                <TabsList className="w-full flex flex-wrap h-auto gap-1 sm:w-auto sm:inline-flex">
+                    <TabsTrigger value="general" className="gap-2 flex-1 sm:flex-none"><User className="h-4 w-4" /> <span className="hidden sm:inline">Général</span></TabsTrigger>
+                    <TabsTrigger value="notifications" className="gap-2 flex-1 sm:flex-none"><Bell className="h-4 w-4" /> <span className="hidden sm:inline">Notifications</span></TabsTrigger>
+                    <TabsTrigger value="company" className="gap-2 flex-1 sm:flex-none"><Building className="h-4 w-4" /> <span className="hidden sm:inline">Entreprise</span></TabsTrigger>
+                    <TabsTrigger value="security" className="gap-2 flex-1 sm:flex-none"><Lock className="h-4 w-4" /> <span className="hidden sm:inline">Sécurité</span></TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="general">
@@ -51,7 +51,7 @@ export default function SettingsPage() {
                             </div>
                         </CardContent>
                         <CardFooter>
-                            <Button onClick={handleSave} className="gap-2">
+                            <Button onClick={handleSave} className="gap-2 w-full sm:w-auto">
                                 <Save className="h-4 w-4" /> Enregistrer
                             </Button>
                         </CardFooter>
@@ -67,7 +67,7 @@ export default function SettingsPage() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="flex items-center justify-between rounded-lg border p-4">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border p-4">
                                 <div className="space-y-0.5">
                                     <Label className="text-base">Nouvelles demandes de devis</Label>
                                     <p className="text-sm text-muted-foreground">
@@ -76,7 +76,7 @@ export default function SettingsPage() {
                                 </div>
                                 <Switch defaultChecked />
                             </div>
-                            <div className="flex items-center justify-between rounded-lg border p-4">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border p-4">
                                 <div className="space-y-0.5">
                                     <Label className="text-base">Rapport d'activité hebdomadaire</Label>
                                     <p className="text-sm text-muted-foreground">
@@ -85,7 +85,7 @@ export default function SettingsPage() {
                                 </div>
                                 <Switch defaultChecked />
                             </div>
-                            <div className="flex items-center justify-between rounded-lg border p-4">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border p-4">
                                 <div className="space-y-0.5">
                                     <Label className="text-base">Mises à jour système</Label>
                                     <p className="text-sm text-muted-foreground">
@@ -96,7 +96,7 @@ export default function SettingsPage() {
                             </div>
                         </CardContent>
                         <CardFooter>
-                            <Button onClick={handleSave} className="gap-2">
+                            <Button onClick={handleSave} className="gap-2 w-full sm:w-auto">
                                 <Save className="h-4 w-4" /> Enregistrer
                             </Button>
                         </CardFooter>
@@ -120,7 +120,7 @@ export default function SettingsPage() {
                                 <Label htmlFor="address">Adresse du siège</Label>
                                 <Input id="address" defaultValue="123 Avenue du Transport, 75000 Paris" />
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="grid gap-2">
                                     <Label htmlFor="siret">SIRET</Label>
                                     <Input id="siret" defaultValue="123 456 789 00012" />
@@ -132,7 +132,7 @@ export default function SettingsPage() {
                             </div>
                         </CardContent>
                         <CardFooter>
-                            <Button onClick={handleSave} className="gap-2">
+                            <Button onClick={handleSave} className="gap-2 w-full sm:w-auto">
                                 <Save className="h-4 w-4" /> Enregistrer
                             </Button>
                         </CardFooter>
@@ -162,7 +162,7 @@ export default function SettingsPage() {
                             </div>
                         </CardContent>
                         <CardFooter>
-                            <Button onClick={handleSave} className="gap-2">
+                            <Button onClick={handleSave} className="gap-2 w-full sm:w-auto">
                                 <Save className="h-4 w-4" /> Mettre à jour
                             </Button>
                         </CardFooter>

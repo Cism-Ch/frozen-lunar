@@ -1,3 +1,5 @@
+"use client";
+
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { FeatureCard } from "@/components/features/FeatureCard";
@@ -34,22 +36,22 @@ export default function AboutPage() {
                 {/* Hero Section */}
                 <SectionContainer className="pt-20 pb-16 md:pt-32 md:pb-24 bg-gradient-to-b from-muted/50 to-background">
                     <div className="grid gap-12 lg:grid-cols-2 items-center">
-                        <div className="space-y-6">
-                            <Badge variant="outline" className="mb-2">À Propos</Badge>
-                            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
+                        <div className="space-y-6 text-center lg:text-left">
+                            <Badge variant="outline" className="mb-2 mx-auto lg:mx-0">À Propos</Badge>
+                            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl text-balance">
                                 Votre partenaire{" "}
                                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
                                     logistique
                                 </span>
                             </h1>
-                            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
+                            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-[90%] mx-auto lg:mx-0">
                                 HBC SERVICE CASH LOGISTIQUE IMMOBILIÈRE est votre partenaire de confiance pour tous vos besoins de transport et de logistique.
                             </p>
-                            <p className="text-lg text-muted-foreground leading-relaxed">
+                            <p className="text-lg text-muted-foreground leading-relaxed max-w-[90%] mx-auto lg:mx-0">
                                 Fondée sur des valeurs de sécurité et d'efficacité, notre mission est de simplifier vos projets avec des solutions adaptées et un service irréprochable.
                             </p>
-                            <div className="pt-4">
-                                <Button size="lg" className="text-lg px-8 h-14 font-semibold group" asChild>
+                            <div className="pt-4 flex justify-center lg:justify-start">
+                                <Button size="lg" className="text-lg px-8 h-14 font-semibold group w-full sm:w-auto" asChild>
                                     <a href="/devis">
                                         Demander un devis
                                         <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
@@ -75,7 +77,7 @@ export default function AboutPage() {
                         <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
                             Ce qui nous anime
                         </h2>
-                        <p className="max-w-[700px] mx-auto text-lg md:text-xl text-muted-foreground">
+                        <p className="max-w-[700px] mx-auto text-lg md:text-xl text-muted-foreground text-balance">
                             "Votre sécurité, Notre priorité" n'est pas seulement un slogan, c'est notre engagement quotidien.
                         </p>
                     </div>

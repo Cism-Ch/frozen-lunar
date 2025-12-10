@@ -31,12 +31,12 @@ export function QuoteDetailsSheet({ quote, open, onOpenChange, onUpdate }: Quote
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetContent className="sm:max-w-xl overflow-y-auto p-0 gap-0">
-                <SheetHeader className="p-6 bg-muted/10 border-b space-y-4 pr-12">
+            <SheetContent className="w-full sm:max-w-xl overflow-y-auto p-0 gap-0">
+                <SheetHeader className="p-4 sm:p-6 bg-muted/10 border-b space-y-4 pr-12">
                     <div className="flex flex-col gap-2">
-                        <div className="flex items-center gap-3">
-                            <SheetTitle className="text-2xl font-bold flex items-center gap-2">
-                                <Truck className="h-6 w-6 text-primary" />
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                            <SheetTitle className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+                                <Truck className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                                 Détails du Devis
                             </SheetTitle>
                             <Badge
@@ -51,13 +51,20 @@ export function QuoteDetailsSheet({ quote, open, onOpenChange, onUpdate }: Quote
                             </Badge>
                         </div>
                     </div>
-                    <SheetDescription className="flex items-center gap-2 text-sm bg-background/50 p-2 rounded-md border w-fit">
-                        <span className="text-muted-foreground w-20">Référence</span>
-                        <span className="font-mono font-bold text-foreground">{quote.id}</span>
-                    </SheetDescription>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <SheetDescription className="flex items-center gap-2 text-xs sm:text-sm bg-background/50 p-2 rounded-md border w-full sm:w-fit">
+                            <span className="text-muted-foreground">Réf.</span>
+                            <span className="font-mono font-bold text-foreground truncate">{quote.id}</span>
+                        </SheetDescription>
+                        <Button size="sm" variant="outline" className="gap-2 w-full sm:w-auto" asChild>
+                            <a href={`/admin/quotes/${encodeURIComponent(quote.id)}`}>
+                                Ouvrir l'espace de travail
+                            </a>
+                        </Button>
+                    </div>
                 </SheetHeader>
 
-                <div className="p-6 space-y-8">
+                <div className="p-4 sm:p-6 space-y-6 sm:space-y-8">
                     {/* Client Information */}
                     <div className="space-y-4">
                         <div className="flex items-center gap-2 text-primary font-semibold tracking-wide text-sm uppercase">
@@ -101,7 +108,7 @@ export function QuoteDetailsSheet({ quote, open, onOpenChange, onUpdate }: Quote
                             Logistique
                         </div>
                         <div className="bg-muted/10 border rounded-xl overflow-hidden">
-                            <div className="grid grid-cols-2 divide-x divide-border border-b border-border/50">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 sm:divide-x divide-y sm:divide-y-0 divide-border border-b border-border/50">
                                 <div className="p-4 flex flex-col gap-1">
                                     <span className="text-xs text-muted-foreground uppercase font-semibold">Type</span>
                                     <span className="font-medium capitalize flex items-center gap-2">
@@ -180,11 +187,7 @@ export function QuoteDetailsSheet({ quote, open, onOpenChange, onUpdate }: Quote
                             Réinitialiser le statut
                         </Button>
                     )}
-                    <a href={`/admin/quotes/${encodeURIComponent(quote.id)}`} className="w-full sm:w-auto">
-                        <Button variant="ghost" className="w-full">
-                            Ouvrir l'espace de travail
-                        </Button>
-                    </a>
+
                 </SheetFooter>
             </SheetContent >
         </Sheet >

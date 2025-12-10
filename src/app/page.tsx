@@ -1,3 +1,5 @@
+"use client";
+
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { ServiceCard } from "@/components/features/ServiceCard";
@@ -12,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { services, features } from "@/config/marketing";
 import { Truck, ArrowRight, Star } from "lucide-react";
+import { FadeIn, ScrollReveal, StaggerContainer, StaggerItem, CountUp, motion } from "@/components/ui/motion";
 
 export default function Home() {
   return (
@@ -25,71 +28,122 @@ export default function Home() {
           <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
             <div className="space-y-8">
               {/* Trust Badges */}
-              <div className="flex flex-wrap gap-3">
-                <Badge variant="secondary" className="px-3 py-1.5 text-sm font-medium">
-                  <Star className="h-3.5 w-3.5 mr-1.5 fill-primary text-primary" />
-                  +15 ans d'expérience
-                </Badge>
-                <Badge variant="secondary" className="px-3 py-1.5 text-sm font-medium">
-                  <Star className="h-3.5 w-3.5 mr-1.5 fill-primary text-primary" />
-                  500+ clients satisfaits
-                </Badge>
-              </div>
+              <FadeIn direction="down" delay={0.1}>
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="secondary" className="px-3 py-1.5 text-xs sm:text-sm font-medium whitespace-nowrap">
+                    <Star className="h-3.5 w-3.5 mr-1.5 fill-primary text-primary" />
+                    +15 ans d&apos;expérience
+                  </Badge>
+                  <Badge variant="secondary" className="px-3 py-1.5 text-xs sm:text-sm font-medium whitespace-nowrap">
+                    <Star className="h-3.5 w-3.5 mr-1.5 fill-primary text-primary" />
+                    500+ clients satisfaits
+                  </Badge>
+                </div>
+              </FadeIn>
 
               <div className="space-y-6">
-                <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl text-foreground leading-tight">
-                  Trouvez le transport{" "}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
-                    qu'il vous faut
-                  </span>
-                </h1>
-                <p className="text-lg md:text-xl text-muted-foreground max-w-[600px] leading-relaxed">
-                  Réservez en quelques clics les meilleurs services de transport pour tous vos projets.
-                  Simple, rapide et fiable.
-                </p>
+                <FadeIn direction="up" delay={0.2}>
+                  <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl text-foreground leading-tight text-balance">
+                    Trouvez le transport{" "}
+                    <motion.span
+                      className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60 inline-block"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4, type: "spring", stiffness: 100 }}
+                    >
+                      qu&apos;il vous faut
+                    </motion.span>
+                  </h1>
+                </FadeIn>
+                <FadeIn direction="up" delay={0.3}>
+                  <p className="text-lg md:text-xl text-muted-foreground max-w-[600px] leading-relaxed">
+                    Réservez en quelques clics les meilleurs services de transport pour tous vos projets.
+                    Simple, rapide et fiable.
+                  </p>
+                </FadeIn>
               </div>
 
-              <div className="flex flex-col gap-3 min-[400px]:flex-row">
-                <Button size="lg" className="text-lg px-8 h-14 font-semibold group" asChild>
-                  <a href="/devis">
-                    Demander un devis
-                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                  </a>
-                </Button>
-                <Button size="lg" variant="outline" className="text-lg px-8 h-14 font-semibold" asChild>
-                  <a href="#services">Nos Services</a>
-                </Button>
-              </div>
+              <FadeIn direction="up" delay={0.4}>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                  >
+                    <Button size="lg" className="text-lg px-8 h-14 font-semibold group w-full sm:w-auto" asChild>
+                      <a href="/devis">
+                        Demander un devis
+                        <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                      </a>
+                    </Button>
+                  </motion.div>
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                  >
+                    <Button size="lg" variant="outline" className="text-lg px-8 h-14 font-semibold w-full sm:w-auto" asChild>
+                      <a href="#services">Nos Services</a>
+                    </Button>
+                  </motion.div>
+                </div>
+              </FadeIn>
 
               {/* Quick Stats */}
-              <div className="grid grid-cols-3 gap-6 pt-8 border-t">
-                <div>
-                  <div className="text-3xl font-bold text-primary">98%</div>
-                  <div className="text-sm text-muted-foreground">Satisfaction</div>
+              <FadeIn direction="up" delay={0.5}>
+                <div className="grid grid-cols-3 gap-2 sm:gap-6 pt-8 border-t">
+                  <div>
+                    <div className="text-2xl sm:text-3xl font-bold text-primary">
+                      <CountUp to={98} suffix="%" duration={2} />
+                    </div>
+                    <div className="text-xs sm:text-sm text-muted-foreground">Satisfaction</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl sm:text-3xl font-bold text-primary">24/7</div>
+                    <div className="text-xs sm:text-sm text-muted-foreground">Disponible</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl sm:text-3xl font-bold text-primary">
+                      <CountUp to={100} suffix="%" duration={2.2} />
+                    </div>
+                    <div className="text-xs sm:text-sm text-muted-foreground">Sécurisé</div>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-3xl font-bold text-primary">24/7</div>
-                  <div className="text-sm text-muted-foreground">Disponible</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold text-primary">100%</div>
-                  <div className="text-sm text-muted-foreground">Sécurisé</div>
-                </div>
-              </div>
+              </FadeIn>
             </div>
 
-            <div className="relative aspect-video overflow-hidden rounded-2xl bg-muted shadow-2xl border lg:order-last group">
-              {/* Hero Image Placeholder with stylized background */}
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center group-hover:scale-105 transition-transform duration-700">
-                <div className="relative">
-                  <div className="absolute -inset-4 bg-primary/20 rounded-full blur-xl animate-pulse"></div>
-                  <Truck className="relative h-32 w-32 text-primary/40" />
+            <FadeIn direction="right" delay={0.3}>
+              <div className="relative aspect-video overflow-hidden rounded-2xl bg-muted shadow-2xl border lg:order-last group">
+                {/* Hero Image Placeholder with stylized background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center group-hover:scale-105 transition-transform duration-700">
+                  <motion.div
+                    className="relative"
+                    animate={{
+                      y: [0, -10, 0],
+                    }}
+                    transition={{
+                      duration: 4,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  >
+                    <div className="absolute -inset-4 bg-primary/20 rounded-full blur-xl animate-pulse"></div>
+                    <Truck className="relative h-32 w-32 text-primary/40" />
+                  </motion.div>
                 </div>
+                {/* Decorative elements */}
+                <motion.div
+                  className="absolute top-4 right-4 h-20 w-20 bg-primary/5 rounded-full blur-2xl"
+                  animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
+                  transition={{ duration: 3, repeat: Infinity }}
+                />
+                <motion.div
+                  className="absolute bottom-4 left-4 h-32 w-32 bg-secondary/5 rounded-full blur-3xl"
+                  animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.7, 0.5] }}
+                  transition={{ duration: 4, repeat: Infinity, delay: 1 }}
+                />
               </div>
-              {/* Decorative elements */}
-              <div className="absolute top-4 right-4 h-20 w-20 bg-primary/5 rounded-full blur-2xl"></div>
-              <div className="absolute bottom-4 left-4 h-32 w-32 bg-secondary/5 rounded-full blur-3xl"></div>
-            </div>
+            </FadeIn>
           </div>
         </SectionContainer>
 
@@ -98,7 +152,7 @@ export default function Home() {
 
         {/* Services Section */}
         <SectionContainer id="services" className="bg-muted/30">
-          <div className="text-center space-y-4 mb-16">
+          <ScrollReveal className="text-center space-y-4 mb-16">
             <Badge variant="outline" className="mb-2">Nos Services</Badge>
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl text-foreground">
               Tout ce dont votre projet a besoin
@@ -106,21 +160,22 @@ export default function Home() {
             <p className="max-w-[700px] mx-auto text-lg md:text-xl text-muted-foreground">
               Des solutions complètes pour tous vos besoins logistiques et immobiliers.
             </p>
-          </div>
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          </ScrollReveal>
+          <StaggerContainer className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3" staggerSpeed="normal">
             {services.map((service, index) => (
-              <ServiceCard
-                key={service.title}
-                {...service}
-                badge={index === 0 ? "Populaire" : undefined}
-              />
+              <StaggerItem key={service.title}>
+                <ServiceCard
+                  {...service}
+                  badge={index === 0 ? "Populaire" : undefined}
+                />
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         </SectionContainer>
 
         {/* Why Choose Us Section */}
         <SectionContainer id="why-us" className="bg-background">
-          <div className="text-center space-y-4 mb-16">
+          <ScrollReveal className="text-center space-y-4 mb-16">
             <Badge variant="outline" className="mb-2">Nos Avantages</Badge>
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl text-foreground">
               Pourquoi choisir HBC Logistique ?
@@ -128,12 +183,14 @@ export default function Home() {
             <p className="max-w-[700px] mx-auto text-lg md:text-xl text-muted-foreground">
               Des services de qualité avec des garanties exceptionnelles pour votre sérénité
             </p>
-          </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          </ScrollReveal>
+          <StaggerContainer className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4" staggerSpeed="fast">
             {features.map((feature) => (
-              <FeatureCard key={feature.title} {...feature} />
+              <StaggerItem key={feature.title}>
+                <FeatureCard {...feature} />
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         </SectionContainer>
 
         {/* Statistics Section */}
@@ -150,27 +207,41 @@ export default function Home() {
 
         {/* CTA Section */}
         <SectionContainer className="bg-gradient-to-br from-primary via-primary to-primary/90 text-primary-foreground py-24 md:py-32">
-          <div className="text-center space-y-8 max-w-3xl mx-auto">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
-              Prêt à simplifier votre logistique ?
-            </h2>
-            <p className="text-primary-foreground/90 text-lg md:text-xl leading-relaxed">
-              Obtenez votre devis gratuit en quelques secondes ou contactez-nous pour une solution sur mesure.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-              <Button size="lg" variant="secondary" className="text-lg px-8 h-14 font-semibold" asChild>
-                <a href="/devis">Demander un devis</a>
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="text-lg px-8 h-14 bg-transparent border-2 border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary font-semibold"
-                asChild
-              >
-                <a href="/contact">Contactez-nous</a>
-              </Button>
+          <ScrollReveal>
+            <div className="text-center space-y-8 max-w-3xl mx-auto">
+              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
+                Prêt à simplifier votre logistique ?
+              </h2>
+              <p className="text-primary-foreground/90 text-lg md:text-xl leading-relaxed">
+                Obtenez votre devis gratuit en quelques secondes ou contactez-nous pour une solution sur mesure.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                >
+                  <Button size="lg" variant="secondary" className="text-lg px-8 h-14 font-semibold" asChild>
+                    <a href="/devis">Demander un devis</a>
+                  </Button>
+                </motion.div>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                >
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="text-lg px-8 h-14 bg-transparent border-2 border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary font-semibold"
+                    asChild
+                  >
+                    <a href="/contact">Contactez-nous</a>
+                  </Button>
+                </motion.div>
+              </div>
             </div>
-          </div>
+          </ScrollReveal>
         </SectionContainer>
       </main>
       <Footer />

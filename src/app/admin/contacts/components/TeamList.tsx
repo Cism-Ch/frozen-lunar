@@ -78,9 +78,9 @@ export function TeamList() {
 
     return (
         <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                    <CardTitle className="flex items-center gap-2">
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="text-center sm:text-left">
+                    <CardTitle className="flex items-center justify-center sm:justify-start gap-2">
                         <Shield className="h-5 w-5 text-primary" />
                         Équipe Administrative
                     </CardTitle>
@@ -88,35 +88,34 @@ export function TeamList() {
                         Gérez les accès et les rôles des membres de l'équipe.
                     </CardDescription>
                 </div>
-                <Button onClick={() => setIsAddOpen(true)} size="sm" className="gap-2">
+                <Button onClick={() => setIsAddOpen(true)} size="sm" className="gap-2 w-full sm:w-auto">
                     <Plus className="h-4 w-4" /> Ajouter
                 </Button>
             </CardHeader>
             <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Membre</TableHead>
-                            <TableHead>Rôle</TableHead>
-                            <TableHead>Statut</TableHead>
-                            <TableHead>Dernière activité</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
+                <>
+                    {/* Mobile Card View */}
+                    <div className="space-y-4 md:hidden">
                         {MOCK_TEAM.map((member) => (
-                            <TableRow key={member.id}>
-                                <TableCell className="flex items-center gap-3">
-                                    <Avatar>
+                            <div
+                                key={member.id}
+                                className="p-4 border rounded-lg bg-card cursor-pointer hover:bg-muted/50 transition-colors"
+                                onClick={() => setSelectedMember(member)}
+                            >
+                                <div className="flex items-center gap-3 mb-3">
+                                    <Avatar className="h-10 w-10">
                                         <AvatarImage src={member.avatar} />
                                         <AvatarFallback>{member.name.slice(0, 2).toUpperCase()}</AvatarFallback>
                                     </Avatar>
-                                    <div className="flex flex-col">
-                                        <span className="font-medium">{member.name}</span>
-                                        <span className="text-xs text-muted-foreground">{member.email}</span>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-medium truncate">{member.name}</p>
+                                        <p className="text-xs text-muted-foreground truncate">{member.email}</p>
                                     </div>
-                                </TableCell>
-                                <TableCell>
+                                    <Badge variant={member.status === "Actif" ? "default" : "secondary"}>
+                                        {member.status}
+                                    </Badge>
+                                </div>
+                                <div className="flex items-center justify-between text-sm">
                                     <div className="flex items-center gap-2">
                                         {member.role === "Admin" ? (
                                             <ShieldAlert className="h-4 w-4 text-purple-600" />
@@ -125,41 +124,85 @@ export function TeamList() {
                                         ) : (
                                             <Shield className="h-4 w-4 text-blue-600" />
                                         )}
-                                        {member.role}
+                                        <span>{member.role}</span>
                                     </div>
-                                </TableCell>
-                                <TableCell>
-                                    <Badge variant={member.status === "Actif" ? "default" : "secondary"}>
-                                        {member.status}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell className="text-muted-foreground text-sm">
-                                    {member.lastActive}
-                                </TableCell>
-                                <TableCell className="text-right">
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" size="icon">
-                                                <MoreHorizontal className="h-4 w-4" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                            <DropdownMenuItem onClick={() => setSelectedMember(member)}>
-                                                Voir le profil
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem>Modifier les droits</DropdownMenuItem>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuItem className="text-red-600">
-                                                Suspendre l'accès
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </TableCell>
-                            </TableRow>
+                                    <span className="text-muted-foreground text-xs">{member.lastActive}</span>
+                                </div>
+                            </div>
                         ))}
-                    </TableBody>
-                </Table>
+                    </div>
+
+                    {/* Desktop Table View */}
+                    <div className="hidden md:block">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Membre</TableHead>
+                                    <TableHead>Rôle</TableHead>
+                                    <TableHead>Statut</TableHead>
+                                    <TableHead>Dernière activité</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {MOCK_TEAM.map((member) => (
+                                    <TableRow key={member.id}>
+                                        <TableCell className="flex items-center gap-3">
+                                            <Avatar>
+                                                <AvatarImage src={member.avatar} />
+                                                <AvatarFallback>{member.name.slice(0, 2).toUpperCase()}</AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex flex-col">
+                                                <span className="font-medium">{member.name}</span>
+                                                <span className="text-xs text-muted-foreground">{member.email}</span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-2">
+                                                {member.role === "Admin" ? (
+                                                    <ShieldAlert className="h-4 w-4 text-purple-600" />
+                                                ) : member.role === "Développeur" ? (
+                                                    <Code className="h-4 w-4 text-orange-600" />
+                                                ) : (
+                                                    <Shield className="h-4 w-4 text-blue-600" />
+                                                )}
+                                                {member.role}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge variant={member.status === "Actif" ? "default" : "secondary"}>
+                                                {member.status}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="text-muted-foreground text-sm">
+                                            {member.lastActive}
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon">
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                    <DropdownMenuItem onClick={() => setSelectedMember(member)}>
+                                                        Voir le profil
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem>Modifier les droits</DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem className="text-red-600">
+                                                        Suspendre l'accès
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+                </>
             </CardContent>
 
             <TeamMemberProfile

@@ -37,13 +37,13 @@ export default function ContactPage() {
                 <SectionContainer className="pt-20 pb-16 md:pt-32 md:pb-24 bg-gradient-to-b from-muted/50 to-background">
                     <div className="text-center space-y-6 max-w-3xl mx-auto">
                         <Badge variant="outline" className="mb-2">Contact</Badge>
-                        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
+                        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl text-balance">
                             Contactez{" "}
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
                                 notre équipe
                             </span>
                         </h1>
-                        <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
+                        <p className="text-lg md:text-xl text-muted-foreground leading-relaxed text-balance">
                             Une question ? Un projet ? Notre équipe est à votre écoute pour vous accompagner.
                         </p>
                     </div>
@@ -54,9 +54,9 @@ export default function ContactPage() {
                     <div className="grid gap-12 lg:grid-cols-2">
                         {/* Contact Info */}
                         <div className="space-y-8">
-                            <div className="space-y-4">
+                            <div className="space-y-4 text-center lg:text-left">
                                 <h2 className="text-3xl font-bold">Nos coordonnées</h2>
-                                <p className="text-lg text-muted-foreground">
+                                <p className="text-lg text-muted-foreground text-balance">
                                     N'hésitez pas à nous contacter par téléphone, email ou à nous rendre visite.
                                 </p>
                             </div>
