@@ -19,6 +19,7 @@ import { StepItemType } from "./quote-wizard/steps/StepItemType";
 import { StepLocation } from "./quote-wizard/steps/StepLocation";
 import { StepDate } from "./quote-wizard/steps/StepDate";
 import { StepContact } from "./quote-wizard/steps/StepContact";
+import { StepNotes } from "./quote-wizard/steps/StepNotes";
 
 const formSchema = z.object({
     itemType: z.string().min(2, {
@@ -36,7 +37,10 @@ const formSchema = z.object({
     fullName: z.string().min(2, "Le nom est requis"),
     email: z.string().email("Email invalide"),
     phone: z.string().min(10, "Le téléphone est requis"),
+    userNotes: z.string().optional(),
 });
+
+const TOTAL_STEPS = 6;
 
 export function QuoteWizard() {
     const [step, setStep] = useState(1);
@@ -52,13 +56,13 @@ export function QuoteWizard() {
             fullName: "",
             email: "",
             phone: "",
+            userNotes: "",
         },
     });
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsSubmitting(true);
         try {
-            // Simulate network delay
             await new Promise(resolve => setTimeout(resolve, 1500));
 
             const newQuote = quoteStorage.add({
@@ -69,9 +73,10 @@ export function QuoteWizard() {
                 pickup: values.pickupLocation,
                 dropoff: values.dropoffLocation,
                 transportDate: values.transportDate.toISOString(),
+                userNotes: values.userNotes || undefined,
+                source: "form",
             });
 
-            // Store data for summary and open modal
             setSummaryData({ ...values, id: newQuote.id });
         } catch (error) {
             toast.error("Une erreur est survenue lors de l'envoi de la demande.");
@@ -93,6 +98,7 @@ export function QuoteWizard() {
         if (step === 3) fieldsToValidate = ["dropoffLocation"];
         if (step === 4) fieldsToValidate = ["transportDate"];
         if (step === 5) fieldsToValidate = ["fullName", "email", "phone"];
+        // Step 6 (notes) is optional, no validation needed
 
         const isValid = await form.trigger(fieldsToValidate);
         if (isValid) setStep(step + 1);
@@ -102,7 +108,7 @@ export function QuoteWizard() {
 
     return (
         <Card className="w-full max-w-2xl mx-auto shadow-2xl border-muted/40 overflow-hidden">
-            <WizardHeader step={step} totalSteps={5} />
+            <WizardHeader step={step} totalSteps={TOTAL_STEPS} />
 
             <CardContent className="p-6 md:p-8 min-h-[300px]">
                 <Form {...form}>
@@ -130,13 +136,15 @@ export function QuoteWizard() {
                         {step === 4 && <StepDate />}
 
                         {step === 5 && <StepContact />}
+
+                        {step === 6 && <StepNotes />}
                     </form>
                 </Form>
             </CardContent>
 
             <WizardFooter
                 step={step}
-                totalSteps={5}
+                totalSteps={TOTAL_STEPS}
                 isSubmitting={isSubmitting}
                 onNext={nextStep}
                 onPrev={prevStep}

@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 import { WhatsAppButton } from "@/components/features/WhatsAppButton";
+import { SupportChatButton } from "@/components/features/support";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -27,6 +28,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          <SupportChatButton />
           <WhatsAppButton />
           <Toaster />
         </ThemeProvider>

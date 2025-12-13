@@ -2,7 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { CardTitle, CardDescription } from "@/components/ui/card";
-import { Package, MapPin, Truck, CalendarIcon, User } from "lucide-react";
+import { Package, MapPin, Truck, CalendarIcon, User, MessageSquare } from "lucide-react";
 
 interface WizardHeaderProps {
     step: number;
@@ -21,6 +21,7 @@ export function WizardHeader({ step, totalSteps }: WizardHeaderProps) {
                         {step === 3 && "Lieu d'arrivée"}
                         {step === 4 && "Date du transport"}
                         {step === 5 && "Vos coordonnées"}
+                        {step === 6 && "Notes (optionnel)"}
                     </CardTitle>
                     <CardDescription className="mt-1">
                         {step === 1 && "Sélectionnez le type de marchandise"}
@@ -28,6 +29,7 @@ export function WizardHeader({ step, totalSteps }: WizardHeaderProps) {
                         {step === 3 && "Où devons-nous livrer la marchandise ?"}
                         {step === 4 && "Quand souhaitez-vous être livré ?"}
                         {step === 5 && "Pour vous envoyer votre devis personnalisé"}
+                        {step === 6 && "Ajoutez des informations complémentaires si besoin"}
                     </CardDescription>
                 </div>
                 <div className="hidden md:block">
@@ -37,6 +39,7 @@ export function WizardHeader({ step, totalSteps }: WizardHeaderProps) {
                         {step === 3 && <Truck className="h-8 w-8 text-primary" />}
                         {step === 4 && <CalendarIcon className="h-8 w-8 text-primary" />}
                         {step === 5 && <User className="h-8 w-8 text-primary" />}
+                        {step === 6 && <MessageSquare className="h-8 w-8 text-primary" />}
                     </div>
                 </div>
             </div>

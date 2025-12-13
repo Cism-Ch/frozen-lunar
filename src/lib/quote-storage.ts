@@ -3,7 +3,33 @@ export interface QuoteHistoryEvent {
     action: string;
     description?: string;
     timestamp: string;
-    user: string; // Mock user for now
+    user: string;
+}
+
+export interface QuoteSupplementaryInfo {
+    category: "materials" | "container" | "machinery" | "structure" | "other";
+    // Matériaux
+    materialType?: string;
+    weight?: string;
+    packaging?: string;
+    hazardous?: boolean;
+    stackable?: boolean;
+    // Container
+    containerSize?: string;
+    containerType?: string;
+    loadingType?: string;
+    isEmpty?: boolean;
+    // Machine
+    machineType?: string;
+    dimensions?: string;
+    requiresCrane?: boolean;
+    // Charpente
+    structureType?: string;
+    length?: string;
+    // Commun
+    specialRequirements?: string;
+    accessInfo?: string;
+    urgency?: "standard" | "urgent" | "very_urgent";
 }
 
 export interface Quote {
@@ -19,6 +45,9 @@ export interface Quote {
     status: "En attente" | "Validé" | "Refusé";
     amount: string;
     notes?: string;
+    userNotes?: string;
+    supplementaryInfo?: QuoteSupplementaryInfo;
+    source: "form" | "chat";
     history?: QuoteHistoryEvent[];
 }
 
@@ -38,17 +67,18 @@ export const quoteStorage = {
 
     add: (quote: Omit<Quote, "id" | "date" | "status" | "amount" | "history">) => {
         const quotes = quoteStorage.getAll();
+        const sourceLabel = quote.source === "chat" ? "l'assistant virtuel" : "le formulaire web";
         const newQuote: Quote = {
             ...quote,
             id: `DEV-${Date.now().toString().slice(-6)}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
             date: new Date().toISOString().split('T')[0],
             status: "En attente",
             amount: "À calculer",
-            notes: "",
+            notes: quote.notes || "",
             history: [{
                 id: Date.now().toString(),
                 action: "Création",
-                description: "Devis créé via le formulaire web",
+                description: `Devis créé via ${sourceLabel}`,
                 timestamp: new Date().toISOString(),
                 user: "Système"
             }]
@@ -69,7 +99,7 @@ export const quoteStorage = {
                     id: Date.now().toString(),
                     action: historyAction,
                     timestamp: new Date().toISOString(),
-                    user: "Admin", // Mock user
+                    user: "Admin",
                     description: `Mise à jour: ${Object.keys(data).join(", ")}`
                 };
                 updatedQuote.history = [newEvent, ...(q.history || [])];
@@ -85,7 +115,6 @@ export const quoteStorage = {
     },
 
     addNote: (id: string, note: string) => {
-        // Specific helper for notes to avoid overwriting unrelated data and provide clean history
         const quotes = quoteStorage.getAll();
         const updatedQuotes = quotes.map((q) => {
             if (q.id !== id) return q;

@@ -30,11 +30,31 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { quoteStorage, Quote } from "@/lib/quote-storage";
-import { format } from "date-fns";
+import { format, isValid, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { QuoteDetailsSheet } from "@/components/features/QuoteDetailsSheet";
 import { FadeIn, AnimatedCard, motion } from "@/components/ui/motion";
+
+// Safe date formatting for dates that might be free-text (from chat)
+function safeFormatDate(dateString: string | undefined): string {
+    if (!dateString) return "Non spécifié";
+
+    // Try to parse as ISO date
+    const parsed = parseISO(dateString);
+    if (isValid(parsed)) {
+        return format(parsed, "dd MMM yyyy", { locale: fr });
+    }
+
+    // Try direct Date constructor
+    const direct = new Date(dateString);
+    if (isValid(direct)) {
+        return format(direct, "dd MMM yyyy", { locale: fr });
+    }
+
+    // Return as-is (free text like "dans 2 semaines")
+    return dateString;
+}
 
 export default function QuotesPage() {
     const [quotes, setQuotes] = useState<Quote[]>([]);
@@ -182,7 +202,7 @@ export default function QuotesPage() {
                                                 <div className="flex items-center gap-2 mb-2">
                                                     <Badge variant="outline">{quote.type}</Badge>
                                                     <span className="text-xs text-muted-foreground">
-                                                        {format(new Date(quote.transportDate || quote.date), "dd MMM yyyy", { locale: fr })}
+                                                        {safeFormatDate(quote.transportDate || quote.date)}
                                                     </span>
                                                 </div>
                                                 <p className="text-xs text-muted-foreground truncate">
@@ -241,7 +261,7 @@ export default function QuotesPage() {
                                                             </div>
                                                         </TableCell>
                                                         <TableCell className="text-sm">
-                                                            {format(new Date(quote.transportDate || quote.date), "dd MMM yyyy", { locale: fr })}
+                                                            {safeFormatDate(quote.transportDate || quote.date)}
                                                         </TableCell>
                                                         <TableCell>
                                                             <Badge

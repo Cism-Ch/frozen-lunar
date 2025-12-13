@@ -1,11 +1,11 @@
 "use client";
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
-import { Quote, quoteStorage } from "@/lib/quote-storage";
+import { Quote, quoteStorage, QuoteSupplementaryInfo } from "@/lib/quote-storage";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { CalendarIcon, MapPin, Truck, Mail, Phone, User, CheckCircle, XCircle } from "lucide-react";
+import { CalendarIcon, MapPin, Truck, Mail, Phone, User, CheckCircle, XCircle, MessageSquare, Info, Bot, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
@@ -16,6 +16,49 @@ interface QuoteDetailsSheetProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onUpdate: () => void;
+}
+
+// Helper to format supplementary info nicely
+function formatSupplementaryInfo(info: QuoteSupplementaryInfo | undefined): { label: string; value: string }[] {
+    if (!info) return [];
+
+    const items: { label: string; value: string }[] = [];
+
+    if (info.category) {
+        const categoryLabels: Record<string, string> = {
+            materials: "Matériaux",
+            container: "Container",
+            machinery: "Machine industrielle",
+            structure: "Charpente/Structure",
+            other: "Autre",
+        };
+        items.push({ label: "Catégorie", value: categoryLabels[info.category] || info.category });
+    }
+    if (info.materialType) items.push({ label: "Type matériau", value: info.materialType });
+    if (info.weight) items.push({ label: "Poids", value: info.weight });
+    if (info.packaging) items.push({ label: "Conditionnement", value: info.packaging });
+    if (info.hazardous !== undefined) items.push({ label: "Matières dangereuses", value: info.hazardous ? "Oui" : "Non" });
+    if (info.containerSize) items.push({ label: "Taille container", value: info.containerSize });
+    if (info.containerType) items.push({ label: "Type container", value: info.containerType });
+    if (info.loadingType) items.push({ label: "Chargement", value: info.loadingType });
+    if (info.isEmpty !== undefined) items.push({ label: "Container vide", value: info.isEmpty ? "Oui" : "Non" });
+    if (info.machineType) items.push({ label: "Type machine", value: info.machineType });
+    if (info.dimensions) items.push({ label: "Dimensions", value: info.dimensions });
+    if (info.requiresCrane !== undefined) items.push({ label: "Grue requise", value: info.requiresCrane ? "Oui" : "Non" });
+    if (info.structureType) items.push({ label: "Type structure", value: info.structureType });
+    if (info.length) items.push({ label: "Longueur", value: info.length });
+    if (info.specialRequirements) items.push({ label: "Exigences spéciales", value: info.specialRequirements });
+    if (info.accessInfo) items.push({ label: "Accès", value: info.accessInfo });
+    if (info.urgency) {
+        const urgencyLabels: Record<string, string> = {
+            standard: "Standard",
+            urgent: "Urgent",
+            very_urgent: "Très urgent",
+        };
+        items.push({ label: "Urgence", value: urgencyLabels[info.urgency] || info.urgency });
+    }
+
+    return items;
 }
 
 export function QuoteDetailsSheet({ quote, open, onOpenChange, onUpdate }: QuoteDetailsSheetProps) {
@@ -29,6 +72,8 @@ export function QuoteDetailsSheet({ quote, open, onOpenChange, onUpdate }: Quote
         onOpenChange(false);
     };
 
+    const supplementaryItems = formatSupplementaryInfo(quote.supplementaryInfo);
+
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
             <SheetContent className="w-full sm:max-w-xl overflow-y-auto p-0 gap-0">
@@ -39,16 +84,27 @@ export function QuoteDetailsSheet({ quote, open, onOpenChange, onUpdate }: Quote
                                 <Truck className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                                 Détails du Devis
                             </SheetTitle>
-                            <Badge
-                                variant="outline"
-                                className={
-                                    quote.status === "Validé" ? "bg-green-500/10 text-green-600 border-green-200/50 hover:bg-green-500/20" :
-                                        quote.status === "Refusé" ? "bg-red-500/10 text-red-600 border-red-200/50 hover:bg-red-500/20" :
-                                            "bg-orange-500/10 text-orange-600 border-orange-200/50 hover:bg-orange-500/20"
-                                }
-                            >
-                                {quote.status}
-                            </Badge>
+                            <div className="flex flex-wrap gap-2">
+                                <Badge
+                                    variant="outline"
+                                    className={
+                                        quote.status === "Validé" ? "bg-green-500/10 text-green-600 border-green-200/50 hover:bg-green-500/20" :
+                                            quote.status === "Refusé" ? "bg-red-500/10 text-red-600 border-red-200/50 hover:bg-red-500/20" :
+                                                "bg-orange-500/10 text-orange-600 border-orange-200/50 hover:bg-orange-500/20"
+                                    }
+                                >
+                                    {quote.status}
+                                </Badge>
+                                {quote.source && (
+                                    <Badge variant="secondary" className="gap-1">
+                                        {quote.source === "chat" ? (
+                                            <><Bot className="h-3 w-3" /> Assistant</>
+                                        ) : (
+                                            <><FileText className="h-3 w-3" /> Formulaire</>
+                                        )}
+                                    </Badge>
+                                )}
+                            </div>
                         </div>
                     </div>
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -158,6 +214,45 @@ export function QuoteDetailsSheet({ quote, open, onOpenChange, onUpdate }: Quote
                             </div>
                         </div>
                     </div>
+
+                    {/* Supplementary Info */}
+                    {supplementaryItems.length > 0 && (
+                        <>
+                            <Separator className="bg-border/50" />
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-2 text-primary font-semibold tracking-wide text-sm uppercase">
+                                    <Info className="h-4 w-4" />
+                                    Informations complémentaires
+                                </div>
+                                <div className="bg-muted/10 border rounded-xl p-4">
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {supplementaryItems.map((item, index) => (
+                                            <div key={index} className="flex flex-col gap-0.5">
+                                                <span className="text-xs text-muted-foreground">{item.label}</span>
+                                                <span className="text-sm font-medium">{item.value}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </>
+                    )}
+
+                    {/* User Notes */}
+                    {quote.userNotes && (
+                        <>
+                            <Separator className="bg-border/50" />
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-2 text-primary font-semibold tracking-wide text-sm uppercase">
+                                    <MessageSquare className="h-4 w-4" />
+                                    Notes du client
+                                </div>
+                                <div className="bg-muted/10 border rounded-xl p-4">
+                                    <p className="text-sm text-foreground/80 whitespace-pre-wrap">{quote.userNotes}</p>
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </div>
 
                 <SheetFooter className="p-6 bg-muted/10 border-t flex-col sm:flex-row gap-3">
