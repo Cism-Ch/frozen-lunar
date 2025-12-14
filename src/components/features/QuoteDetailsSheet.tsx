@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { CalendarIcon, MapPin, Truck, Mail, Phone, User, CheckCircle, XCircle, MessageSquare, Info, Bot, FileText } from "lucide-react";
-import { format } from "date-fns";
+import { format, isValid, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { useState } from "react";
@@ -16,6 +16,26 @@ interface QuoteDetailsSheetProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onUpdate: () => void;
+}
+
+// Safe date formatting for dates that might be free-text (from chat)
+function safeFormatDate(dateString: string | undefined): string {
+    if (!dateString) return "Non spécifié";
+
+    // Try to parse as ISO date
+    const parsed = parseISO(dateString);
+    if (isValid(parsed)) {
+        return format(parsed, "dd MMM yyyy", { locale: fr });
+    }
+
+    // Try direct Date constructor
+    const direct = new Date(dateString);
+    if (isValid(direct)) {
+        return format(direct, "dd MMM yyyy", { locale: fr });
+    }
+
+    // Return as-is (free text like "dans 2 semaines")
+    return dateString;
 }
 
 // Helper to format supplementary info nicely
@@ -173,9 +193,9 @@ export function QuoteDetailsSheet({ quote, open, onOpenChange, onUpdate }: Quote
                                 </div>
                                 <div className="p-4 flex flex-col gap-1">
                                     <span className="text-xs text-muted-foreground uppercase font-semibold">Date Prévue</span>
-                                    <span className="font-medium flex items-center gap-2">
+                                    <span className="text-medium flex items-center gap-2">
                                         <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                                        {format(new Date(quote.transportDate), "dd MMM yyyy", { locale: fr })}
+                                        {safeFormatDate(quote.transportDate)}
                                     </span>
                                 </div>
                             </div>
