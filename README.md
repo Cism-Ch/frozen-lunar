@@ -1,4 +1,4 @@
-# 🚚 Frozen Lunar - HBC SERVICE CASH LOGISTIQUE IMMOBILIÈRE
+# 🚚 Frozen Lunar
 
 [![Next.js](https://img.shields.io/badge/Next.js-16.0.7-black?logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19.2.1-blue?logo=react)](https://reactjs.org/)
@@ -26,7 +26,7 @@ A modern, professional web platform for specialized logistics and transportation
 
 ## 🎯 Overview
 
-**Frozen Lunar** (HBC SERVICE CASH LOGISTIQUE IMMOBILIÈRE) is a comprehensive digital platform designed for a specialized logistics company with over 15 years of experience. The platform facilitates:
+**Frozen Lunar** (Code Name) is a comprehensive digital platform designed for a specialized logistics company with over 15 years of experience. The platform facilitates:
 
 - **Transport de Matériaux** - Fast delivery of construction materials to job sites
 - **Transport de Containers** - Specialized container shipping solutions
