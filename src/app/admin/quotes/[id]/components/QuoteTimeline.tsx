@@ -1,8 +1,7 @@
 "use client";
 
 import { Quote } from "@/lib/quote-storage";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { safeFormatDate } from "@/lib/date-utils";
 import { CheckCircle2, Circle, Clock, FileText, MessageSquare, ShieldAlert, User } from "lucide-react";
 
 interface QuoteTimelineProps {
@@ -42,7 +41,7 @@ export function QuoteTimeline({ quote }: QuoteTimelineProps) {
                         <div className="flex items-center gap-2">
                             <span className="font-medium text-sm">{event.action}</span>
                             <span className="text-xs text-muted-foreground">
-                                {format(new Date(event.timestamp), "dd MMM à HH:mm", { locale: fr })}
+                                {safeFormatDate(event.timestamp, "dd MMM à HH:mm")}
                             </span>
                         </div>
                         <p className="text-sm text-foreground/80 bg-muted/20 p-2 rounded-md border inline-block">

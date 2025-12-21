@@ -59,20 +59,23 @@ export function ChatInput({
         <div className={cn("space-y-3", className)}>
             {/* Quick Replies */}
             {quickReplies.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                    {quickReplies.map((reply) => (
-                        <Button
-                            key={reply.id}
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleQuickReply(reply)}
-                            disabled={isLoading}
-                            className="text-xs h-7 px-2.5 bg-muted/50 hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors"
-                        >
-                            {reply.icon && <span className="mr-1">{reply.icon}</span>}
-                            {reply.label}
-                        </Button>
-                    ))}
+                <div className="relative">
+                    <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none md:hidden" />
+                    <div className="flex gap-2 overflow-x-auto pb-2 -mb-2 scrollbar-none mask-linear-fade">
+                        {quickReplies.map((reply) => (
+                            <Button
+                                key={reply.id}
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleQuickReply(reply)}
+                                disabled={isLoading}
+                                className="text-xs h-8 px-3 whitespace-nowrap bg-muted/50 hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors rounded-full"
+                            >
+                                {reply.icon && <span className="mr-1">{reply.icon}</span>}
+                                {reply.label}
+                            </Button>
+                        ))}
+                    </div>
                 </div>
             )}
 

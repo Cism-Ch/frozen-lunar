@@ -13,13 +13,13 @@ export default function DevisPage() {
             <Header />
             <main className="flex-1">
                 {/* Hero Section */}
-                <SectionContainer className="pt-20 pb-12 md:pt-32 md:pb-16 bg-gradient-to-b from-muted/50 to-background">
+                <SectionContainer className="pt-20 pb-12 md:pt-32 md:pb-16 bg-linear-to-b from-muted/50 to-background">
                     <FadeIn direction="up" className="text-center space-y-6 max-w-3xl mx-auto">
                         <Badge variant="outline" className="mb-2">Devis Gratuit</Badge>
                         <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
                             Estimez votre{" "}
                             <motion.span
-                                className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60"
+                                className="text-transparent bg-clip-text bg-linear-to-r from-primary to-primary/60"
                                 initial={{ opacity: 0, scale: 0.9 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ delay: 0.3, type: "spring", stiffness: 200 }}

@@ -13,7 +13,7 @@ import { CheckCircle, MapPin, Calendar, Package, ArrowRight, Truck } from "lucid
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
-interface QuoteSummaryData {
+export interface QuoteSummaryData {
     id?: string;
     itemType: string;
     pickupLocation: string;

@@ -50,8 +50,12 @@ export const geminiService = {
             // Basic cleanup to ensure JSON parsing
             const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
             return JSON.parse(jsonStr);
-        } catch (error) {
-            console.error("Gemini Error:", error);
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                console.error("Gemini Error:", error.message, error.stack);
+            } else {
+                console.error("Gemini Error:", error);
+            }
             throw new Error("Impossible de générer l'estimation");
         }
     },
@@ -93,7 +97,12 @@ export const geminiService = {
             const text = response.text();
             const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
             return JSON.parse(jsonStr);
-        } catch (error) {
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                console.error("Gemini draftEmail Error:", error.message, error.stack);
+            } else {
+                console.error("Gemini draftEmail Error:", error);
+            }
             throw new Error("Erreur de génération d'email");
         }
     }

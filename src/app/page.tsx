@@ -23,7 +23,7 @@ export default function Home() {
       <main className="flex-1">
         {/* Hero Section */}
         <SectionContainer className="pt-20 pb-32 md:pt-32 md:pb-48 overflow-hidden relative">
-          <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px]"></div>
+          <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-size-[14px_24px]"></div>
 
           <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
             <div className="space-y-8">
@@ -46,7 +46,7 @@ export default function Home() {
                   <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl text-foreground leading-tight text-balance">
                     Trouvez le transport{" "}
                     <motion.span
-                      className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60 inline-block"
+                      className="text-transparent bg-clip-text bg-linear-to-r from-primary to-primary/60 inline-block"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.4, type: "spring", stiffness: 100 }}
@@ -115,7 +115,7 @@ export default function Home() {
             <FadeIn direction="right" delay={0.3}>
               <div className="relative aspect-video overflow-hidden rounded-2xl bg-muted shadow-2xl border lg:order-last group">
                 {/* Hero Image Placeholder with stylized background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center group-hover:scale-105 transition-transform duration-700">
+                <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center group-hover:scale-105 transition-transform duration-700">
                   <motion.div
                     className="relative"
                     animate={{
@@ -206,7 +206,7 @@ export default function Home() {
         <FAQSection />
 
         {/* CTA Section */}
-        <SectionContainer className="bg-gradient-to-br from-primary via-primary to-primary/90 text-primary-foreground py-24 md:py-32">
+        <SectionContainer className="bg-linear-to-br from-primary via-primary to-primary/90 text-primary-foreground py-24 md:py-32">
           <ScrollReveal>
             <div className="text-center space-y-8 max-w-3xl mx-auto">
               <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">

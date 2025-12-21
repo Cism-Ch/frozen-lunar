@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, type FieldPath } from "react-hook-form";
 import * as z from "zod";
 import { MapPin, Truck } from "lucide-react";
 import { toast } from "sonner";
@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { quoteStorage } from "@/lib/quote-storage";
 import { Form } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
-import { QuoteSummaryDialog } from "./QuoteSummaryDialog";
+import { QuoteSummaryDialog, type QuoteSummaryData } from "./QuoteSummaryDialog";
 
 // Sub-components
 import { WizardHeader } from "./quote-wizard/WizardHeader";
@@ -41,13 +41,14 @@ const formSchema = z.object({
 });
 
 const TOTAL_STEPS = 6;
+type QuoteFormValues = z.infer<typeof formSchema>;
 
 export function QuoteWizard() {
     const [step, setStep] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [summaryData, setSummaryData] = useState<any>(null);
+    const [summaryData, setSummaryData] = useState<QuoteSummaryData | null>(null);
 
-    const form = useForm<z.infer<typeof formSchema>>({
+    const form = useForm<QuoteFormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             itemType: "",
@@ -77,8 +78,21 @@ export function QuoteWizard() {
                 source: "form",
             });
 
-            setSummaryData({ ...values, id: newQuote.id });
-        } catch (error) {
+            setSummaryData({
+                id: newQuote.id,
+                itemType: values.itemType,
+                pickupLocation: values.pickupLocation,
+                dropoffLocation: values.dropoffLocation,
+                transportDate: values.transportDate,
+                fullName: values.fullName,
+                email: values.email,
+            });
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                console.error("Quote submission error:", error.message, error.stack);
+            } else {
+                console.error("Quote submission error:", error);
+            }
             toast.error("Une erreur est survenue lors de l'envoi de la demande.");
         } finally {
             setIsSubmitting(false);
@@ -92,7 +106,7 @@ export function QuoteWizard() {
     };
 
     const nextStep = async () => {
-        let fieldsToValidate: any[] = [];
+        let fieldsToValidate: FieldPath<QuoteFormValues>[] = [];
         if (step === 1) fieldsToValidate = ["itemType"];
         if (step === 2) fieldsToValidate = ["pickupLocation"];
         if (step === 3) fieldsToValidate = ["dropoffLocation"];

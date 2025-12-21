@@ -27,8 +27,7 @@ import {
     Sparkles,
     MessageSquare
 } from "lucide-react";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { safeFormatDate } from "@/lib/date-utils";
 import { toast } from "sonner";
 import Link from "next/link";
 import { QuoteTimeline } from "./components/QuoteTimeline";
@@ -72,7 +71,12 @@ export default function QuoteModerationPage() {
             const result = await geminiService.estimateTransport(quote.pickup, quote.dropoff, quote.type);
             setAiEstimation(result);
             toast.success("Estimation générée par IA");
-        } catch (error) {
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                console.error("Error during AI estimation:", error.message, error.stack);
+            } else {
+                console.error("Error during AI estimation:", error);
+            }
             toast.error("Erreur lors de l'estimation");
         } finally {
             setEstimating(false);
@@ -88,7 +92,12 @@ export default function QuoteModerationPage() {
         try {
             const draft = await geminiService.draftEmail(type, quote.client, quote.id);
             setEmailDraft(draft);
-        } catch (error) {
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                console.error("Error generating AI email:", error.message, error.stack);
+            } else {
+                console.error("Error generating AI email:", error);
+            }
             toast.error("Erreur de génération d'email");
             setEmailOpen(false);
         } finally {
@@ -190,7 +199,7 @@ export default function QuoteModerationPage() {
                             </Badge>
                         </div>
                         <p className="text-muted-foreground text-sm mt-1">
-                            Créé le {format(new Date(quote.date), "dd MMMM yyyy", { locale: fr })}
+                            Créé le {safeFormatDate(quote.date, "dd MMMM yyyy")}
                         </p>
                     </div>
                 </div>
@@ -264,7 +273,7 @@ export default function QuoteModerationPage() {
                                     <div>
                                         <p className="text-xs text-muted-foreground">Date Prévue</p>
                                         <p className="font-medium">
-                                            {format(new Date(quote.transportDate), "dd MMM yyyy", { locale: fr })}
+                                            {safeFormatDate(quote.transportDate, "dd MMM yyyy")}
                                         </p>
                                     </div>
                                 </div>

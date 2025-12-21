@@ -8,13 +8,13 @@ import { QuoteSupplementaryInfo } from "@/lib/quote-storage";
 export type QuoteFlowStep =
     | "start"
     | "itemType"
-    | "category_questions"
     | "pickup"
     | "dropoff"
     | "date"
     | "contact_name"
     | "contact_email"
     | "contact_phone"
+    | "category_questions"
     | "notes"
     | "confirm"
     | "complete";
@@ -356,6 +356,23 @@ export const ITEM_TYPE_OPTIONS = [
 ];
 
 // ============================================
+// FLOW STEPS DEFINITION (Aligned with QuoteWizard)
+// ============================================
+
+export const STEPS_ORDER: QuoteFlowStep[] = [
+    "itemType",
+    "pickup",
+    "dropoff",
+    "date",
+    "contact_name",
+    "contact_email",
+    "contact_phone",
+    "category_questions",
+    "notes",
+    "confirm"
+];
+
+// ============================================
 // FLOW STATE MANAGEMENT
 // ============================================
 
@@ -386,14 +403,6 @@ export function getStepMessage(state: QuoteFlowState): string {
         case "itemType":
             return "Parfait ! Commençons votre demande de devis. 📋\n\nQuel type de marchandise souhaitez-vous transporter ?";
 
-        case "category_questions":
-            const question = state.categoryQuestions[state.currentQuestionIndex];
-            if (question) {
-                const progress = `(${state.currentQuestionIndex + 1}/${state.categoryQuestions.length})`;
-                return `${progress} ${question.question}`;
-            }
-            return "";
-
         case "pickup":
             return "📍 Quelle est l'adresse de **chargement** (départ) ?";
 
@@ -412,8 +421,18 @@ export function getStepMessage(state: QuoteFlowState): string {
         case "contact_phone":
             return "📱 Quel est votre **numéro de téléphone** ?";
 
+        case "category_questions":
+            const question = state.categoryQuestions[state.currentQuestionIndex];
+            if (question) {
+                // Determine if this is essentially part of the "notes" or "details" phase
+                const current = state.currentQuestionIndex + 1;
+                const total = state.categoryQuestions.length;
+                return `📝 **Détails de votre chargement** (${current}/${total})\n\n${question.question}`;
+            }
+            return "";
+
         case "notes":
-            return "📝 Avez-vous des **informations supplémentaires** à ajouter ?\n\n(Optionnel - répondez \"non\" pour passer)";
+            return "📝 Avez-vous d'autres **précisions** ou **notes spéciales** à ajouter ?\n\n(Optionnel - répondez \"non\" pour passer)";
 
         case "confirm":
             return formatQuoteSummary(state.data);
@@ -430,22 +449,29 @@ export function formatQuoteSummary(data: Partial<QuoteFlowData>): string {
         `📍 **Départ:** ${data.pickup || "Non spécifié"}`,
         `📍 **Arrivée:** ${data.dropoff || "Non spécifié"}`,
         `📅 **Date:** ${data.transportDate || "Non spécifié"}`,
-        `👤 **Nom:** ${data.fullName || "Non spécifié"}`,
+        `👤 **Client:** ${data.fullName || "Non spécifié"}`,
         `📧 **Email:** ${data.email || "Non spécifié"}`,
-        `📱 **Téléphone:** ${data.phone || "Non spécifié"}`,
+        `📱 **Tél:** ${data.phone || "Non spécifié"}`,
     ];
 
-    if (data.userNotes) {
-        lines.push(`📝 **Notes:** ${data.userNotes}`);
+    if (data.supplementaryInfo && Object.keys(data.supplementaryInfo).length > 0) {
+        // Only show relevant info keys (exclude internal ones if any)
+        const info = data.supplementaryInfo;
+        const relevantKeys = Object.keys(info).filter(k => k !== 'category');
+        if (relevantKeys.length > 0) {
+            lines.push("\n**Détails techniques:**");
+            if (info.weight) lines.push(`  • Poids: ${info.weight}`);
+            if (info.dimensions) lines.push(`  • Dimensions: ${info.dimensions}`);
+            if (info.accessInfo) lines.push(`  • Accès: ${info.accessInfo}`);
+            if (info.specialRequirements) lines.push(`  • Autres: ${info.specialRequirements}`);
+            if (info.materialType) lines.push(`  • Matériau: ${info.materialType}`);
+            if (info.containerSize) lines.push(`  • Taille: ${info.containerSize}`);
+            if (info.containerType) lines.push(`  • Type: ${info.containerType}`);
+        }
     }
 
-    if (data.supplementaryInfo && Object.keys(data.supplementaryInfo).length > 0) {
-        lines.push("\n**Détails supplémentaires:**");
-        const info = data.supplementaryInfo;
-        if (info.weight) lines.push(`  • Poids: ${info.weight}`);
-        if (info.dimensions) lines.push(`  • Dimensions: ${info.dimensions}`);
-        if (info.accessInfo) lines.push(`  • Accès: ${info.accessInfo}`);
-        if (info.specialRequirements) lines.push(`  • Exigences: ${info.specialRequirements}`);
+    if (data.userNotes) {
+        lines.push(`\n📝 **Notes:** ${data.userNotes}`);
     }
 
     lines.push("\n✅ **Confirmez-vous ces informations ?**");
@@ -466,30 +492,8 @@ export function processFlowAnswer(
             newState.data.itemCategory = category;
             newState.data.supplementaryInfo = { category };
             newState.categoryQuestions = CATEGORY_QUESTIONS[category];
-            newState.currentStep = "category_questions";
-            newState.currentQuestionIndex = 0;
-            break;
-
-        case "category_questions":
-            const currentQ = state.categoryQuestions[state.currentQuestionIndex];
-            if (currentQ) {
-                const supplementaryInfo = { ...newState.data.supplementaryInfo };
-
-                if (currentQ.type === "boolean") {
-                    (supplementaryInfo as any)[currentQ.field] =
-                        answer.toLowerCase().includes("oui") || answer.toLowerCase() === "true";
-                } else {
-                    (supplementaryInfo as any)[currentQ.field] = answer;
-                }
-
-                newState.data.supplementaryInfo = supplementaryInfo;
-            }
-
-            if (state.currentQuestionIndex < state.categoryQuestions.length - 1) {
-                newState.currentQuestionIndex = state.currentQuestionIndex + 1;
-            } else {
-                newState.currentStep = "pickup";
-            }
+            // Move directly to pickup, skip specific questions for now
+            newState.currentStep = "pickup";
             break;
 
         case "pickup":
@@ -519,7 +523,32 @@ export function processFlowAnswer(
 
         case "contact_phone":
             newState.data.phone = answer;
-            newState.currentStep = "notes";
+            // Now start the category specific questions
+            newState.currentStep = "category_questions";
+            newState.currentQuestionIndex = 0;
+            break;
+
+        case "category_questions":
+            const currentQ = state.categoryQuestions[state.currentQuestionIndex];
+            if (currentQ) {
+                const supplementaryInfo = { ...newState.data.supplementaryInfo };
+
+                if (currentQ.type === "boolean") {
+                    (supplementaryInfo as any)[currentQ.field] =
+                        answer.toLowerCase().includes("oui") || answer.toLowerCase() === "true";
+                } else {
+                    (supplementaryInfo as any)[currentQ.field] = answer;
+                }
+
+                newState.data.supplementaryInfo = supplementaryInfo;
+            }
+
+            if (state.currentQuestionIndex < state.categoryQuestions.length - 1) {
+                newState.currentQuestionIndex = state.currentQuestionIndex + 1;
+            } else {
+                // After last specific question, go to generic notes
+                newState.currentStep = "notes";
+            }
             break;
 
         case "notes":
