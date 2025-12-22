@@ -130,7 +130,7 @@ export function useSupportChat(onClose: () => void) {
                     dropoffLocation: data.dropoff || "",
                     transportDate: data.transportDate || new Date().toISOString(),
                     userNotes: data.userNotes,
-                    supplementaryInfo: data.supplementaryInfo as any,
+                    supplementaryInfo: data.supplementaryInfo as Record<string, unknown> | undefined,
                     source: "chat",
                 });
 
