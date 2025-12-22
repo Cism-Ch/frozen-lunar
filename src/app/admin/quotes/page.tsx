@@ -56,7 +56,12 @@ function safeFormatDate(dateString: string | undefined): string {
     return dateString;
 }
 
+import { useRealtimeQuotes } from "@/hooks/useRealtimeQuotes";
+
 export default function QuotesPage() {
+    // Enable Realtime Updates
+    useRealtimeQuotes();
+
     const [quotes, setQuotes] = useState<Quote[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
