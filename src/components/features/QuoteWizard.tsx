@@ -7,10 +7,10 @@ import * as z from "zod";
 import { MapPin, Truck } from "lucide-react";
 import { toast } from "sonner";
 
-import { quoteStorage } from "@/lib/quote-storage";
 import { Form } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
 import { QuoteSummaryDialog, type QuoteSummaryData } from "./QuoteSummaryDialog";
+import { createQuoteAction } from "@/app/actions/quote-management";
 
 // Sub-components
 import { WizardHeader } from "./quote-wizard/WizardHeader";
@@ -64,22 +64,24 @@ export function QuoteWizard() {
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsSubmitting(true);
         try {
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
-            const newQuote = quoteStorage.add({
-                client: values.fullName,
+            const result = await createQuoteAction({
+                clientName: values.fullName,
                 email: values.email,
                 phone: values.phone,
-                type: values.itemType,
-                pickup: values.pickupLocation,
-                dropoff: values.dropoffLocation,
+                itemType: values.itemType,
+                pickupLocation: values.pickupLocation,
+                dropoffLocation: values.dropoffLocation,
                 transportDate: values.transportDate.toISOString(),
-                userNotes: values.userNotes || undefined,
+                userNotes: values.userNotes,
                 source: "form",
             });
 
+            if (!result.success || !result.quote) {
+                throw new Error(result.error || "Erreur lors de la création du devis");
+            }
+
             setSummaryData({
-                id: newQuote.id,
+                id: result.quote.id,
                 itemType: values.itemType,
                 pickupLocation: values.pickupLocation,
                 dropoffLocation: values.dropoffLocation,
@@ -90,10 +92,11 @@ export function QuoteWizard() {
         } catch (error: unknown) {
             if (error instanceof Error) {
                 console.error("Quote submission error:", error.message, error.stack);
+                toast.error(error.message);
             } else {
                 console.error("Quote submission error:", error);
+                toast.error("Une erreur est survenue lors de l'envoi de la demande.");
             }
-            toast.error("Une erreur est survenue lors de l'envoi de la demande.");
         } finally {
             setIsSubmitting(false);
         }

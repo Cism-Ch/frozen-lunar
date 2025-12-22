@@ -1,7 +1,7 @@
 "use client";
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
-import { Quote, quoteStorage, QuoteSupplementaryInfo } from "@/lib/quote-storage";
+import { Quote, QuoteSupplementaryInfo } from "@/lib/quote-storage";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -10,6 +10,7 @@ import { format, isValid, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { useState } from "react";
+import { updateQuoteStatusAction } from "@/app/actions/quote-management";
 
 interface QuoteDetailsSheetProps {
     quote: Quote | null;
@@ -84,12 +85,20 @@ function formatSupplementaryInfo(info: QuoteSupplementaryInfo | undefined): { la
 export function QuoteDetailsSheet({ quote, open, onOpenChange, onUpdate }: QuoteDetailsSheetProps) {
     if (!quote) return null;
 
-    const handleStatusUpdate = (status: Quote["status"]) => {
-        quoteStorage.updateStatus(quote.id, status);
-        toast.success(`Devis ${status.toLowerCase()} avec succès`);
-        onUpdate();
-
-        onOpenChange(false);
+    const handleStatusUpdate = async (status: Quote["status"]) => {
+        try {
+            const result = await updateQuoteStatusAction(quote.id, status);
+            if (result.success) {
+                toast.success(`Devis ${status.toLowerCase()} avec succès`);
+                onUpdate();
+                onOpenChange(false);
+            } else {
+                toast.error(result.error || "Erreur lors de la mise à jour");
+            }
+        } catch (error: unknown) {
+            console.error("Error updating status:", error);
+            toast.error("Erreur lors de la mise à jour du statut");
+        }
     };
 
     const supplementaryItems = formatSupplementaryInfo(quote.supplementaryInfo);

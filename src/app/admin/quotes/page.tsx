@@ -29,12 +29,13 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { quoteStorage, Quote } from "@/lib/quote-storage";
+import { Quote } from "@/lib/quote-storage";
 import { format, isValid, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { QuoteDetailsSheet } from "@/components/features/QuoteDetailsSheet";
 import { FadeIn, AnimatedCard, motion } from "@/components/ui/motion";
+import { getQuotesAction, deleteQuoteAction, updateQuoteStatusAction } from "@/app/actions/quote-management";
 
 // Safe date formatting for dates that might be free-text (from chat)
 function safeFormatDate(dateString: string | undefined): string {
@@ -65,34 +66,74 @@ export default function QuotesPage() {
     const [quotes, setQuotes] = useState<Quote[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
+    const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
-        setQuotes(quoteStorage.getAll());
-    }, []);
-
-    const handleStatusChange = (id: string, status: Quote["status"]) => {
-        quoteStorage.updateStatus(id, status);
-        setQuotes(quoteStorage.getAll());
-        toast.success(`Statut mis à jour : ${status}`);
-    };
-
-    const handleDelete = (id: string) => {
-        if (confirm("Êtes-vous sûr de vouloir supprimer ce devis ?")) {
-            quoteStorage.delete(id);
-            setQuotes(quoteStorage.getAll());
-            toast.success("Devis supprimé");
+    const loadQuotes = async () => {
+        setIsLoading(true);
+        try {
+            const result = await getQuotesAction({ 
+                status: statusFilter,
+                search: searchTerm 
+            });
+            if (result.success && result.quotes) {
+                setQuotes(result.quotes);
+            } else {
+                toast.error(result.error || "Erreur lors du chargement des devis");
+            }
+        } catch (error: unknown) {
+            console.error("Error loading quotes:", error);
+            toast.error("Erreur lors du chargement des devis");
+        } finally {
+            setIsLoading(false);
         }
     };
 
+    useEffect(() => {
+        loadQuotes();
+    }, [statusFilter]);
+
+    const handleStatusChange = async (id: string, status: Quote["status"]) => {
+        try {
+            const result = await updateQuoteStatusAction(id, status);
+            if (result.success) {
+                await loadQuotes();
+                toast.success(`Statut mis à jour : ${status}`);
+            } else {
+                toast.error(result.error || "Erreur lors de la mise à jour");
+            }
+        } catch (error: unknown) {
+            console.error("Error updating status:", error);
+            toast.error("Erreur lors de la mise à jour du statut");
+        }
+    };
+
+    const handleDelete = async (id: string) => {
+        if (confirm("Êtes-vous sûr de vouloir supprimer ce devis ?")) {
+            try {
+                const result = await deleteQuoteAction(id);
+                if (result.success) {
+                    await loadQuotes();
+                    toast.success("Devis supprimé");
+                } else {
+                    toast.error(result.error || "Erreur lors de la suppression");
+                }
+            } catch (error: unknown) {
+                console.error("Error deleting quote:", error);
+                toast.error("Erreur lors de la suppression");
+            }
+        }
+    };
+
+    // Client-side filtering for search (server-side filtering is also available)
     const filteredQuotes = quotes.filter(quote => {
-        const matchesSearch =
-            quote.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            quote.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            quote.id.toLowerCase().includes(searchTerm.toLowerCase());
-
-        const matchesStatus = statusFilter === "all" || quote.status === statusFilter;
-
-        return matchesSearch && matchesStatus;
+        if (searchTerm) {
+            const matchesSearch =
+                quote.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                quote.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                quote.id.toLowerCase().includes(searchTerm.toLowerCase());
+            return matchesSearch;
+        }
+        return true;
     });
 
     const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);

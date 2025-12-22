@@ -17,8 +17,8 @@ import {
     getStepOptions,
     createInitialFlowState,
 } from "@/lib/support-agent/quote-flow";
-import { quoteStorage } from "@/lib/quote-storage";
 import { toast } from "sonner";
+import { createQuoteAction } from "@/app/actions/quote-management";
 
 export interface ChatItem {
     type: "message" | "options" | "tutorial" | "quote_options" | "quote_success";
@@ -121,26 +121,30 @@ export function useSupportChat(onClose: () => void) {
         if (complete) {
             try {
                 const data = newState.data;
-                const newQuote = quoteStorage.add({
-                    client: data.fullName || "",
+                const result = await createQuoteAction({
+                    clientName: data.fullName || "",
                     email: data.email || "",
                     phone: data.phone || "",
-                    type: data.itemType || "",
-                    pickup: data.pickup || "",
-                    dropoff: data.dropoff || "",
+                    itemType: data.itemType || "",
+                    pickupLocation: data.pickup || "",
+                    dropoffLocation: data.dropoff || "",
                     transportDate: data.transportDate || new Date().toISOString(),
                     userNotes: data.userNotes,
                     supplementaryInfo: data.supplementaryInfo as any,
                     source: "chat",
                 });
 
+                if (!result.success || !result.quote) {
+                    throw new Error(result.error || "Erreur lors de la création du devis");
+                }
+
                 await addTypingThenMessage(
-                    `✅ **Votre demande de devis a été enregistrée !**\n\nNuméro de référence: **${newQuote.id}**\n\nNotre équipe vous contactera sous 24h pour vous proposer un tarif personnalisé.\n\nMerci de votre confiance ! 🚚`
+                    `✅ **Votre demande de devis a été enregistrée !**\n\nNuméro de référence: **${result.quote.id}**\n\nNotre équipe vous contactera sous 24h pour vous proposer un tarif personnalisé.\n\nMerci de votre confiance ! 🚚`
                 );
 
                 setChatItems(prev => [...prev, {
                     type: "quote_success",
-                    data: { quoteId: newQuote.id },
+                    data: { quoteId: result.quote!.id },
                     id: `success_${Date.now()}`
                 }]);
 
