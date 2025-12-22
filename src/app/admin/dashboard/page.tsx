@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { FileText, TrendingUp, Users, Clock, CheckCircle } from "lucide-react";
-import { quoteStorage, Quote } from "@/lib/quote-storage";
+import { Quote } from "@/lib/quote-storage";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -19,12 +19,19 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { QuoteDetailsSheet } from "@/components/features/QuoteDetailsSheet";
 import { FadeIn, StaggerContainer, StaggerItem, AnimatedCard, CountUp, motion } from "@/components/ui/motion";
+import { getQuotesAction } from "@/app/actions/quote-management";
 
 export default function DashboardPage() {
     const [quotes, setQuotes] = useState<Quote[]>([]);
 
     useEffect(() => {
-        setQuotes(quoteStorage.getAll());
+        const loadQuotes = async () => {
+            const result = await getQuotesAction();
+            if (result.success && result.quotes) {
+                setQuotes(result.quotes);
+            }
+        };
+        loadQuotes();
     }, []);
 
     const validatedQuotes = quotes.filter(q => q.status === "Validé");

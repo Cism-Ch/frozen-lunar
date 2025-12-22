@@ -169,7 +169,9 @@ export async function createQuoteAction(data: z.infer<typeof createQuoteSchema>)
         amount: quote.amount,
         userNotes: quote.userNotes || undefined,
         source: enumToSource(quote.source),
-        supplementaryInfo: quote.supplementaryInfo as any,
+        supplementaryInfo: quote.supplementaryInfo
+          ? (quote.supplementaryInfo as Record<string, unknown>)
+          : undefined,
       },
     };
   } catch (error: unknown) {
@@ -229,7 +231,9 @@ export async function getQuotesAction(filters?: {
         amount: quote.amount,
         userNotes: quote.userNotes || undefined,
         source: enumToSource(quote.source),
-        supplementaryInfo: quote.supplementaryInfo as any,
+        supplementaryInfo: quote.supplementaryInfo
+          ? (quote.supplementaryInfo as Record<string, unknown>)
+          : undefined,
         history: quote.history.map((h) => ({
           id: h.id,
           action: h.action,
@@ -282,7 +286,9 @@ export async function getQuoteByIdAction(id: string) {
         amount: quote.amount,
         userNotes: quote.userNotes || undefined,
         source: enumToSource(quote.source),
-        supplementaryInfo: quote.supplementaryInfo as any,
+        supplementaryInfo: quote.supplementaryInfo
+          ? (quote.supplementaryInfo as Record<string, unknown>)
+          : undefined,
         history: quote.history.map((h) => ({
           id: h.id,
           action: h.action,
@@ -351,7 +357,7 @@ export async function updateQuoteAction(
   data: Partial<{
     amount: string;
     userNotes: string;
-    supplementaryInfo: any;
+    supplementaryInfo: Record<string, unknown>;
   }>
 ) {
   try {
