@@ -132,7 +132,7 @@ export async function createQuoteAction(data: z.infer<typeof createQuoteSchema>)
         source: sourceToEnum(validated.source),
         supplementaryInfo: validated.supplementaryInfo
           ? (validated.supplementaryInfo as Prisma.InputJsonValue)
-          : null,
+          : Prisma.JsonNull,
       },
       include: {
         history: true,
