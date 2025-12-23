@@ -41,7 +41,8 @@ export default function AdminLoginPage() {
             }
 
             // Vérifier le rôle de l'utilisateur
-            if (result.data?.user?.role === "user") {
+            const user = result.data?.user as any;
+            if (user?.role === "user") {
                 setError("Accès refusé. Vous devez avoir un rôle administrateur.");
                 toast.error("Accès refusé");
                 await authClient.signOut();

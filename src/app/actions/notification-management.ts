@@ -86,6 +86,9 @@ export async function markNotificationAsReadAction(notificationId: string) {
         //     data: { read: true },
         // });
 
+        // Use notificationId when database is integrated
+        console.log("Marking notification as read:", notificationId);
+
         revalidatePath("/admin/dashboard");
         return { success: true };
     } catch (error: unknown) {
