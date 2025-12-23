@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { FileText, TrendingUp, Users, Clock, CheckCircle } from "lucide-react";
-import { Quote } from "@/lib/quote-storage";
+import { Quote, quoteStorage } from "@/lib/quote-storage";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -28,7 +28,7 @@ export default function DashboardPage() {
         const loadQuotes = async () => {
             const result = await getQuotesAction();
             if (result.success && result.quotes) {
-                setQuotes(result.quotes);
+                setQuotes(result.quotes as Quote[]);
             }
         };
         loadQuotes();

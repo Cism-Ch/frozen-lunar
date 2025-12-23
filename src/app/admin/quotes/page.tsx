@@ -29,7 +29,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Quote } from "@/lib/quote-storage";
+import { Quote, quoteStorage } from "@/lib/quote-storage";
 import { format, isValid, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
@@ -76,7 +76,7 @@ export default function QuotesPage() {
                 search: searchTerm 
             });
             if (result.success && result.quotes) {
-                setQuotes(result.quotes);
+                setQuotes(result.quotes as Quote[]);
             } else {
                 toast.error(result.error || "Erreur lors du chargement des devis");
             }

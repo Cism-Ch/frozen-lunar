@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Quote } from "@/lib/quote-storage";
+import { Quote, quoteStorage } from "@/lib/quote-storage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -123,7 +123,7 @@ export default function QuoteModerationPage() {
                 // Refresh quote to see history
                 const result = await getQuoteByIdAction(quote.id);
                 if (result.success && result.quote) {
-                    setQuote(result.quote);
+                    setQuote(result.quote as Quote);
                 }
             } catch (error: unknown) {
                 console.error("Error applying estimation:", error);
@@ -141,7 +141,7 @@ export default function QuoteModerationPage() {
             try {
                 const result = await getQuoteByIdAction(decodeURIComponent(id));
                 if (result.success && result.quote) {
-                    setQuote(result.quote);
+                    setQuote(result.quote as Quote);
                     setAmount(result.quote.amount || "");
                     setNotes(result.quote.userNotes || "");
                 } else {
@@ -172,7 +172,7 @@ export default function QuoteModerationPage() {
                 // Reload quote to get fresh history
                 const refreshResult = await getQuoteByIdAction(quote.id);
                 if (refreshResult.success && refreshResult.quote) {
-                    setQuote(refreshResult.quote);
+                    setQuote(refreshResult.quote as Quote);
                 }
 
                 setHasChanges(false);
@@ -195,7 +195,7 @@ export default function QuoteModerationPage() {
                 // Reload quote to get updated status and history
                 const refreshResult = await getQuoteByIdAction(quote.id);
                 if (refreshResult.success && refreshResult.quote) {
-                    setQuote(refreshResult.quote);
+                    setQuote(refreshResult.quote as Quote);
                 }
                 toast.success(`Devis ${status.toLowerCase()}`);
             } else {
