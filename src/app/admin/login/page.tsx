@@ -3,23 +3,61 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Truck, ArrowRight, Loader2, Quote } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Truck, ArrowRight, Loader2, Quote, AlertCircle } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { authClient } from "@/lib/auth-client";
+import { toast } from "sonner";
 
 export default function AdminLoginPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-    const handleLogin = async (e: React.FormEvent) => {
+    const callbackUrl = searchParams.get("callbackUrl") || "/admin/dashboard";
+
+    const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
-        // Simulate login delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        router.push("/admin/dashboard");
+        setError(null);
+
+        const formData = new FormData(e.currentTarget);
+        const email = formData.get("email") as string;
+        const password = formData.get("password") as string;
+
+        try {
+            const result = await authClient.signIn.email({
+                email,
+                password,
+            });
+
+            if (result.error) {
+                setError(result.error.message || "Identifiants incorrects");
+                toast.error("Échec de la connexion");
+                setIsLoading(false);
+                return;
+            }
+
+            // Vérifier le rôle de l'utilisateur
+            if (result.data?.user?.role === "user") {
+                setError("Accès refusé. Vous devez avoir un rôle administrateur.");
+                toast.error("Accès refusé");
+                await authClient.signOut();
+                setIsLoading(false);
+                return;
+            }
+
+            toast.success("Connexion réussie");
+            router.push(callbackUrl);
+            router.refresh();
+        } catch (err: unknown) {
+            console.error("Login error:", err);
+            setError("Une erreur s'est produite lors de la connexion");
+            toast.error("Erreur de connexion");
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -97,12 +135,21 @@ export default function AdminLoginPage() {
                                     </div>
                                     <Input
                                         id="password"
+                                        name="password"
                                         type="password"
                                         disabled={isLoading}
                                         className="h-11 bg-muted/30"
                                         required
                                     />
                                 </div>
+                                
+                                {error && (
+                                    <div className="flex items-center gap-2 p-3 text-sm text-red-600 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-md">
+                                        <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                                        <span>{error}</span>
+                                    </div>
+                                )}
+
                                 <Button disabled={isLoading} className="h-11 font-semibold shadow-lg hover:shadow-primary/25 transition-all mt-2">
                                     {isLoading ? (
                                         <>

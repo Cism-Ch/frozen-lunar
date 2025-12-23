@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { LayoutDashboard, FileText, Settings, LogOut, Menu, Truck, Search, User, Users, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,9 @@ import { Separator } from "@/components/ui/separator";
 import { AdminNotifications } from "@/components/features/AdminNotifications";
 import { motion, AnimatePresence, usePrefersReducedMotion } from "@/components/ui/motion";
 import { fadeInUp, staggerContainer, transitions } from "@/lib/animations";
+import { authClient } from "@/lib/auth-client";
+import { toast } from "sonner";
+import { useState } from "react";
 
 export default function AdminLayout({
     children,
@@ -28,7 +31,23 @@ export default function AdminLayout({
     children: React.ReactNode;
 }) {
     const pathname = usePathname();
+    const router = useRouter();
     const prefersReducedMotion = usePrefersReducedMotion();
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+    const handleLogout = async () => {
+        setIsLoggingOut(true);
+        try {
+            await authClient.signOut();
+            toast.success("Déconnexion réussie");
+            router.push("/admin/login");
+            router.refresh();
+        } catch (error: unknown) {
+            console.error("Logout error:", error);
+            toast.error("Erreur lors de la déconnexion");
+            setIsLoggingOut(false);
+        }
+    };
 
     const navItems = [
         {
@@ -45,6 +64,11 @@ export default function AdminLayout({
             title: "Contacts",
             href: "/admin/contacts",
             icon: User,
+        },
+        {
+            title: "Utilisateurs",
+            href: "/admin/users",
+            icon: Users,
         },
         {
             title: "Paramètres",
@@ -134,9 +158,14 @@ export default function AdminLayout({
                     whileHover={prefersReducedMotion ? {} : { x: 2 }}
                     transition={transitions.spring}
                 >
-                    <Button variant="ghost" className="w-full justify-start gap-3 text-red-500 hover:text-red-600 hover:bg-red-50">
+                    <Button 
+                        variant="ghost" 
+                        className="w-full justify-start gap-3 text-red-500 hover:text-red-600 hover:bg-red-50"
+                        onClick={handleLogout}
+                        disabled={isLoggingOut}
+                    >
                         <LogOut className="h-4 w-4" />
-                        Déconnexion
+                        {isLoggingOut ? "Déconnexion..." : "Déconnexion"}
                     </Button>
                 </motion.div>
             </div>
@@ -236,9 +265,13 @@ export default function AdminLayout({
                                     </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem className="text-red-500 focus:text-red-500">
+                                <DropdownMenuItem 
+                                    className="text-red-500 focus:text-red-500 cursor-pointer"
+                                    onClick={handleLogout}
+                                    disabled={isLoggingOut}
+                                >
                                     <LogOut className="mr-2 h-4 w-4" />
-                                    <span>Déconnexion</span>
+                                    <span>{isLoggingOut ? "Déconnexion..." : "Déconnexion"}</span>
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>

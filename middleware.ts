@@ -18,12 +18,35 @@ const ratelimit = new Ratelimit({
 });
 
 export async function middleware(request: NextRequest) {
+    const { pathname } = request.nextUrl;
+
     // Ignorer les fichiers statiques, images, etc.
     if (
-        request.nextUrl.pathname.startsWith("/_next") ||
-        request.nextUrl.pathname.startsWith("/static") ||
-        request.nextUrl.pathname.match(/\.(jpg|jpeg|png|gif|svg|ico)$/)
+        pathname.startsWith("/_next") ||
+        pathname.startsWith("/static") ||
+        pathname.match(/\.(jpg|jpeg|png|gif|svg|ico)$/)
     ) {
+        return NextResponse.next();
+    }
+
+    // Protection des routes admin
+    if (pathname.startsWith("/admin")) {
+        // Permettre l'accès aux routes de login et d'initialisation
+        if (pathname === "/admin/login" || pathname === "/admin/init") {
+            return NextResponse.next();
+        }
+
+        // Vérifier la session via le cookie better-auth
+        const sessionToken = request.cookies.get("better-auth.session_token")?.value;
+        
+        if (!sessionToken) {
+            // Pas de session, rediriger vers login
+            const loginUrl = new URL("/admin/login", request.url);
+            loginUrl.searchParams.set("callbackUrl", pathname);
+            return NextResponse.redirect(loginUrl);
+        }
+
+        // La validation complète du rôle sera faite côté serveur dans les pages
         return NextResponse.next();
     }
 
@@ -31,14 +54,10 @@ export async function middleware(request: NextRequest) {
     const ip = request.headers.get("x-forwarded-for") ?? "127.0.0.1";
 
     // Appliquer le Rate Limiting uniquement sur les API et Server Actions
-    // On peut affiner ici pour ne cibler que /api/* ou les mutations
-    if (request.nextUrl.pathname.startsWith("/api")) {
-        const { success, pending, limit, reset, remaining } = await ratelimit.limit(
+    if (pathname.startsWith("/api")) {
+        const { success, limit, reset, remaining } = await ratelimit.limit(
             `mw_${ip}`
         );
-
-        // Attendre la réponse de Redis sans bloquer (Edge optimization)
-        // await pending;
 
         const res = success
             ? NextResponse.next()

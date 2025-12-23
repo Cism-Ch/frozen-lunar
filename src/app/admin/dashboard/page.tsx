@@ -81,8 +81,11 @@ export default function DashboardPage() {
         setDetailsOpen(true);
     };
 
-    const refreshQuotes = () => {
-        setQuotes(quoteStorage.getAll());
+    const refreshQuotes = async () => {
+        const result = await getQuotesAction();
+        if (result.success && result.quotes) {
+            setQuotes(result.quotes as Quote[]);
+        }
     };
 
     return (
