@@ -11,17 +11,17 @@ datasource db {
 // --- Modèles d'Authentification (Better-Auth) ---
 
 model User {
-  id            String    @id @default(cuid())
+  id            String   @id @default(cuid())
   name          String
-  email         String    @unique
-  emailVerified Boolean   @default(false)
+  email         String   @unique
+  emailVerified Boolean  @default(false)
   image         String?
-  role          String    @default("user") // admin, moderator, developer, user
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  sessions      Session[]
-  accounts      Account[]
+  role          String   @default("user") // admin, moderator, developer, user
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  sessions Session[]
+  accounts Account[]
 
   @@map("user")
 }
@@ -73,9 +73,9 @@ model Verification {
 // --- Modèles de Métier (Quotes & Logistique) ---
 
 enum QuoteStatus {
-  PENDING   // En attente
+  PENDING // En attente
   VALIDATED // Validé
-  REJECTED  // Refusé
+  REJECTED // Refusé
 }
 
 enum QuoteSource {
@@ -84,8 +84,8 @@ enum QuoteSource {
 }
 
 model Quote {
-  id              String         @id @default(cuid())
-  date            DateTime       @default(now())
+  id              String      @id @default(cuid())
+  date            DateTime    @default(now())
   clientName      String
   email           String
   phone           String
@@ -93,15 +93,15 @@ model Quote {
   pickupLocation  String
   dropoffLocation String
   transportDate   DateTime
-  status          QuoteStatus    @default(PENDING)
-  amount          String         @default("À calculer")
+  status          QuoteStatus @default(PENDING)
+  amount          String      @default("À calculer")
   userNotes       String?
-  source          QuoteSource    @default(FORM)
-  
+  source          QuoteSource @default(FORM)
+
   // Storage for specific questions or details
   supplementaryInfo Json?
 
-  history         QuoteHistory[]
+  history QuoteHistory[]
 
   @@map("quote")
 }
@@ -112,9 +112,9 @@ model QuoteHistory {
   description String?
   timestamp   DateTime @default(now())
   user        String   @default("Système")
-  
-  quoteId     String
-  quote       Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  quoteId String
+  quote   Quote  @relation(fields: [quoteId], references: [id], onDelete: Cascade)
 
   @@map("quote_history")
 }
