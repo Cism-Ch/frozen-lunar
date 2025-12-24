@@ -141,8 +141,8 @@ export async function createUserAction(formData: FormData) {
 
         // Gestion des autres erreurs
         if (error instanceof Error) {
-            // Erreur de connexion DB
-            if (error.message.includes("DATABASE_URL") || error.message.includes("Prisma")) {
+            // Erreur de connexion DB - Vérifier le type pour plus de fiabilité
+            if (error.constructor.name.includes("Prisma") || error.message.includes("DATABASE_URL")) {
                 return { 
                     success: false, 
                     error: "Erreur de connexion à la base de données" 
@@ -214,8 +214,8 @@ export async function deleteUserAction(formData: FormData) {
         console.error("❌ Erreur lors de la suppression d'utilisateur:", error);
         
         if (error instanceof Error) {
-            // Erreur de connexion DB
-            if (error.message.includes("DATABASE_URL") || error.message.includes("Prisma")) {
+            // Erreur de connexion DB - Vérifier le type pour plus de fiabilité
+            if (error.constructor.name.includes("Prisma") || error.message.includes("DATABASE_URL")) {
                 return { 
                     success: false, 
                     error: "Erreur de connexion à la base de données" 

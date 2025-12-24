@@ -83,10 +83,10 @@ export default function AdminInitPage() {
             const data = await response.json();
 
             if (!response.ok) {
-                // Afficher les détails de l'erreur si disponibles
+                // Construire le message d'erreur de manière structurée
                 const errorMsg = data.error || "Erreur lors de la création du compte";
-                const details = data.details ? `\n${data.details}` : "";
-                throw new Error(errorMsg + details);
+                const errorWithDetails = data.details ? `${errorMsg}. ${data.details}` : errorMsg;
+                throw new Error(errorWithDetails);
             }
 
             toast.success("Compte administrateur créé avec succès");

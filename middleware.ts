@@ -14,6 +14,10 @@ import { Redis } from "@upstash/redis";
  * Le middleware s'exécute en Edge Runtime pour de meilleures performances
  */
 
+// Configuration du rate limiting
+const RATE_LIMIT_REQUESTS = 20;
+const RATE_LIMIT_WINDOW = "10 s";
+
 // Initialisation du Redis pour le Rate Limiting (Edge compatible)
 // Si les variables d'environnement ne sont pas définies, le rate limiting sera désactivé
 const redis = new Redis({
@@ -25,7 +29,7 @@ const redis = new Redis({
 // Cette limite protège contre les abus tout en permettant une utilisation normale
 const ratelimit = new Ratelimit({
     redis: redis,
-    limiter: Ratelimit.slidingWindow(20, "10 s"),
+    limiter: Ratelimit.slidingWindow(RATE_LIMIT_REQUESTS, RATE_LIMIT_WINDOW),
     analytics: true,
     prefix: "@upstash/ratelimit",
 });
@@ -87,7 +91,7 @@ export async function middleware(request: NextRequest) {
                 : NextResponse.json(
                     { 
                         error: "Trop de requêtes. Veuillez réessayer plus tard.",
-                        limit: "20 requêtes par 10 secondes",
+                        limit: `${RATE_LIMIT_REQUESTS} requêtes par ${RATE_LIMIT_WINDOW}`,
                         retryAfter: new Date(reset).toISOString()
                     },
                     { status: 429 }

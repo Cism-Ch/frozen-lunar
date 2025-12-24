@@ -110,8 +110,9 @@ export async function POST(request: NextRequest) {
                 );
             }
             
-            // Erreur Prisma (connexion, contrainte unique, etc.)
-            if (error.message.includes("Prisma")) {
+            // Erreur Prisma - Utiliser le constructeur pour plus de fiabilité
+            // Note: Idéalement utiliser instanceof PrismaClientKnownRequestError en production
+            if (error.constructor.name.includes("Prisma")) {
                 return NextResponse.json(
                     { 
                         error: "Erreur de base de données",
@@ -121,8 +122,8 @@ export async function POST(request: NextRequest) {
                 );
             }
 
-            // Erreur Better Auth
-            if (error.message.includes("Better Auth") || error.message.includes("signUpEmail")) {
+            // Erreur Better Auth - Vérifier le type de l'erreur
+            if (error.constructor.name.includes("Auth") || error.message.includes("signUpEmail")) {
                 return NextResponse.json(
                     { 
                         error: "Erreur du système d'authentification",

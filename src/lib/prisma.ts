@@ -9,7 +9,7 @@ function validateDatabaseConfig(): void {
         throw new Error(
             "❌ DATABASE_URL n'est pas configurée.\n" +
             "Veuillez créer un fichier .env à la racine du projet avec:\n" +
-            'DATABASE_URL="postgresql://username:password@localhost:5432/frozen_lunar?schema=public"\n' +
+            'DATABASE_URL="postgresql://user:password@localhost:5432/frozen_lunar?schema=public"\n' +
             "Voir .env.example pour plus de détails."
         );
     }
