@@ -14,6 +14,16 @@ import { revalidatePath } from "next/cache";
 // Initialisation du client API Auth server-side
 const authApi = auth.api;
 
+// Type guard pour vérifier les erreurs Better Auth
+function isBetterAuthError(error: unknown): error is { body?: { message?: string } } {
+    return (
+        error !== null &&
+        typeof error === 'object' &&
+        'body' in error &&
+        typeof (error as { body?: unknown }).body === 'object'
+    );
+}
+
 // Schéma de validation Zod pour la création d'utilisateur
 const createUserSchema = z.object({
     email: z.string().email("Email invalide"),
@@ -121,11 +131,11 @@ export async function createUserAction(formData: FormData) {
             };
         }
 
-        // Gestion des erreurs Better Auth
-        if (error && typeof error === 'object' && 'body' in error) {
-            const err = error as { body?: { message?: string } };
-            if (err.body?.message) {
-                return { success: false, error: err.body.message };
+        // Gestion des erreurs Better Auth avec type guard
+        if (isBetterAuthError(error)) {
+            const message = error.body?.message;
+            if (message) {
+                return { success: false, error: message };
             }
         }
 

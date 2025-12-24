@@ -110,15 +110,17 @@ L'application sera accessible sur `http://localhost:3000`
 
 ### Option B: Via l'API de seed (Développement uniquement)
 
+**⚠️ ATTENTION**: Cette méthode crée des comptes avec des mots de passe par défaut.
+Pour des raisons de sécurité, ces mots de passe doivent être changés immédiatement en production.
+
 ```bash
 curl -X POST http://localhost:3000/api/seed
 ```
 
-Crée automatiquement:
-- admin@hbc-logistique.fr (mot de passe: AdminStrongPass2025!)
-- dev-00@hbc-logistique.fr (mot de passe: Dev00SecurePass!)
-- dev-01@hbc-logistique.fr (mot de passe: Dev01SecurePass!)
-- mod@hbc-logistique.fr (mot de passe: ModSecurePass!)
+Crée automatiquement des utilisateurs avec différents rôles.
+**Voir le fichier `src/app/api/seed/route.ts` pour les identifiants par défaut.**
+
+> 🔒 **Sécurité**: Ne jamais utiliser cette route en production. Elle est automatiquement désactivée quand `NODE_ENV=production`.
 
 ## Vérification des corrections
 

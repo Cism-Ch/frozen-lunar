@@ -87,6 +87,7 @@ export async function middleware(request: NextRequest) {
                 : NextResponse.json(
                     { 
                         error: "Trop de requêtes. Veuillez réessayer plus tard.",
+                        limit: "20 requêtes par 10 secondes",
                         retryAfter: new Date(reset).toISOString()
                     },
                     { status: 429 }
