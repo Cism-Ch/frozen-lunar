@@ -124,7 +124,7 @@ export async function createUserAction(formData: FormData) {
         
         // Gestion des erreurs de validation Zod
         if (error instanceof z.ZodError) {
-            const firstError = error.errors[0];
+            const firstError = error.issues[0];
             return { 
                 success: false, 
                 error: firstError.message 
