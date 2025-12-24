@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
-import { LayoutDashboard, FileText, Settings, LogOut, Menu, Truck, Search, User, Users, Home } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { LogOut, Menu, Truck, Search, Users, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import {
@@ -16,11 +15,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { Separator } from "@/components/ui/separator";
 import { AdminNotifications } from "@/components/features/AdminNotifications";
+import { SidebarContent } from "@/components/features/admin/SidebarContent";
 import { motion, AnimatePresence, usePrefersReducedMotion } from "@/components/ui/motion";
-import { fadeInUp, staggerContainer, transitions } from "@/lib/animations";
+import { transitions } from "@/lib/animations";
+import { authClient } from "@/lib/auth-client";
+import { toast } from "sonner";
+import { useState } from "react";
 
 export default function AdminLayout({
     children,
@@ -28,120 +29,23 @@ export default function AdminLayout({
     children: React.ReactNode;
 }) {
     const pathname = usePathname();
+    const router = useRouter();
     const prefersReducedMotion = usePrefersReducedMotion();
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-    const navItems = [
-        {
-            title: "Tableau de bord",
-            href: "/admin/dashboard",
-            icon: LayoutDashboard,
-        },
-        {
-            title: "Devis",
-            href: "/admin/quotes",
-            icon: FileText,
-        },
-        {
-            title: "Contacts",
-            href: "/admin/contacts",
-            icon: User,
-        },
-        {
-            title: "Paramètres",
-            href: "/admin/settings",
-            icon: Settings,
-        },
-    ];
-
-    const MotionLink = motion.create(Link);
-
-    const SidebarContent = () => (
-        <div className="flex flex-col h-full">
-            <div className="flex h-16 items-center px-6 border-b">
-                <MotionLink
-                    href="/admin/dashboard"
-                    className="flex items-center gap-2 font-bold text-xl"
-                    whileHover={prefersReducedMotion ? {} : { scale: 1.02 }}
-                    transition={transitions.spring}
-                >
-                    <motion.div
-                        className="p-1.5 rounded-md bg-primary/10"
-                        whileHover={prefersReducedMotion ? {} : { rotate: 10 }}
-                        transition={transitions.spring}
-                    >
-                        <Truck className="h-5 w-5 text-primary" />
-                    </motion.div>
-                    <span>HBC Admin</span>
-                </MotionLink>
-            </div>
-            <motion.div
-                className="flex-1 py-6 px-4 space-y-1"
-                initial="hidden"
-                animate="visible"
-                variants={staggerContainer}
-            >
-                {navItems.map((item, index) => (
-                    <motion.div
-                        key={item.href}
-                        variants={fadeInUp}
-                        custom={index}
-                    >
-                        <Link
-                            href={item.href}
-                            className={cn(
-                                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all hover:bg-primary/5 hover:text-primary relative overflow-hidden",
-                                pathname === item.href
-                                    ? "bg-primary/10 text-primary shadow-sm"
-                                    : "text-muted-foreground"
-                            )}
-                        >
-                            <motion.div
-                                whileHover={prefersReducedMotion ? {} : { scale: 1.1, rotate: 5 }}
-                                transition={transitions.spring}
-                            >
-                                <item.icon className="h-4 w-4" />
-                            </motion.div>
-                            {item.title}
-                            {pathname === item.href && (
-                                <motion.div
-                                    className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full"
-                                    layoutId="adminActiveNav"
-                                    transition={transitions.spring}
-                                />
-                            )}
-                        </Link>
-                    </motion.div>
-                ))}
-            </motion.div>
-            <div className="p-4 border-t space-y-4">
-                <div className="flex items-center justify-between px-2">
-                    <span className="text-xs font-medium text-muted-foreground">Thème</span>
-                    <ThemeToggle />
-                </div>
-                <Separator />
-                <motion.div
-                    whileHover={prefersReducedMotion ? {} : { x: 2 }}
-                    transition={transitions.spring}
-                >
-                    <Button variant="ghost" className="w-full justify-start gap-3" asChild>
-                        <Link href="/">
-                            <Home className="h-4 w-4" />
-                            Retour au site
-                        </Link>
-                    </Button>
-                </motion.div>
-                <motion.div
-                    whileHover={prefersReducedMotion ? {} : { x: 2 }}
-                    transition={transitions.spring}
-                >
-                    <Button variant="ghost" className="w-full justify-start gap-3 text-red-500 hover:text-red-600 hover:bg-red-50">
-                        <LogOut className="h-4 w-4" />
-                        Déconnexion
-                    </Button>
-                </motion.div>
-            </div>
-        </div>
-    );
+    const handleLogout = async () => {
+        setIsLoggingOut(true);
+        try {
+            await authClient.signOut();
+            toast.success("Déconnexion réussie");
+            router.push("/admin/login");
+            router.refresh();
+        } catch (error: unknown) {
+            console.error("Logout error:", error);
+            toast.error("Erreur lors de la déconnexion");
+            setIsLoggingOut(false);
+        }
+    };
 
     return (
         <div className="flex h-screen bg-muted/10">
@@ -152,7 +56,11 @@ export default function AdminLayout({
                 animate={prefersReducedMotion ? {} : { x: 0, opacity: 1 }}
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
             >
-                <SidebarContent />
+                <SidebarContent 
+                    pathname={pathname} 
+                    isLoggingOut={isLoggingOut} 
+                    onLogout={handleLogout} 
+                />
             </motion.aside>
 
             {/* Main Content Wrapper */}
@@ -174,7 +82,11 @@ export default function AdminLayout({
                             </SheetTrigger>
                             <SheetContent side="left" className="w-[280px] p-0">
                                 <SheetTitle className="sr-only">Menu Admin</SheetTitle>
-                                <SidebarContent />
+                                <SidebarContent 
+                                    pathname={pathname} 
+                                    isLoggingOut={isLoggingOut} 
+                                    onLogout={handleLogout} 
+                                />
                             </SheetContent>
                         </Sheet>
                         <Link href="/admin/dashboard" className="font-bold text-lg flex items-center gap-2">
@@ -236,9 +148,13 @@ export default function AdminLayout({
                                     </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem className="text-red-500 focus:text-red-500">
+                                <DropdownMenuItem 
+                                    className="text-red-500 focus:text-red-500 cursor-pointer"
+                                    onClick={handleLogout}
+                                    disabled={isLoggingOut}
+                                >
                                     <LogOut className="mr-2 h-4 w-4" />
-                                    <span>Déconnexion</span>
+                                    <span>{isLoggingOut ? "Déconnexion..." : "Déconnexion"}</span>
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>

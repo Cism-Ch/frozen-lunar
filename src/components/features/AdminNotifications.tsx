@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Bell, Check, Clock, Info, MessageSquare, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Bell, Info, MessageSquare, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -15,64 +15,30 @@ import { ScrollArea } from "../ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
-
-// Mock data type
-type Notification = {
-    id: string;
-    title: string;
-    description: string;
-    type: "info" | "warning" | "success" | "message";
-    read: boolean;
-    timestamp: Date;
-};
-
-// Initial mock data with stable dates for server rendering
-// We will update them to "relative" times on client mount if needed, 
-// but for now, let's just use fixed ISO strings or ensure we only render them on client.
-const initialNotifications: Notification[] = [];
-
+import {
+    getNotificationsAction,
+    markNotificationAsReadAction,
+    markAllNotificationsAsReadAction,
+    type Notification,
+} from "@/app/actions/notification-management";
+import { toast } from "sonner";
 
 export function AdminNotifications() {
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [isMounted, setIsMounted] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         setIsMounted(true);
-        setNotifications([
-            {
-                id: "1",
-                title: "Nouveau devis reçu",
-                description: "Un client a demandé un devis pour un transport Paris-Lyon.",
-                type: "info",
-                read: false,
-                timestamp: new Date(Date.now() - 1000 * 60 * 5), // 5 mins ago
-            },
-            {
-                id: "2",
-                title: "Paiement confirmé",
-                description: "Le paiement pour la commande #INV-2024-001 a été reçu.",
-                type: "success",
-                read: false,
-                timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-            },
-            {
-                id: "3",
-                title: "Maintenance système",
-                description: "Une maintenance est prévue ce soir à 23h00.",
-                type: "warning",
-                read: true,
-                timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-            },
-            {
-                id: "4",
-                title: "Nouveau message",
-                description: "Sophie Martin vous a envoyé un message concernant sa commande.",
-                type: "message",
-                read: true,
-                timestamp: new Date(Date.now() - 1000 * 60 * 60 * 48), // 2 days ago
-            },
-        ]);
+        loadNotifications();
     }, []);
+
+    const loadNotifications = async () => {
+        const result = await getNotificationsAction();
+        if (result.success && result.notifications) {
+            setNotifications(result.notifications);
+        }
+    };
 
     if (!isMounted) {
         return (
@@ -84,16 +50,27 @@ export function AdminNotifications() {
 
     const unreadCount = notifications.filter((n) => !n.read).length;
 
-    const markAllAsRead = () => {
-        setNotifications((prev) =>
-            prev.map((n) => ({ ...n, read: true }))
-        );
+    const markAllAsRead = async () => {
+        setIsLoading(true);
+        const result = await markAllNotificationsAsReadAction();
+        if (result.success) {
+            setNotifications((prev) =>
+                prev.map((n) => ({ ...n, read: true }))
+            );
+            toast.success("Toutes les notifications marquées comme lues");
+        } else {
+            toast.error(result.error || "Erreur");
+        }
+        setIsLoading(false);
     };
 
-    const markAsRead = (id: string) => {
-        setNotifications((prev) =>
-            prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-        );
+    const markAsRead = async (id: string) => {
+        const result = await markNotificationAsReadAction(id);
+        if (result.success) {
+            setNotifications((prev) =>
+                prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+            );
+        }
     };
 
     const getIcon = (type: Notification["type"]) => {
@@ -131,6 +108,7 @@ export function AdminNotifications() {
                             size="sm"
                             className="h-auto px-2 py-1 text-xs text-muted-foreground hover:text-primary"
                             onClick={markAllAsRead}
+                            disabled={isLoading}
                         >
                             Tout marquer comme lu
                         </Button>
@@ -162,7 +140,7 @@ export function AdminNotifications() {
                                             </span>
                                         </div>
                                         <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-                                            {formatDistanceToNow(notification.timestamp, { addSuffix: true, locale: fr })}
+                                            {formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true, locale: fr })}
                                         </span>
                                     </div>
                                     <p className="text-xs text-muted-foreground line-clamp-2 pl-6">

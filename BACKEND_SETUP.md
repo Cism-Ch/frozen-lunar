@@ -29,13 +29,13 @@ NEXT_PUBLIC_APP_URL="http://localhost:3000"
 
 # Optional: AI/Email Services (for full functionality)
 NEXT_PUBLIC_GEMINI_API_KEY="your_gemini_api_key"
-RESEND_API_KEY="your_resend_api_key"
+RESEND_KEY="your_resend_api_key"
 
 # Optional: Storage (Tigris S3)
 TIGRIS_BUCKET_NAME="your_bucket_name"
-TIGRIS_ACCESS_KEY_ID="your_access_key"
-TIGRIS_SECRET_ACCESS_KEY="your_secret_key"
-TIGRIS_ENDPOINT="https://fly.storage.tigris.dev"
+TIGRIS_STORAGE_ACCESS_KEY_ID="your_access_key"
+TIGRIS_STORAGE_SECRET_ACCESS_KEY="your_secret_key"
+TIGRIS_STORAGE_ENDPOINT="https://fly.storage.tigris.dev"
 NEXT_PUBLIC_TIGRIS_PUBLIC_URL="your_public_url"
 
 # Optional: Redis (Upstash)

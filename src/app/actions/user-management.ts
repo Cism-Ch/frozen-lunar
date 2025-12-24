@@ -72,13 +72,19 @@ export async function createUserAction(formData: FormData) {
         revalidatePath("/admin/users");
         return { success: true, message: "Utilisateur créé avec succès" };
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Create User Error:", error);
         // Gestion propre de l'erreur "User already exists" de Better-Auth
-        if (error?.body?.message) {
-            return { success: false, error: error.body.message };
+        if (error && typeof error === 'object' && 'body' in error) {
+            const err = error as { body?: { message?: string } };
+            if (err.body?.message) {
+                return { success: false, error: err.body.message };
+            }
         }
-        return { success: false, error: error.message || "Erreur inconnue" };
+        if (error instanceof Error) {
+            return { success: false, error: error.message };
+        }
+        return { success: false, error: "Erreur inconnue" };
     }
 }
 
@@ -103,8 +109,11 @@ export async function deleteUserAction(formData: FormData) {
         revalidatePath("/admin/users");
         return { success: true, message: "Utilisateur supprimé" };
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Delete User Error:", error);
-        return { success: false, error: error.message };
+        if (error instanceof Error) {
+            return { success: false, error: error.message };
+        }
+        return { success: false, error: "Erreur lors de la suppression" };
     }
 }
