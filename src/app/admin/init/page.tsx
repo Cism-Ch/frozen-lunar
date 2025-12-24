@@ -18,14 +18,29 @@ export default function AdminInitPage() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        // Check if admin already exists
+        /**
+         * Vérifie au chargement si un administrateur existe déjà
+         * Cette vérification permet d'afficher le bon écran (init ou redirection)
+         */
         const checkAdmin = async () => {
             try {
                 const response = await fetch("/api/admin/check");
                 const data = await response.json();
+                
+                // Afficher les erreurs de configuration au lieu de les masquer
+                if (!response.ok && data.error) {
+                    console.error("❌ Erreur de configuration:", data.error);
+                    if (data.details) {
+                        console.error("Détails:", data.details);
+                    }
+                    toast.error(data.error + (data.details ? ": " + data.details : ""));
+                }
+                
                 setHasAdmin(data.hasAdmin);
             } catch (err: unknown) {
-                console.error("Error checking admin:", err);
+                console.error("❌ Erreur lors de la vérification admin:", err);
+                // Afficher une erreur utilisateur si la vérification échoue
+                toast.error("Impossible de vérifier la configuration. Voir la console pour les détails.");
             } finally {
                 setIsChecking(false);
             }
@@ -44,7 +59,7 @@ export default function AdminInitPage() {
         const password = formData.get("password") as string;
         const confirmPassword = formData.get("confirmPassword") as string;
 
-        // Validation
+        // Validation côté client
         if (password !== confirmPassword) {
             setError("Les mots de passe ne correspondent pas");
             setIsLoading(false);
@@ -58,7 +73,7 @@ export default function AdminInitPage() {
         }
 
         try {
-            // Create admin account via API
+            // Créer le compte administrateur via l'API
             const response = await fetch("/api/admin/init", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -68,12 +83,15 @@ export default function AdminInitPage() {
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.error || "Erreur lors de la création du compte");
+                // Afficher les détails de l'erreur si disponibles
+                const errorMsg = data.error || "Erreur lors de la création du compte";
+                const details = data.details ? `\n${data.details}` : "";
+                throw new Error(errorMsg + details);
             }
 
             toast.success("Compte administrateur créé avec succès");
             
-            // Auto-login
+            // Tentative de connexion automatique
             const loginResult = await authClient.signIn.email({
                 email,
                 password,
@@ -87,7 +105,7 @@ export default function AdminInitPage() {
                 router.push("/admin/dashboard");
             }
         } catch (err: unknown) {
-            console.error("Init error:", err);
+            console.error("❌ Erreur lors de l'initialisation:", err);
             const errorMessage = err instanceof Error ? err.message : "Une erreur s'est produite";
             setError(errorMessage);
             toast.error(errorMessage);
