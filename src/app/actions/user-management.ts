@@ -5,6 +5,9 @@ import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { createUserSchemaSimple } from "@/lib/validation";
+import { handleError, handlePrismaError, handleBetterAuthError } from "@/lib/error-handler";
+import { ERROR_CODES } from "@/lib/error-codes";
 
 /**
  * Actions serveur pour la gestion des utilisateurs
@@ -13,24 +16,6 @@ import { revalidatePath } from "next/cache";
 
 // Initialisation du client API Auth server-side
 const authApi = auth.api;
-
-// Type guard pour vérifier les erreurs Better Auth
-function isBetterAuthError(error: unknown): error is { body?: { message?: string } } {
-    return (
-        error !== null &&
-        typeof error === 'object' &&
-        'body' in error &&
-        typeof (error as { body?: unknown }).body === 'object'
-    );
-}
-
-// Schéma de validation Zod pour la création d'utilisateur
-const createUserSchema = z.object({
-    email: z.string().email("Email invalide"),
-    name: z.string().min(2, "Nom trop court (minimum 2 caractères)"),
-    password: z.string().min(8, "Mot de passe trop court (minimum 8 caractères)"),
-    role: z.enum(["admin", "developer", "moderator", "user"]).default("user"),
-});
 
 /**
  * Vérifie si l'utilisateur actuel est un administrateur
@@ -59,7 +44,7 @@ async function requireAdmin() {
  * Crée un nouvel utilisateur avec Better Auth
  * 
  * @param formData FormData contenant email, name, password, role
- * @returns { success: boolean, message?: string, error?: string }
+ * @returns { success: boolean, message?: string, error?: string, code?: string }
  */
 export async function createUserAction(formData: FormData) {
     try {
@@ -68,14 +53,14 @@ export async function createUserAction(formData: FormData) {
 
         // Extraire les données du formulaire
         const data = {
-            email: formData.get("email") as string,
-            name: formData.get("name") as string,
-            password: formData.get("password") as string,
-            role: formData.get("role") as string,
+            email: formData.get("email") as string | null,
+            name: formData.get("name") as string | null,
+            password: formData.get("password") as string | null,
+            role: formData.get("role") as string | null,
         };
 
         // Valider les données avec Zod
-        const validated = createUserSchema.parse(data);
+        const validated = createUserSchemaSimple.parse(data);
 
         // Vérifier si l'utilisateur existe déjà
         const existingUser = await prisma.user.findUnique({
@@ -85,7 +70,8 @@ export async function createUserAction(formData: FormData) {
         if (existingUser) {
             return { 
                 success: false, 
-                error: "Un utilisateur avec cet email existe déjà" 
+                error: ERROR_CODES.UNIQUE_CONSTRAINT.message,
+                code: ERROR_CODES.UNIQUE_CONSTRAINT.code
             };
         }
 
@@ -127,34 +113,17 @@ export async function createUserAction(formData: FormData) {
             const firstError = error.issues[0];
             return { 
                 success: false, 
-                error: firstError.message 
+                error: firstError.message,
+                code: ERROR_CODES.INVALID_FORMAT.code
             };
         }
 
-        // Gestion des erreurs Better Auth avec type guard
-        if (isBetterAuthError(error)) {
-            const message = error.body?.message;
-            if (message) {
-                return { success: false, error: message };
-            }
-        }
-
-        // Gestion des autres erreurs
-        if (error instanceof Error) {
-            // Erreur de connexion DB - Vérifier le type pour plus de fiabilité
-            if (error.constructor.name.includes("Prisma") || error.message.includes("DATABASE_URL")) {
-                return { 
-                    success: false, 
-                    error: "Erreur de connexion à la base de données" 
-                };
-            }
-
-            return { success: false, error: error.message };
-        }
-
+        // Utiliser le gestionnaire d'erreurs centralisé
+        const errorResponse = handleError(error);
         return { 
             success: false, 
-            error: "Erreur inconnue lors de la création de l'utilisateur" 
+            error: errorResponse.message,
+            code: errorResponse.code
         };
     }
 }
@@ -164,7 +133,7 @@ export async function createUserAction(formData: FormData) {
  * Empêche l'auto-suppression de l'admin connecté
  * 
  * @param formData FormData contenant userId
- * @returns { success: boolean, message?: string, error?: string }
+ * @returns { success: boolean, message?: string, error?: string, code?: string }
  */
 export async function deleteUserAction(formData: FormData) {
     try {
@@ -175,12 +144,20 @@ export async function deleteUserAction(formData: FormData) {
 
         // Validation du paramètre
         if (!userId) {
-            throw new Error("ID utilisateur manquant");
+            return {
+                success: false,
+                error: ERROR_CODES.REQUIRED_FIELD.message,
+                code: ERROR_CODES.REQUIRED_FIELD.code
+            };
         }
 
         // Empêcher l'auto-suppression
         if (userId === admin.id) {
-            throw new Error("Vous ne pouvez pas supprimer votre propre compte");
+            return {
+                success: false,
+                error: "Vous ne pouvez pas supprimer votre propre compte",
+                code: ERROR_CODES.INSUFFICIENT_PERMISSIONS.code
+            };
         }
 
         // Vérifier que l'utilisateur existe
@@ -191,7 +168,8 @@ export async function deleteUserAction(formData: FormData) {
         if (!userToDelete) {
             return { 
                 success: false, 
-                error: "Utilisateur introuvable" 
+                error: ERROR_CODES.RECORD_NOT_FOUND.message,
+                code: ERROR_CODES.RECORD_NOT_FOUND.code
             };
         }
 
@@ -213,21 +191,12 @@ export async function deleteUserAction(formData: FormData) {
     } catch (error: unknown) {
         console.error("❌ Erreur lors de la suppression d'utilisateur:", error);
         
-        if (error instanceof Error) {
-            // Erreur de connexion DB - Vérifier le type pour plus de fiabilité
-            if (error.constructor.name.includes("Prisma") || error.message.includes("DATABASE_URL")) {
-                return { 
-                    success: false, 
-                    error: "Erreur de connexion à la base de données" 
-                };
-            }
-
-            return { success: false, error: error.message };
-        }
-
+        // Utiliser le gestionnaire d'erreurs centralisé
+        const errorResponse = handleError(error);
         return { 
             success: false, 
-            error: "Erreur lors de la suppression de l'utilisateur" 
+            error: errorResponse.message,
+            code: errorResponse.code
         };
     }
 }

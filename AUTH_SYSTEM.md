@@ -503,4 +503,183 @@ npx prisma migrate dev --name add_better_auth
 - **Better Auth Docs:** https://better-auth.com
 - **Prisma Docs:** https://prisma.io/docs
 - **Next.js Auth:** https://nextjs.org/docs/authentication
+- **Resend Docs:** https://resend.com/docs
 - **GitHub Issues:** [Create Issue](https://github.com/your-repo/issues)
+
+## Email System
+
+### Overview
+
+The application uses **Resend** for sending transactional emails. The email system is configured in `src/lib/email.ts`.
+
+### Configuration
+
+#### Environment Variables
+
+```env
+# Required for email sending
+RESEND_KEY="re_your_api_key_here"
+
+# Optional: Alternative variable name for compatibility
+AUTH_RESEND_KEY="re_your_api_key_here"
+```
+
+To get a Resend API key:
+1. Sign up at https://resend.com
+2. Create an API key in your dashboard
+3. Add it to your `.env` file as `RESEND_KEY`
+
+#### Email Sender Configuration
+
+The sender email is automatically configured based on environment:
+
+- **Production**: `contact@hbc-logistique.fr`
+- **Development**: `onboarding@resend.dev` (Resend's test domain)
+
+### Usage
+
+#### Importing the Email Service
+
+```typescript
+import { resend, EMAIL_SENDER } from "@/lib/email";
+```
+
+#### Sending an Email
+
+```typescript
+const { data, error } = await resend.emails.send({
+    from: EMAIL_SENDER,
+    to: ["recipient@example.com"],
+    subject: "Your Subject",
+    react: YourEmailComponent({ props }),
+});
+
+if (error) {
+    console.error("Email Error:", error);
+    // Handle error
+}
+```
+
+#### Email Templates
+
+Email templates are created using React and `@react-email/components`. Example location: `src/components/emails/QuoteRequestEmail.tsx`
+
+```typescript
+import {
+    Body,
+    Container,
+    Head,
+    Heading,
+    Html,
+    Preview,
+    Text,
+} from "@react-email/components";
+
+export function QuoteRequestEmail({
+    clientName,
+    email,
+    // ... other props
+}) {
+    return (
+        <Html>
+            <Head />
+            <Preview>New quote request</Preview>
+            <Body>
+                <Container>
+                    <Heading>New Quote Request</Heading>
+                    <Text>Client: {clientName}</Text>
+                    <Text>Email: {email}</Text>
+                </Container>
+            </Body>
+        </Html>
+    );
+}
+```
+
+### Email Workflows
+
+#### Quote Notification Email
+
+When a new quote is submitted, an email is sent via QStash workflow:
+
+1. Quote is submitted via form or chat
+2. QStash triggers the email workflow at `/api/workflow/email`
+3. Email is sent to admin using Resend
+4. Email contains quote details and client information
+
+**Route**: `src/app/api/workflow/email/route.ts`
+
+**Security**: Protected by QStash signature verification
+
+### Error Handling
+
+The email system includes fallback mechanisms:
+
+1. If `RESEND_KEY` is not configured, a warning is logged
+2. A dummy key is used to prevent crashes
+3. Errors are caught and logged appropriately
+
+```typescript
+if (!apiKey) {
+    console.warn("⚠️ Resend environment variable is missing (RESEND_KEY).");
+}
+
+export const resend = new Resend(apiKey || "re_123456789");
+```
+
+### Email Verification (Future)
+
+Better Auth supports email verification out of the box. To enable:
+
+1. Configure email verification in `src/lib/auth.ts`:
+
+```typescript
+export const auth = betterAuth({
+    // ... existing config
+    emailVerification: {
+        enabled: true,
+        sendVerificationEmail: async ({ user, url }) => {
+            await resend.emails.send({
+                from: EMAIL_SENDER,
+                to: [user.email],
+                subject: "Verify your email",
+                html: `Click here to verify: <a href="${url}">${url}</a>`,
+            });
+        },
+    },
+});
+```
+
+2. Update the Prisma schema if needed (emailVerified field already exists)
+
+3. Add email verification UI components
+
+### Testing Emails in Development
+
+Resend provides a test domain (`onboarding@resend.dev`) for development:
+
+- Emails sent from this domain are delivered normally
+- No domain verification required
+- Limited to 100 emails per day
+
+For production, you must:
+1. Add and verify your domain in Resend dashboard
+2. Update `EMAIL_SENDER` in `src/lib/email.ts`
+3. Configure DNS records (SPF, DKIM)
+
+### Monitoring
+
+To monitor email delivery:
+
+1. Check Resend dashboard for delivery status
+2. View email logs and analytics
+3. Set up webhooks for delivery events
+
+### Best Practices
+
+1. **Always use EMAIL_SENDER constant** - Don't hardcode sender addresses
+2. **Handle errors gracefully** - Email failures shouldn't break user flows
+3. **Use React Email components** - For maintainable, responsive emails
+4. **Test in development** - Use Resend's test domain before production
+5. **Monitor delivery rates** - Check Resend dashboard regularly
+6. **Respect rate limits** - Resend has rate limits per plan tier
