@@ -20,7 +20,7 @@ export const emailSchema = z
 
 /**
  * Validation de mot de passe renforcée
- * - Minimum 12 caractères (recommandation OWASP 2024)
+ * - Minimum 12 caractères (recommandation OWASP)
  * - Au moins une majuscule
  * - Au moins une minuscule
  * - Au moins un chiffre

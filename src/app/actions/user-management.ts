@@ -6,7 +6,7 @@ import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createUserSchemaSimple } from "@/lib/validation";
-import { handleError, handlePrismaError, handleBetterAuthError } from "@/lib/error-handler";
+import { handleError } from "@/lib/error-handler";
 import { ERROR_CODES } from "@/lib/error-codes";
 
 /**
