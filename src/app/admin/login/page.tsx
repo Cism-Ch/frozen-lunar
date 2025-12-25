@@ -41,7 +41,11 @@ function LoginForm() {
             }
 
             // Vérifier le rôle de l'utilisateur
-            const user = result.data?.user as any;
+            interface UserWithRole {
+                role?: string;
+                [key: string]: unknown;
+            }
+            const user = result.data?.user as UserWithRole;
             if (user?.role === "user") {
                 setError("Accès refusé. Vous devez avoir un rôle administrateur.");
                 toast.error("Accès refusé");
@@ -78,7 +82,7 @@ function LoginForm() {
                 <div className="relative z-10 max-w-md space-y-4">
                     <Quote className="h-10 w-10 text-primary/50" />
                     <blockquote className="text-2xl font-medium leading-relaxed">
-                        "La gestion logistique simplifiée. Une interface puissante pour piloter votre activité de transport avec précision."
+                        &ldquo;La gestion logistique simplifiée. Une interface puissante pour piloter votre activité de transport avec précision.&rdquo;
                     </blockquote>
                     <div className="flex items-center gap-4 pt-4">
                         <div className="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center font-bold">

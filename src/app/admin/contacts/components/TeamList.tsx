@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { MoreHorizontal, Shield, ShieldAlert, User, Code } from "lucide-react";
+import { MoreHorizontal, Shield, ShieldAlert, Code } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -16,9 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { TeamMemberProfile } from "./TeamMemberProfile";
-import { AddTeamMemberDialog } from "./AddTeamMemberDialog";
 import { useState } from "react";
-import { Plus } from "lucide-react";
 
 // ... existing imports
 
@@ -74,7 +72,6 @@ const MOCK_TEAM: TeamMember[] = [
 
 export function TeamList() {
     const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
-    const [isAddOpen, setIsAddOpen] = useState(false);
 
     return (
         <Card>
@@ -85,7 +82,7 @@ export function TeamList() {
                         Équipe Administrative
                     </CardTitle>
                     <CardDescription>
-                        Gérez les accès et les rôles des membres de l'équipe.
+                        Gérez les accès et les rôles des membres de l&apos;équipe.
                     </CardDescription>
                 </div>
                 <Button onClick={() => setIsAddOpen(true)} size="sm" className="gap-2 w-full sm:w-auto">
@@ -192,7 +189,7 @@ export function TeamList() {
                                                     <DropdownMenuItem>Modifier les droits</DropdownMenuItem>
                                                     <DropdownMenuSeparator />
                                                     <DropdownMenuItem className="text-red-600">
-                                                        Suspendre l'accès
+                                                        Suspendre l&apos;accès
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>

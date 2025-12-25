@@ -1,14 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Bell, Info, MessageSquare, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "../ui/scroll-area";
@@ -28,17 +26,22 @@ export function AdminNotifications() {
     const [isMounted, setIsMounted] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
-    useEffect(() => {
-        setIsMounted(true);
-        loadNotifications();
-    }, []);
-
-    const loadNotifications = async () => {
+    const loadNotifications = useCallback(async () => {
         const result = await getNotificationsAction();
         if (result.success && result.notifications) {
             setNotifications(result.notifications);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    useEffect(() => {
+        if (isMounted) {
+            loadNotifications();
+        }
+    }, [isMounted, loadNotifications]);
 
     if (!isMounted) {
         return (

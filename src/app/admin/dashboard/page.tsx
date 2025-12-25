@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { FileText, TrendingUp, Users, Clock, CheckCircle } from "lucide-react";
-import { Quote, quoteStorage } from "@/lib/quote-storage";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";

@@ -51,16 +51,16 @@ export default function MentionsLegalesPage() {
                                 <h2 className="text-2xl font-bold mb-4 text-primary">Hébergement</h2>
                                 <div className="space-y-2 text-muted-foreground leading-relaxed">
                                     <p>Ce site est hébergé par :</p>
-                                    <p><strong>[Nom de l'hébergeur]</strong></p>
-                                    <p>[Adresse de l'hébergeur]</p>
-                                    <p>[Téléphone de l'hébergeur]</p>
+                                    <p><strong>[Nom de l&apos;hébergeur]</strong></p>
+                                    <p>[Adresse de l&apos;hébergeur]</p>
+                                    <p>[Téléphone de l&apos;hébergeur]</p>
                                 </div>
                             </section>
 
                             <section className="mb-8">
                                 <h2 className="text-2xl font-bold mb-4 text-primary">Propriété intellectuelle</h2>
                                 <p className="text-muted-foreground leading-relaxed">
-                                    L'ensemble de ce site relève de la législation française et internationale sur le droit d'auteur et la propriété intellectuelle.
+                                    L&apos;ensemble de ce site relève de la législation française et internationale sur le droit d&apos;auteur et la propriété intellectuelle.
                                     Tous les droits de reproduction sont réservés, y compris pour les documents téléchargeables et les représentations iconographiques et photographiques.
                                 </p>
                             </section>
@@ -69,7 +69,7 @@ export default function MentionsLegalesPage() {
                                 <h2 className="text-2xl font-bold mb-4 text-primary">Données personnelles</h2>
                                 <p className="text-muted-foreground leading-relaxed">
                                     Conformément à la loi « Informatique et Libertés » du 6 janvier 1978 modifiée et au Règlement Général sur la Protection des Données (RGPD),
-                                    vous disposez d'un droit d'accès, de rectification, de suppression et d'opposition aux données personnelles vous concernant.
+                                    vous disposez d&apos;un droit d&apos;accès, de rectification, de suppression et d&apos;opposition aux données personnelles vous concernant.
                                 </p>
                             </section>
                         </CardContent>

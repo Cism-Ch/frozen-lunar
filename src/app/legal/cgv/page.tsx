@@ -17,7 +17,7 @@ export default function CGVPage() {
                             Conditions Générales de Vente
                         </h1>
                         <p className="text-lg text-muted-foreground">
-                            Dernière mise à jour : {new Date().toLocaleDateString('fr-FR')}
+                            Dernière mise à jour : {new Date().toLocaleDateString(&apos;fr-FR&apos;)}
                         </p>
                     </div>
                 </SectionContainer>
@@ -38,14 +38,14 @@ export default function CGVPage() {
                                 <h2 className="text-2xl font-bold mb-4 text-primary">Article 2 - Prix</h2>
                                 <p className="text-muted-foreground leading-relaxed">
                                     Les prix de nos services sont indiqués en euros toutes taxes comprises (TTC).
-                                    Ils sont susceptibles d'être modifiés à tout moment mais les services seront facturés sur la base des tarifs en vigueur au moment de la validation de la commande.
+                                    Ils sont susceptibles d&apos;être modifiés à tout moment mais les services seront facturés sur la base des tarifs en vigueur au moment de la validation de la commande.
                                 </p>
                             </section>
 
                             <section className="mb-8">
                                 <h2 className="text-2xl font-bold mb-4 text-primary">Article 3 - Commandes</h2>
                                 <p className="text-muted-foreground leading-relaxed">
-                                    Toute commande de service implique l'acceptation sans réserve des présentes CGV.
+                                    Toute commande de service implique l&apos;acceptation sans réserve des présentes CGV.
                                     Le client reconnaît avoir pris connaissance des présentes CGV et les avoir acceptées avant la passation de sa commande.
                                 </p>
                             </section>
@@ -53,7 +53,7 @@ export default function CGVPage() {
                             <section className="mb-8">
                                 <h2 className="text-2xl font-bold mb-4 text-primary">Article 4 - Modalités de paiement</h2>
                                 <p className="text-muted-foreground leading-relaxed mb-4">
-                                    Le règlement des services s'effectue :
+                                    Le règlement des services s&apos;effectue :
                                 </p>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                                     <li>Par virement bancaire</li>
@@ -69,7 +69,7 @@ export default function CGVPage() {
                                 <h2 className="text-2xl font-bold mb-4 text-primary">Article 5 - Livraison</h2>
                                 <p className="text-muted-foreground leading-relaxed">
                                     Les délais de livraison sont donnés à titre indicatif.
-                                    HBC LOGISTIQUE s'engage à faire ses meilleurs efforts pour respecter les délais annoncés.
+                                    HBC LOGISTIQUE s&apos;engage à faire ses meilleurs efforts pour respecter les délais annoncés.
                                 </p>
                             </section>
 

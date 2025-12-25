@@ -83,7 +83,7 @@ export default function QuoteModerationPage() {
             } else {
                 console.error("Error during AI estimation:", error);
             }
-            toast.error("Erreur lors de l'estimation");
+            toast.error("Erreur lors de l&apos;estimation");
         } finally {
             setEstimating(false);
         }
@@ -104,7 +104,7 @@ export default function QuoteModerationPage() {
             } else {
                 console.error("Error generating AI email:", error);
             }
-            toast.error("Erreur de génération d'email");
+            toast.error("Erreur de génération d&apos;email");
             setEmailOpen(false);
         } finally {
             setGeneratingEmail(false);
@@ -127,7 +127,7 @@ export default function QuoteModerationPage() {
                 }
             } catch (error: unknown) {
                 console.error("Error applying estimation:", error);
-                toast.error("Erreur lors de l'application de l'estimation");
+                toast.error("Erreur lors de l&apos;application de l&apos;estimation");
             }
         }
     };
@@ -430,7 +430,7 @@ export default function QuoteModerationPage() {
                                 Notes Internes
                             </CardTitle>
                             <CardDescription>
-                                Visible uniquement par l'équipe admin et les chauffeurs.
+                                Visible uniquement par l&apos;équipe admin et les chauffeurs.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -438,7 +438,7 @@ export default function QuoteModerationPage() {
                                 value={notes}
                                 onChange={(e) => setNotes(e.target.value)}
                                 className="min-h-[150px] resize-none focus-visible:ring-primary/20"
-                                placeholder="Instructions spéciales, codes d'accès, spécificités du chargement..."
+                                placeholder="Instructions spéciales, codes d&apos;accès, spécificités du chargement..."
                             />
                         </CardContent>
                     </Card>
@@ -513,7 +513,7 @@ export default function QuoteModerationPage() {
                     <DialogHeader>
                         <DialogTitle>Assistant de Rédaction IA</DialogTitle>
                         <DialogDescription>
-                            Modifiez le brouillon généré avant de l'envoyer (Simulation).
+                            Modifiez le brouillon généré avant de l&apos;envoyer (Simulation).
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">

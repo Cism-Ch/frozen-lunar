@@ -95,7 +95,7 @@ export function QuoteWizard() {
                 toast.error(error.message);
             } else {
                 console.error("Quote submission error:", error);
-                toast.error("Une erreur est survenue lors de l'envoi de la demande.");
+                toast.error("Une erreur est survenue lors de l&apos;envoi de la demande.");
             }
         } finally {
             setIsSubmitting(false);
