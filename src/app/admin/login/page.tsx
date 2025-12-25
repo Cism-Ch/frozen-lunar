@@ -24,13 +24,22 @@ function LoginForm() {
         setError(null);
 
         const formData = new FormData(e.currentTarget);
-        const email = formData.get("email") as string;
-        const password = formData.get("password") as string;
+        const email = formData.get("email");
+        const password = formData.get("password");
+
+        // Validation des champs requis
+        if (!email || !password) {
+            const errorMessage = "L'email et le mot de passe sont requis";
+            setError(errorMessage);
+            toast.error(errorMessage);
+            setIsLoading(false);
+            return;
+        }
 
         try {
             const result = await authClient.signIn.email({
-                email,
-                password,
+                email: email as string,
+                password: password as string,
             });
 
             if (result.error) {
@@ -117,6 +126,7 @@ function LoginForm() {
                                     <Label htmlFor="email">Email</Label>
                                     <Input
                                         id="email"
+                                        name="email"
                                         placeholder="admin@hbclogistique.com"
                                         type="email"
                                         autoCapitalize="none"

@@ -11,7 +11,7 @@ import { z } from "zod";
  */
 export const emailSchema = z
     .string({
-        message: "L'adresse email doit être une chaîne de caractères"
+        message: "L'adresse email est requise"
     })
     .min(1, "L'adresse email ne peut pas être vide")
     .email("Format d'email invalide")
@@ -27,7 +27,7 @@ export const emailSchema = z
  */
 export const passwordSchema = z
     .string({
-        message: "Le mot de passe doit être une chaîne de caractères"
+        message: "Le mot de passe est requis"
     })
     .min(12, "Le mot de passe doit contenir au moins 12 caractères")
     .regex(/[a-z]/, "Le mot de passe doit contenir au moins une minuscule")
@@ -41,7 +41,7 @@ export const passwordSchema = z
  */
 export const simplePasswordSchema = z
     .string({
-        message: "Le mot de passe doit être une chaîne de caractères"
+        message: "Le mot de passe est requis"
     })
     .min(8, "Le mot de passe doit contenir au moins 8 caractères");
 
@@ -50,7 +50,7 @@ export const simplePasswordSchema = z
  */
 export const nameSchema = z
     .string({
-        message: "Le nom doit être une chaîne de caractères"
+        message: "Le nom est requis"
     })
     .min(2, "Le nom doit contenir au moins 2 caractères")
     .max(100, "Le nom ne peut pas dépasser 100 caractères")
