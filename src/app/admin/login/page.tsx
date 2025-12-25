@@ -35,14 +35,10 @@ function LoginForm() {
             return;
         }
 
-        // Convert to strings after validation
-        const emailStr = email.toString();
-        const passwordStr = password.toString();
-
         try {
             const result = await authClient.signIn.email({
-                email: emailStr,
-                password: passwordStr,
+                email: email as string,
+                password: password as string,
             });
 
             if (result.error) {

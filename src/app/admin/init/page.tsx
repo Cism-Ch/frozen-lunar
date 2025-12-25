@@ -66,20 +66,14 @@ export default function AdminInitPage() {
             return;
         }
 
-        // Convert to strings after validation
-        const nameStr = name.toString();
-        const emailStr = email.toString();
-        const passwordStr = password.toString();
-        const confirmPasswordStr = confirmPassword.toString();
-
         // Validation côté client
-        if (passwordStr !== confirmPasswordStr) {
+        if (password !== confirmPassword) {
             setError("Les mots de passe ne correspondent pas");
             setIsLoading(false);
             return;
         }
 
-        if (passwordStr.length < 8) {
+        if ((password as string).length < 8) {
             setError("Le mot de passe doit contenir au moins 8 caractères");
             setIsLoading(false);
             return;
@@ -90,7 +84,11 @@ export default function AdminInitPage() {
             const response = await fetch("/api/admin/init", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name: nameStr, email: emailStr, password: passwordStr }),
+                body: JSON.stringify({ 
+                    name: name as string, 
+                    email: email as string, 
+                    password: password as string 
+                }),
             });
 
             const data = await response.json();
@@ -106,8 +104,8 @@ export default function AdminInitPage() {
             
             // Tentative de connexion automatique
             const loginResult = await authClient.signIn.email({
-                email: emailStr,
-                password: passwordStr,
+                email: email as string,
+                password: password as string,
             });
 
             if (loginResult.error) {
