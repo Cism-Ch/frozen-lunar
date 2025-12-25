@@ -54,19 +54,32 @@ export default function AdminInitPage() {
         setError(null);
 
         const formData = new FormData(e.currentTarget);
-        const name = formData.get("name") as string;
-        const email = formData.get("email") as string;
-        const password = formData.get("password") as string;
-        const confirmPassword = formData.get("confirmPassword") as string;
+        const name = formData.get("name");
+        const email = formData.get("email");
+        const password = formData.get("password");
+        const confirmPassword = formData.get("confirmPassword");
+
+        // Validation des champs requis
+        if (!name || !email || !password || !confirmPassword) {
+            setError("Tous les champs sont requis");
+            setIsLoading(false);
+            return;
+        }
+
+        // Convert to strings after validation
+        const nameStr = name.toString();
+        const emailStr = email.toString();
+        const passwordStr = password.toString();
+        const confirmPasswordStr = confirmPassword.toString();
 
         // Validation côté client
-        if (password !== confirmPassword) {
+        if (passwordStr !== confirmPasswordStr) {
             setError("Les mots de passe ne correspondent pas");
             setIsLoading(false);
             return;
         }
 
-        if (password.length < 8) {
+        if (passwordStr.length < 8) {
             setError("Le mot de passe doit contenir au moins 8 caractères");
             setIsLoading(false);
             return;
@@ -77,7 +90,7 @@ export default function AdminInitPage() {
             const response = await fetch("/api/admin/init", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name, email, password }),
+                body: JSON.stringify({ name: nameStr, email: emailStr, password: passwordStr }),
             });
 
             const data = await response.json();
@@ -93,8 +106,8 @@ export default function AdminInitPage() {
             
             // Tentative de connexion automatique
             const loginResult = await authClient.signIn.email({
-                email,
-                password,
+                email: emailStr,
+                password: passwordStr,
             });
 
             if (loginResult.error) {
