@@ -29,8 +29,9 @@ function LoginForm() {
 
         // Validation des champs requis
         if (!email || !password) {
-            setError("L'email et le mot de passe sont requis");
-            toast.error("Champs requis manquants");
+            const errorMessage = "L'email et le mot de passe sont requis";
+            setError(errorMessage);
+            toast.error(errorMessage);
             setIsLoading(false);
             return;
         }

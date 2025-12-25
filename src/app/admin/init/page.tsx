@@ -73,6 +73,7 @@ export default function AdminInitPage() {
             return;
         }
 
+        // Type assertion is safe here since we've validated password is not null above
         if ((password as string).length < 8) {
             setError("Le mot de passe doit contenir au moins 8 caractères");
             setIsLoading(false);
