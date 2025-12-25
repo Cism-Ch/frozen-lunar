@@ -7,7 +7,7 @@ export interface ErrorCode {
     code: string;
     message: string;
     solution: string;
-    httpStatus?: number;
+    httpStatus: number;
 }
 
 /**

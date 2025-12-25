@@ -61,7 +61,7 @@ export function handlePrismaError(error: unknown): {
         
         return {
             ...createErrorResponse(errorCode, details),
-            httpStatus: errorCode.httpStatus || 500
+            httpStatus: errorCode.httpStatus!
         };
     }
     
@@ -73,7 +73,7 @@ export function handlePrismaError(error: unknown): {
         );
         return {
             ...errorResponse,
-            httpStatus: errorResponse.httpStatus || 500
+            httpStatus: errorResponse.httpStatus!
         };
     }
     
@@ -85,7 +85,7 @@ export function handlePrismaError(error: unknown): {
         );
         return {
             ...errorResponse,
-            httpStatus: errorResponse.httpStatus || 400
+            httpStatus: errorResponse.httpStatus!
         };
     }
     
@@ -96,7 +96,7 @@ export function handlePrismaError(error: unknown): {
     );
     return {
         ...errorResponse,
-        httpStatus: errorResponse.httpStatus || 500
+        httpStatus: errorResponse.httpStatus!
     };
 }
 
@@ -154,6 +154,9 @@ export function handleBetterAuthError(error: unknown): {
     // Message d'erreur générique de Better Auth
     if (body?.message) {
         // Mapper certains messages connus
+        // Note: Better Auth ne fournit pas de codes d'erreur structurés,
+        // nous devons donc utiliser la correspondance de chaînes.
+        // Ceci est intentionnel et suit les limites de l'API Better Auth.
         if (body.message.includes("already exists") || body.message.includes("déjà")) {
             const errorResponse = createErrorResponse(
                 ERROR_CODES.UNIQUE_CONSTRAINT,
@@ -161,7 +164,7 @@ export function handleBetterAuthError(error: unknown): {
             );
             return {
                 ...errorResponse,
-                httpStatus: errorResponse.httpStatus || 409
+                httpStatus: errorResponse.httpStatus!
             };
         }
         
@@ -172,7 +175,7 @@ export function handleBetterAuthError(error: unknown): {
             );
             return {
                 ...errorResponse,
-                httpStatus: errorResponse.httpStatus || 401
+                httpStatus: errorResponse.httpStatus!
             };
         }
         
@@ -182,14 +185,14 @@ export function handleBetterAuthError(error: unknown): {
         );
         return {
             ...errorResponse,
-            httpStatus: errorResponse.httpStatus || 500
+            httpStatus: errorResponse.httpStatus!
         };
     }
     
     const errorResponse = createErrorResponse(ERROR_CODES.INTERNAL_SERVER_ERROR);
     return {
         ...errorResponse,
-        httpStatus: errorResponse.httpStatus || 500
+        httpStatus: errorResponse.httpStatus!
     };
 }
 
@@ -231,7 +234,7 @@ export function handleError(error: unknown): {
             );
             return {
                 ...errorResponse,
-                httpStatus: errorResponse.httpStatus || 500
+                httpStatus: errorResponse.httpStatus!
             };
         }
         
@@ -241,7 +244,7 @@ export function handleError(error: unknown): {
         );
         return {
             ...errorResponse,
-            httpStatus: errorResponse.httpStatus || 500
+            httpStatus: errorResponse.httpStatus!
         };
     }
     
@@ -249,6 +252,6 @@ export function handleError(error: unknown): {
     const errorResponse = createErrorResponse(ERROR_CODES.INTERNAL_SERVER_ERROR);
     return {
         ...errorResponse,
-        httpStatus: errorResponse.httpStatus || 500
+        httpStatus: errorResponse.httpStatus!
     };
 }

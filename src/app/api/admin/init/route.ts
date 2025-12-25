@@ -42,7 +42,20 @@ export async function POST(request: NextRequest) {
         }
 
         // Parser et valider le corps de la requête
-        const body = await request.json();
+        let body: unknown;
+        try {
+            body = await request.json();
+        } catch (parseError: unknown) {
+            console.error("❌ Erreur de parsing JSON dans /api/admin/init:", parseError);
+            const errorResponse = createErrorResponse(
+                ERROR_CODES.INVALID_FORMAT,
+                "Corps de requête JSON invalide"
+            );
+            return NextResponse.json(
+                errorResponse,
+                { status: errorResponse.httpStatus }
+            );
+        }
         
         // Valider avec Zod
         const validated = adminInitSchema.parse(body);

@@ -24,7 +24,6 @@ import { toast } from "sonner";
 export function AdminNotifications() {
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [isMounted, setIsMounted] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
 
     const loadNotifications = useCallback(async () => {
         const result = await getNotificationsAction();

@@ -86,6 +86,9 @@ export default function QuotesPage() {
 
     useEffect(() => {
         loadQuotes();
+        // Note: searchTerm is intentionally excluded from dependencies
+        // because search is performed client-side (see filteredQuotes below)
+        // and we only want to reload from server when statusFilter changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [statusFilter]);
 

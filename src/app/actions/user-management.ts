@@ -60,6 +60,9 @@ export async function createUserAction(formData: FormData) {
         };
 
         // Valider les données avec Zod
+        // Note: Utilise createUserSchemaSimple (8 caractères) au lieu de createUserSchema (12 caractères)
+        // pour maintenir la compatibilité avec les utilisateurs existants et permettre
+        // une migration progressive vers des mots de passe plus forts
         const validated = createUserSchemaSimple.parse(data);
 
         // Vérifier si l'utilisateur existe déjà

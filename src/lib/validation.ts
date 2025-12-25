@@ -15,8 +15,7 @@ export const emailSchema = z
     })
     .min(1, "L'adresse email ne peut pas être vide")
     .email("Format d'email invalide")
-    .toLowerCase()
-    .trim();
+    .transform((value: string) => value.toLowerCase().trim());
 
 /**
  * Validation de mot de passe renforcée
