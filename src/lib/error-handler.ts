@@ -42,6 +42,7 @@ export function handlePrismaError(error: unknown): {
     solution: string;
     httpStatus: number;
     details?: string;
+    timestamp: string;
 } {
     // Erreur connue avec code d'erreur
     if (isPrismaKnownError(error)) {
@@ -58,30 +59,45 @@ export function handlePrismaError(error: unknown): {
             details = `Champ en conflit: ${target}`;
         }
         
-        return createErrorResponse(errorCode, details);
+        return {
+            ...createErrorResponse(errorCode, details),
+            httpStatus: errorCode.httpStatus || 500
+        };
     }
     
     // Erreur d'initialisation (connexion DB, etc.)
     if (isPrismaInitError(error)) {
-        return createErrorResponse(
+        const errorResponse = createErrorResponse(
             ERROR_CODES.CONNECTION_FAILED,
             error.message
         );
+        return {
+            ...errorResponse,
+            httpStatus: errorResponse.httpStatus || 500
+        };
     }
     
     // Erreur de validation
     if (isPrismaValidationError(error)) {
-        return createErrorResponse(
+        const errorResponse = createErrorResponse(
             ERROR_CODES.INVALID_FORMAT,
             error.message
         );
+        return {
+            ...errorResponse,
+            httpStatus: errorResponse.httpStatus || 400
+        };
     }
     
     // Erreur inconnue
-    return createErrorResponse(
+    const errorResponse = createErrorResponse(
         ERROR_CODES.INTERNAL_SERVER_ERROR,
         error instanceof Error ? error.message : "Erreur de base de données inconnue"
     );
+    return {
+        ...errorResponse,
+        httpStatus: errorResponse.httpStatus || 500
+    };
 }
 
 /**
@@ -111,45 +127,70 @@ export function handleBetterAuthError(error: unknown): {
     solution: string;
     httpStatus: number;
     details?: string;
+    timestamp: string;
 } {
     if (!isBetterAuthError(error)) {
-        return createErrorResponse(ERROR_CODES.INTERNAL_SERVER_ERROR);
+        const errorResponse = createErrorResponse(ERROR_CODES.INTERNAL_SERVER_ERROR);
+        return {
+            ...errorResponse,
+            httpStatus: errorResponse.httpStatus || 500
+        };
     }
     
     const body = error.body;
     
     // Erreur d'email null ou manquant
     if (body && (body.email === null || body.email === undefined)) {
-        return createErrorResponse(
+        const errorResponse = createErrorResponse(
             ERROR_CODES.EMAIL_REQUIRED,
             "L'email fourni est null ou undefined"
         );
+        return {
+            ...errorResponse,
+            httpStatus: errorResponse.httpStatus || 400
+        };
     }
     
     // Message d'erreur générique de Better Auth
     if (body?.message) {
         // Mapper certains messages connus
         if (body.message.includes("already exists") || body.message.includes("déjà")) {
-            return createErrorResponse(
+            const errorResponse = createErrorResponse(
                 ERROR_CODES.UNIQUE_CONSTRAINT,
                 body.message
             );
+            return {
+                ...errorResponse,
+                httpStatus: errorResponse.httpStatus || 409
+            };
         }
         
         if (body.message.includes("Invalid credentials") || body.message.includes("incorrect")) {
-            return createErrorResponse(
+            const errorResponse = createErrorResponse(
                 ERROR_CODES.INVALID_CREDENTIALS,
                 body.message
             );
+            return {
+                ...errorResponse,
+                httpStatus: errorResponse.httpStatus || 401
+            };
         }
         
-        return createErrorResponse(
+        const errorResponse = createErrorResponse(
             ERROR_CODES.INTERNAL_SERVER_ERROR,
             body.message
         );
+        return {
+            ...errorResponse,
+            httpStatus: errorResponse.httpStatus || 500
+        };
     }
     
-    return createErrorResponse(ERROR_CODES.INTERNAL_SERVER_ERROR);
+    const errorResponse = createErrorResponse(ERROR_CODES.INTERNAL_SERVER_ERROR);
+    return {
+        ...errorResponse,
+        httpStatus: errorResponse.httpStatus || 500
+    };
 }
 
 /**
@@ -184,18 +225,30 @@ export function handleError(error: unknown): {
     if (error instanceof Error) {
         // Erreur de connexion DB mentionnée dans le message
         if (error.message.includes("DATABASE_URL")) {
-            return createErrorResponse(
+            const errorResponse = createErrorResponse(
                 ERROR_CODES.CONNECTION_FAILED,
                 error.message
             );
+            return {
+                ...errorResponse,
+                httpStatus: errorResponse.httpStatus || 500
+            };
         }
         
-        return createErrorResponse(
+        const errorResponse = createErrorResponse(
             ERROR_CODES.INTERNAL_SERVER_ERROR,
             error.message
         );
+        return {
+            ...errorResponse,
+            httpStatus: errorResponse.httpStatus || 500
+        };
     }
     
     // Erreur inconnue
-    return createErrorResponse(ERROR_CODES.INTERNAL_SERVER_ERROR);
+    const errorResponse = createErrorResponse(ERROR_CODES.INTERNAL_SERVER_ERROR);
+    return {
+        ...errorResponse,
+        httpStatus: errorResponse.httpStatus || 500
+    };
 }

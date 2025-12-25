@@ -17,7 +17,7 @@ export default function CGVPage() {
                             Conditions Générales de Vente
                         </h1>
                         <p className="text-lg text-muted-foreground">
-                            Dernière mise à jour : {new Date().toLocaleDateString(&apos;fr-FR&apos;)}
+                            Dernière mise à jour : {new Date().toLocaleDateString('fr-FR')}
                         </p>
                     </div>
                 </SectionContainer>

@@ -11,8 +11,7 @@ import { z } from "zod";
  */
 export const emailSchema = z
     .string({
-        required_error: "L'adresse email est requise",
-        invalid_type_error: "L'adresse email doit être une chaîne de caractères"
+        message: "L'adresse email doit être une chaîne de caractères"
     })
     .min(1, "L'adresse email ne peut pas être vide")
     .email("Format d'email invalide")
@@ -29,8 +28,7 @@ export const emailSchema = z
  */
 export const passwordSchema = z
     .string({
-        required_error: "Le mot de passe est requis",
-        invalid_type_error: "Le mot de passe doit être une chaîne de caractères"
+        message: "Le mot de passe doit être une chaîne de caractères"
     })
     .min(12, "Le mot de passe doit contenir au moins 12 caractères")
     .regex(/[a-z]/, "Le mot de passe doit contenir au moins une minuscule")
@@ -44,8 +42,7 @@ export const passwordSchema = z
  */
 export const simplePasswordSchema = z
     .string({
-        required_error: "Le mot de passe est requis",
-        invalid_type_error: "Le mot de passe doit être une chaîne de caractères"
+        message: "Le mot de passe doit être une chaîne de caractères"
     })
     .min(8, "Le mot de passe doit contenir au moins 8 caractères");
 
@@ -54,8 +51,7 @@ export const simplePasswordSchema = z
  */
 export const nameSchema = z
     .string({
-        required_error: "Le nom est requis",
-        invalid_type_error: "Le nom doit être une chaîne de caractères"
+        message: "Le nom doit être une chaîne de caractères"
     })
     .min(2, "Le nom doit contenir au moins 2 caractères")
     .max(100, "Le nom ne peut pas dépasser 100 caractères")
@@ -65,7 +61,7 @@ export const nameSchema = z
  * Validation du rôle utilisateur
  */
 export const roleSchema = z.enum(["admin", "moderator", "developer", "user"], {
-    errorMap: () => ({ message: "Rôle invalide. Doit être: admin, moderator, developer ou user" })
+    message: "Rôle invalide. Doit être: admin, moderator, developer ou user"
 });
 
 /**
@@ -103,7 +99,7 @@ export const adminInitSchema = z.object({
 export const signInSchema = z.object({
     email: emailSchema,
     password: z.string({
-        required_error: "Le mot de passe est requis"
+        message: "Le mot de passe est requis"
     }).min(1, "Le mot de passe ne peut pas être vide"),
 });
 

@@ -85,9 +85,7 @@ export function TeamList() {
                         Gérez les accès et les rôles des membres de l&apos;équipe.
                     </CardDescription>
                 </div>
-                <Button onClick={() => setIsAddOpen(true)} size="sm" className="gap-2 w-full sm:w-auto">
-                    <Plus className="h-4 w-4" /> Ajouter
-                </Button>
+                {/* Removed add button as AddTeamMemberDialog is not currently imported */}
             </CardHeader>
             <CardContent>
                 <>

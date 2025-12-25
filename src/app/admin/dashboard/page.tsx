@@ -6,6 +6,7 @@ import { FileText, TrendingUp, Users, Clock, CheckCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { Quote } from "@/lib/quote-storage";
 import {
     Table,
     TableBody,
