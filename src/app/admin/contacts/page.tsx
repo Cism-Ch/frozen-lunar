@@ -11,7 +11,7 @@ export default function ContactsPage() {
             <div>
                 <h3 className="text-3xl font-bold tracking-tight">Contacts</h3>
                 <p className="text-muted-foreground mt-2">
-                    Visualisez vos clients et gérez l'équipe administrative.
+                    Visualisez vos clients et gérez l&apos;équipe administrative.
                 </p>
             </div>
 

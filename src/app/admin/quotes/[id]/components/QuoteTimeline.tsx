@@ -2,7 +2,7 @@
 
 import { Quote } from "@/lib/quote-storage";
 import { safeFormatDate } from "@/lib/date-utils";
-import { CheckCircle2, Circle, Clock, FileText, MessageSquare, ShieldAlert, User } from "lucide-react";
+import { Clock, CheckCircle2, MessageSquare, FileText, Circle, User } from "lucide-react";
 
 interface QuoteTimelineProps {
     quote: Quote;

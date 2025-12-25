@@ -65,7 +65,7 @@ export function ClientList() {
                             Clients & Prospects
                         </CardTitle>
                         <CardDescription>
-                            Carnet d'adresses généré automatiquement depuis les devis.
+                            Carnet d&apos;adresses généré automatiquement depuis les devis.
                         </CardDescription>
                     </div>
                     <div className="relative w-full sm:w-64">

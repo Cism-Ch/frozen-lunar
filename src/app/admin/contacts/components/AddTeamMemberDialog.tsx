@@ -48,7 +48,7 @@ export function AddTeamMemberDialog({ isOpen, onClose }: AddTeamMemberDialogProp
                 <DialogHeader>
                     <DialogTitle>Ajouter un membre</DialogTitle>
                     <DialogDescription>
-                        Envoyez une invitation pour rejoindre l'équipe administrative.
+                        Envoyez une invitation pour rejoindre l&apos;équipe administrative.
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="grid gap-4 py-4">

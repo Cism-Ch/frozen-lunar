@@ -66,10 +66,8 @@ export default function QuotesPage() {
     const [quotes, setQuotes] = useState<Quote[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
-    const [isLoading, setIsLoading] = useState(true);
 
     const loadQuotes = async () => {
-        setIsLoading(true);
         try {
             const result = await getQuotesAction({ 
                 status: statusFilter,
@@ -83,13 +81,15 @@ export default function QuotesPage() {
         } catch (error: unknown) {
             console.error("Error loading quotes:", error);
             toast.error("Erreur lors du chargement des devis");
-        } finally {
-            setIsLoading(false);
         }
     };
 
     useEffect(() => {
         loadQuotes();
+        // Note: searchTerm is intentionally excluded from dependencies
+        // because search is performed client-side (see filteredQuotes below)
+        // and we only want to reload from server when statusFilter changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [statusFilter]);
 
     const handleStatusChange = async (id: string, status: Quote["status"]) => {

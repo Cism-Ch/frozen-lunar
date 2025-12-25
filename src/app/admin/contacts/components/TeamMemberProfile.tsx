@@ -16,7 +16,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
 // Reuse the interface from TeamList or define a shared one. 
-// For now, I'll redefine compatible props to avoid complex refactoring in this step.
+// For now, I&apos;ll redefine compatible props to avoid complex refactoring in this step.
 export interface TeamMemberProfileProps {
     isOpen: boolean;
     onClose: () => void;
@@ -129,7 +129,7 @@ export function TeamMemberProfile({ isOpen, onClose, member }: TeamMemberProfile
                                         <div className="relative">
                                             <div className="absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full bg-blue-500 ring-4 ring-white" />
                                             <p className="font-medium text-foreground">Connexion au dashboard</p>
-                                            <p className="text-xs text-muted-foreground">Aujourd'hui, 09:41</p>
+                                            <p className="text-xs text-muted-foreground">Aujourd&apos;hui, 09:41</p>
                                         </div>
                                         <div className="relative">
                                             <div className="absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full bg-gray-300 ring-4 ring-white" />

@@ -3,8 +3,6 @@ import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { UserList } from "@/components/features/admin/UserList";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 import { AddUserDialog } from "@/components/features/admin/AddUserDialog";
 
 export default async function AdminUsersPage() {

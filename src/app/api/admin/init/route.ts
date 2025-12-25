@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { adminInitSchema } from "@/lib/validation";
+import { handleError } from "@/lib/error-handler";
+import { ERROR_CODES, createErrorResponse } from "@/lib/error-codes";
+import { z } from "zod";
 
 /**
  * POST /api/admin/init
@@ -30,50 +34,39 @@ export async function POST(request: NextRequest) {
         });
 
         if (adminCount > 0) {
+            const errorResponse = createErrorResponse(ERROR_CODES.ADMIN_ALREADY_EXISTS);
             return NextResponse.json(
-                { error: "Un administrateur existe déjà" },
-                { status: 403 }
+                errorResponse,
+                { status: errorResponse.httpStatus }
             );
         }
 
         // Parser et valider le corps de la requête
-        const body = await request.json();
-        const { name, email, password } = body;
-
-        // Validation des champs requis
-        if (!name || !email || !password) {
+        let body: unknown;
+        try {
+            body = await request.json();
+        } catch (parseError: unknown) {
+            console.error("❌ Erreur de parsing JSON dans /api/admin/init:", parseError);
+            const errorResponse = createErrorResponse(
+                ERROR_CODES.INVALID_FORMAT,
+                "Corps de requête JSON invalide"
+            );
             return NextResponse.json(
-                { error: "Tous les champs sont requis (name, email, password)" },
-                { status: 400 }
+                errorResponse,
+                { status: errorResponse.httpStatus }
             );
         }
-
-        // Validation du format email (basique)
-        // Note: Pour une validation plus robuste en production, considérer l'utilisation d'une bibliothèque
-        // comme validator.js ou email-validator
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            return NextResponse.json(
-                { error: "Format d'email invalide" },
-                { status: 400 }
-            );
-        }
-
-        // Validation de la longueur du mot de passe
-        if (password.length < 8) {
-            return NextResponse.json(
-                { error: "Le mot de passe doit contenir au moins 8 caractères" },
-                { status: 400 }
-            );
-        }
+        
+        // Valider avec Zod
+        const validated = adminInitSchema.parse(body);
 
         // Créer l'utilisateur via Better Auth
         // Better Auth gère le hachage du mot de passe et la création de la session
         const result = await auth.api.signUpEmail({
             body: {
-                email,
-                password,
-                name,
+                email: validated.email,
+                password: validated.password,
+                name: validated.name,
             },
         });
 
@@ -85,7 +78,7 @@ export async function POST(request: NextRequest) {
         // Mettre à jour le rôle de l'utilisateur créé pour le définir comme admin
         // Better Auth crée des utilisateurs avec le rôle "user" par défaut
         await prisma.user.update({
-            where: { email },
+            where: { email: validated.email },
             data: { role: "admin" },
         });
 
@@ -97,53 +90,24 @@ export async function POST(request: NextRequest) {
         // Log l'erreur complète pour le débogage côté serveur
         console.error("❌ Erreur lors de l'initialisation admin:", error);
         
-        // Gestion spécifique des erreurs courantes
-        if (error instanceof Error) {
-            // Erreur de connexion à la base de données
-            if (error.message.includes("DATABASE_URL")) {
-                return NextResponse.json(
-                    { 
-                        error: "Configuration de la base de données manquante",
-                        details: "Veuillez configurer DATABASE_URL dans le fichier .env"
-                    },
-                    { status: 500 }
-                );
-            }
-            
-            // Erreur Prisma - Utiliser le constructeur pour plus de fiabilité
-            // Note: Idéalement utiliser instanceof PrismaClientKnownRequestError en production
-            if (error.constructor.name.includes("Prisma")) {
-                return NextResponse.json(
-                    { 
-                        error: "Erreur de base de données",
-                        details: "Vérifiez que la base de données est accessible et que les migrations sont appliquées"
-                    },
-                    { status: 500 }
-                );
-            }
-
-            // Erreur Better Auth - Vérifier le type de l'erreur
-            if (error.constructor.name.includes("Auth") || error.message.includes("signUpEmail")) {
-                return NextResponse.json(
-                    { 
-                        error: "Erreur du système d'authentification",
-                        details: error.message
-                    },
-                    { status: 500 }
-                );
-            }
-
-            // Autres erreurs avec message
+        // Gestion des erreurs de validation Zod
+        if (error instanceof z.ZodError) {
+            const firstError = error.issues[0];
+            const errorResponse = createErrorResponse(
+                ERROR_CODES.INVALID_FORMAT,
+                firstError.message
+            );
             return NextResponse.json(
-                { error: error.message },
-                { status: 500 }
+                errorResponse,
+                { status: errorResponse.httpStatus }
             );
         }
-        
-        // Erreur inconnue
+
+        // Utiliser le gestionnaire d'erreurs centralisé
+        const errorResponse = handleError(error);
         return NextResponse.json(
-            { error: "Erreur lors de la création du compte administrateur" },
-            { status: 500 }
+            errorResponse,
+            { status: errorResponse.httpStatus }
         );
     }
 }
