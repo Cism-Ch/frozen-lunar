@@ -30,7 +30,7 @@ export function ChatMessage({ message, className }: ChatMessageProps) {
         >
             {/* Avatar */}
             {!isUser && (
-                <Avatar className="h-8 w-8 shrink-0 border-2 border-secondary/20">
+                <Avatar className="border-secondary/20 h-8 w-8 shrink-0 border-2">
                     <AvatarImage src="/support-avatar.png" alt="Support" />
                     <AvatarFallback className="bg-secondary text-secondary-foreground">
                         <Headset className="h-4 w-4" />
@@ -40,14 +40,14 @@ export function ChatMessage({ message, className }: ChatMessageProps) {
 
             <div
                 className={cn(
-                    "flex flex-col gap-1 max-w-[80%]",
+                    "flex max-w-[80%] flex-col gap-1",
                     isUser ? "items-end" : "items-start"
                 )}
             >
                 {/* Message Bubble */}
                 <div
                     className={cn(
-                        "px-3.5 py-2.5 rounded-2xl",
+                        "rounded-2xl px-3.5 py-2.5",
                         "text-sm leading-relaxed",
                         isUser
                             ? "bg-primary text-primary-foreground rounded-br-md"
@@ -58,13 +58,15 @@ export function ChatMessage({ message, className }: ChatMessageProps) {
                     {isTyping ? (
                         <TypingIndicator />
                     ) : (
-                        <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                        <p className="break-words whitespace-pre-wrap">
+                            {message.content}
+                        </p>
                     )}
                 </div>
 
                 {/* Timestamp */}
                 {!isTyping && message.timestamp && (
-                    <span className="text-[10px] text-muted-foreground px-1">
+                    <span className="text-muted-foreground px-1 text-[10px]">
                         {format(message.timestamp, "HH:mm", { locale: fr })}
                     </span>
                 )}
@@ -72,7 +74,7 @@ export function ChatMessage({ message, className }: ChatMessageProps) {
 
             {/* User Avatar (optional) */}
             {isUser && (
-                <Avatar className="h-8 w-8 shrink-0 border-2 border-primary/20">
+                <Avatar className="border-primary/20 h-8 w-8 shrink-0 border-2">
                     <AvatarFallback className="bg-primary/10 text-primary">
                         <User className="h-4 w-4" />
                     </AvatarFallback>
@@ -88,7 +90,7 @@ function TypingIndicator() {
             {[0, 1, 2].map((i) => (
                 <motion.span
                     key={i}
-                    className="w-2 h-2 rounded-full bg-muted-foreground/60"
+                    className="bg-muted-foreground/60 h-2 w-2 rounded-full"
                     initial={{ opacity: 0.4 }}
                     animate={{ opacity: [0.4, 1, 0.4] }}
                     transition={{

@@ -11,7 +11,8 @@ export interface Message {
     sentiment?: Sentiment;
 }
 
-export type QueryCategory = "technical" | "billing" | "general" | "quote" | "transport";
+export type QueryCategory =
+    "technical" | "billing" | "general" | "quote" | "transport";
 
 export type Sentiment = "positive" | "neutral" | "negative";
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { Message, QuickReply } from "@/lib/support-agent/types";
+import { QuickReply } from "@/lib/support-agent/types";
 import { AGENT_CONFIG } from "@/lib/support-agent/config";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -60,8 +60,8 @@ export function ChatInput({
             {/* Quick Replies */}
             {quickReplies.length > 0 && (
                 <div className="relative">
-                    <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none md:hidden" />
-                    <div className="flex gap-2 overflow-x-auto pb-2 -mb-2 scrollbar-none mask-linear-fade">
+                    <div className="from-background pointer-events-none absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l to-transparent md:hidden" />
+                    <div className="mask-linear-fade -mb-2 flex scrollbar-none gap-2 overflow-x-auto pb-2">
                         {quickReplies.map((reply) => (
                             <Button
                                 key={reply.id}
@@ -69,9 +69,11 @@ export function ChatInput({
                                 size="sm"
                                 onClick={() => handleQuickReply(reply)}
                                 disabled={isLoading}
-                                className="text-xs h-8 px-3 whitespace-nowrap bg-muted/50 hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors rounded-full"
+                                className="bg-muted/50 hover:bg-primary/10 hover:text-primary hover:border-primary/30 h-8 rounded-full px-3 text-xs whitespace-nowrap transition-colors"
                             >
-                                {reply.icon && <span className="mr-1">{reply.icon}</span>}
+                                {reply.icon && (
+                                    <span className="mr-1">{reply.icon}</span>
+                                )}
                                 {reply.label}
                             </Button>
                         ))}
@@ -80,8 +82,8 @@ export function ChatInput({
             )}
 
             {/* Input Area */}
-            <div className="flex gap-2 items-end">
-                <div className="flex-1 relative">
+            <div className="flex items-end gap-2">
+                <div className="relative flex-1">
                     <Textarea
                         ref={textareaRef}
                         value={message}
@@ -90,19 +92,24 @@ export function ChatInput({
                         placeholder={placeholder}
                         disabled={isLoading}
                         className={cn(
-                            "min-h-[44px] max-h-[120px] resize-none pr-12",
+                            "max-h-[120px] min-h-[44px] resize-none pr-12",
                             "bg-muted/30 border-muted-foreground/20",
                             "focus:border-primary focus:ring-primary/20",
-                            isOverLimit && "border-destructive focus:border-destructive focus:ring-destructive/20"
+                            isOverLimit &&
+                                "border-destructive focus:border-destructive focus:ring-destructive/20"
                         )}
                         rows={1}
                     />
 
                     {/* Character Counter */}
-                    <div className={cn(
-                        "absolute bottom-1.5 right-2 text-[10px] transition-colors",
-                        isOverLimit ? "text-destructive font-medium" : "text-muted-foreground"
-                    )}>
+                    <div
+                        className={cn(
+                            "absolute right-2 bottom-1.5 text-[10px] transition-colors",
+                            isOverLimit
+                                ? "text-destructive font-medium"
+                                : "text-muted-foreground"
+                        )}
+                    >
                         {charCount}/{maxChars}
                     </div>
                 </div>

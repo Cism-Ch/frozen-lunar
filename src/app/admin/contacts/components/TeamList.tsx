@@ -2,8 +2,21 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
 import { MoreHorizontal, Shield, ShieldAlert, Code } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,7 +52,7 @@ const MOCK_TEAM: TeamMember[] = [
         role: "Admin",
         status: "Actif",
         lastActive: "En ligne",
-        avatar: "/avatars/01.png"
+        avatar: "/avatars/01.png",
     },
     {
         id: "2",
@@ -48,7 +61,7 @@ const MOCK_TEAM: TeamMember[] = [
         role: "Modérateur",
         status: "Actif",
         lastActive: "Il y a 2h",
-        avatar: "/avatars/02.png"
+        avatar: "/avatars/02.png",
     },
     {
         id: "3",
@@ -57,7 +70,7 @@ const MOCK_TEAM: TeamMember[] = [
         role: "Modérateur",
         status: "Inactif",
         lastActive: "Il y a 2 jours",
-        avatar: "/avatars/03.png"
+        avatar: "/avatars/03.png",
     },
     {
         id: "4",
@@ -66,23 +79,26 @@ const MOCK_TEAM: TeamMember[] = [
         role: "Développeur",
         status: "Actif",
         lastActive: "En maintenance",
-        avatar: "/avatars/04.png"
-    }
+        avatar: "/avatars/04.png",
+    },
 ];
 
 export function TeamList() {
-    const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
+    const [selectedMember, setSelectedMember] = useState<TeamMember | null>(
+        null
+    );
 
     return (
         <Card>
-            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <CardHeader className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                 <div className="text-center sm:text-left">
-                    <CardTitle className="flex items-center justify-center sm:justify-start gap-2">
-                        <Shield className="h-5 w-5 text-primary" />
+                    <CardTitle className="flex items-center justify-center gap-2 sm:justify-start">
+                        <Shield className="text-primary h-5 w-5" />
                         Équipe Administrative
                     </CardTitle>
                     <CardDescription>
-                        Gérez les accès et les rôles des membres de l&apos;équipe.
+                        Gérez les accès et les rôles des membres de
+                        l&apos;équipe.
                     </CardDescription>
                 </div>
                 {/* Removed add button as AddTeamMemberDialog is not currently imported */}
@@ -94,19 +110,33 @@ export function TeamList() {
                         {MOCK_TEAM.map((member) => (
                             <div
                                 key={member.id}
-                                className="p-4 border rounded-lg bg-card cursor-pointer hover:bg-muted/50 transition-colors"
+                                className="bg-card hover:bg-muted/50 cursor-pointer rounded-lg border p-4 transition-colors"
                                 onClick={() => setSelectedMember(member)}
                             >
-                                <div className="flex items-center gap-3 mb-3">
+                                <div className="mb-3 flex items-center gap-3">
                                     <Avatar className="h-10 w-10">
                                         <AvatarImage src={member.avatar} />
-                                        <AvatarFallback>{member.name.slice(0, 2).toUpperCase()}</AvatarFallback>
+                                        <AvatarFallback>
+                                            {member.name
+                                                .slice(0, 2)
+                                                .toUpperCase()}
+                                        </AvatarFallback>
                                     </Avatar>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="font-medium truncate">{member.name}</p>
-                                        <p className="text-xs text-muted-foreground truncate">{member.email}</p>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="truncate font-medium">
+                                            {member.name}
+                                        </p>
+                                        <p className="text-muted-foreground truncate text-xs">
+                                            {member.email}
+                                        </p>
                                     </div>
-                                    <Badge variant={member.status === "Actif" ? "default" : "secondary"}>
+                                    <Badge
+                                        variant={
+                                            member.status === "Actif"
+                                                ? "default"
+                                                : "secondary"
+                                        }
+                                    >
                                         {member.status}
                                     </Badge>
                                 </div>
@@ -121,7 +151,9 @@ export function TeamList() {
                                         )}
                                         <span>{member.role}</span>
                                     </div>
-                                    <span className="text-muted-foreground text-xs">{member.lastActive}</span>
+                                    <span className="text-muted-foreground text-xs">
+                                        {member.lastActive}
+                                    </span>
                                 </div>
                             </div>
                         ))}
@@ -136,7 +168,9 @@ export function TeamList() {
                                     <TableHead>Rôle</TableHead>
                                     <TableHead>Statut</TableHead>
                                     <TableHead>Dernière activité</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
+                                    <TableHead className="text-right">
+                                        Actions
+                                    </TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -144,19 +178,30 @@ export function TeamList() {
                                     <TableRow key={member.id}>
                                         <TableCell className="flex items-center gap-3">
                                             <Avatar>
-                                                <AvatarImage src={member.avatar} />
-                                                <AvatarFallback>{member.name.slice(0, 2).toUpperCase()}</AvatarFallback>
+                                                <AvatarImage
+                                                    src={member.avatar}
+                                                />
+                                                <AvatarFallback>
+                                                    {member.name
+                                                        .slice(0, 2)
+                                                        .toUpperCase()}
+                                                </AvatarFallback>
                                             </Avatar>
                                             <div className="flex flex-col">
-                                                <span className="font-medium">{member.name}</span>
-                                                <span className="text-xs text-muted-foreground">{member.email}</span>
+                                                <span className="font-medium">
+                                                    {member.name}
+                                                </span>
+                                                <span className="text-muted-foreground text-xs">
+                                                    {member.email}
+                                                </span>
                                             </div>
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-2">
                                                 {member.role === "Admin" ? (
                                                     <ShieldAlert className="h-4 w-4 text-purple-600" />
-                                                ) : member.role === "Développeur" ? (
+                                                ) : member.role ===
+                                                  "Développeur" ? (
                                                     <Code className="h-4 w-4 text-orange-600" />
                                                 ) : (
                                                     <Shield className="h-4 w-4 text-blue-600" />
@@ -165,7 +210,13 @@ export function TeamList() {
                                             </div>
                                         </TableCell>
                                         <TableCell>
-                                            <Badge variant={member.status === "Actif" ? "default" : "secondary"}>
+                                            <Badge
+                                                variant={
+                                                    member.status === "Actif"
+                                                        ? "default"
+                                                        : "secondary"
+                                                }
+                                            >
                                                 {member.status}
                                             </Badge>
                                         </TableCell>
@@ -175,16 +226,29 @@ export function TeamList() {
                                         <TableCell className="text-right">
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                    >
                                                         <MoreHorizontal className="h-4 w-4" />
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
-                                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                    <DropdownMenuItem onClick={() => setSelectedMember(member)}>
+                                                    <DropdownMenuLabel>
+                                                        Actions
+                                                    </DropdownMenuLabel>
+                                                    <DropdownMenuItem
+                                                        onClick={() =>
+                                                            setSelectedMember(
+                                                                member
+                                                            )
+                                                        }
+                                                    >
                                                         Voir le profil
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuItem>Modifier les droits</DropdownMenuItem>
+                                                    <DropdownMenuItem>
+                                                        Modifier les droits
+                                                    </DropdownMenuItem>
                                                     <DropdownMenuSeparator />
                                                     <DropdownMenuItem className="text-red-600">
                                                         Suspendre l&apos;accès

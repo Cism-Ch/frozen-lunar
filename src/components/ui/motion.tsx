@@ -1,7 +1,14 @@
 "use client";
 
-import { motion, HTMLMotionProps, useInView, useMotionValue, useTransform, animate } from "framer-motion";
-import { useRef, useEffect, useState, ReactNode } from "react";
+import {
+    motion,
+    HTMLMotionProps,
+    useInView,
+    useMotionValue,
+    useTransform,
+    animate,
+} from "framer-motion";
+import { useRef, useEffect, useState, useSyncExternalStore, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import * as animations from "@/lib/animations";
 
@@ -9,22 +16,28 @@ import * as animations from "@/lib/animations";
 // REDUCED MOTION HOOK
 // ============================================
 
+function subscribeReducedMotion(callback: () => void) {
+    if (typeof window === "undefined") return () => {};
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    mediaQuery.addEventListener("change", callback);
+    return () => mediaQuery.removeEventListener("change", callback);
+}
+
+function getSnapshotReducedMotion() {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function getServerSnapshotReducedMotion() {
+    return false;
+}
+
 export function usePrefersReducedMotion() {
-    const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-
-    useEffect(() => {
-        const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-        setPrefersReducedMotion(mediaQuery.matches);
-
-        const handler = (event: MediaQueryListEvent) => {
-            setPrefersReducedMotion(event.matches);
-        };
-
-        mediaQuery.addEventListener("change", handler);
-        return () => mediaQuery.removeEventListener("change", handler);
-    }, []);
-
-    return prefersReducedMotion;
+    return useSyncExternalStore(
+        subscribeReducedMotion,
+        getSnapshotReducedMotion,
+        getServerSnapshotReducedMotion
+    );
 }
 
 // ============================================
@@ -54,7 +67,7 @@ export function FadeIn({
         down: animations.fadeInDown,
         left: animations.fadeInLeft,
         right: animations.fadeInRight,
-        none: animations.fadeIn
+        none: animations.fadeIn,
     };
 
     if (prefersReducedMotion) {
@@ -104,11 +117,15 @@ export function ScrollReveal({
     const directionVariants = {
         up: animations.revealOnScroll,
         left: animations.revealFromLeft,
-        right: animations.revealFromRight
+        right: animations.revealFromRight,
     };
 
     if (prefersReducedMotion) {
-        return <div ref={ref} className={className}>{children}</div>;
+        return (
+            <div ref={ref} className={className}>
+                {children}
+            </div>
+        );
     }
 
     return (
@@ -151,11 +168,15 @@ export function StaggerContainer({
     const speedVariants = {
         fast: animations.staggerContainerFast,
         normal: animations.staggerContainer,
-        slow: animations.staggerContainerSlow
+        slow: animations.staggerContainerSlow,
     };
 
     if (prefersReducedMotion) {
-        return <div ref={ref} className={className}>{children}</div>;
+        return (
+            <div ref={ref} className={className}>
+                {children}
+            </div>
+        );
     }
 
     return (
@@ -182,7 +203,11 @@ interface StaggerItemProps extends HTMLMotionProps<"div"> {
     className?: string;
 }
 
-export function StaggerItem({ children, className, ...props }: StaggerItemProps) {
+export function StaggerItem({
+    children,
+    className,
+    ...props
+}: StaggerItemProps) {
     const prefersReducedMotion = usePrefersReducedMotion();
 
     if (prefersReducedMotion) {
@@ -221,7 +246,7 @@ export function AnimatedCard({
     const hoverVariants = {
         lift: animations.cardHover,
         subtle: animations.cardHoverSubtle,
-        none: { rest: {}, hover: {} }
+        none: { rest: {}, hover: {} },
     };
 
     if (prefersReducedMotion) {
@@ -295,20 +320,26 @@ export function CountUp({
     duration = 2,
     suffix = "",
     prefix = "",
-    className
+    className,
 }: CountUpProps) {
     const ref = useRef(null);
     const isInView = useInView(ref, { once: true, amount: 0.5 });
-    const count = useMotionValue(from);
-    const rounded = useTransform(count, (latest) => Math.round(latest));
-    const [displayValue, setDisplayValue] = useState(from);
     const prefersReducedMotion = usePrefersReducedMotion();
+    const count = useMotionValue(prefersReducedMotion ? to : from);
+    const rounded = useTransform(count, (latest) => Math.round(latest));
+    const [displayValue, setDisplayValue] = useState(
+        prefersReducedMotion ? to : from
+    );
 
     useEffect(() => {
-        if (isInView && !prefersReducedMotion) {
+        if (prefersReducedMotion) {
+            return;
+        }
+
+        if (isInView) {
             const controls = animate(count, to, {
                 duration,
-                ease: "easeOut"
+                ease: "easeOut",
             });
 
             const unsubscribe = rounded.on("change", (latest) => {
@@ -319,8 +350,6 @@ export function CountUp({
                 controls.stop();
                 unsubscribe();
             };
-        } else if (prefersReducedMotion) {
-            setDisplayValue(to);
         }
     }, [isInView, to, count, rounded, duration, prefersReducedMotion]);
 
@@ -332,7 +361,9 @@ export function CountUp({
             animate={isInView ? { opacity: 1, scale: 1 } : {}}
             transition={animations.transitions.springBouncy}
         >
-            {prefix}{displayValue}{suffix}
+            {prefix}
+            {displayValue}
+            {suffix}
         </motion.span>
     );
 }
@@ -410,7 +441,7 @@ export function AnimatedSectionHeader({
     badge,
     title,
     description,
-    className
+    className,
 }: SectionHeaderProps) {
     const ref = useRef(null);
     const isInView = useInView(ref, { once: true, amount: 0.5 });
@@ -418,13 +449,13 @@ export function AnimatedSectionHeader({
 
     if (prefersReducedMotion) {
         return (
-            <div ref={ref} className={cn("text-center space-y-4", className)}>
+            <div ref={ref} className={cn("space-y-4 text-center", className)}>
                 {badge && <span className="mb-2">{badge}</span>}
                 <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
                     {title}
                 </h2>
                 {description && (
-                    <p className="max-w-[700px] mx-auto text-lg md:text-xl text-muted-foreground">
+                    <p className="text-muted-foreground mx-auto max-w-[700px] text-lg md:text-xl">
                         {description}
                     </p>
                 )}
@@ -438,12 +469,10 @@ export function AnimatedSectionHeader({
             initial="hidden"
             animate={isInView ? "visible" : "hidden"}
             variants={animations.staggerContainer}
-            className={cn("text-center space-y-4", className)}
+            className={cn("space-y-4 text-center", className)}
         >
             {badge && (
-                <motion.div variants={animations.fadeInUp}>
-                    {badge}
-                </motion.div>
+                <motion.div variants={animations.fadeInUp}>{badge}</motion.div>
             )}
             <motion.h2
                 variants={animations.fadeInUp}
@@ -454,7 +483,7 @@ export function AnimatedSectionHeader({
             {description && (
                 <motion.p
                     variants={animations.fadeInUp}
-                    className="max-w-[700px] mx-auto text-lg md:text-xl text-muted-foreground"
+                    className="text-muted-foreground mx-auto max-w-[700px] text-lg md:text-xl"
                 >
                     {description}
                 </motion.p>

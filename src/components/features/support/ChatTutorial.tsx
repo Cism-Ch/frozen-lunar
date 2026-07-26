@@ -3,7 +3,13 @@
 import { Tutorial } from "@/lib/support-agent/tutorials";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { BookOpen, Clock, ChevronDown, ChevronUp, Lightbulb } from "lucide-react";
+import {
+    BookOpen,
+    Clock,
+    ChevronDown,
+    ChevronUp,
+    Lightbulb,
+} from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -22,36 +28,38 @@ export function ChatTutorial({ tutorial, className }: ChatTutorialProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
             className={cn(
-                "w-full max-w-[90%] bg-gradient-to-br from-primary/5 to-secondary/5",
-                "rounded-xl border border-primary/20 overflow-hidden",
+                "from-primary/5 to-secondary/5 w-full max-w-[90%] bg-gradient-to-br",
+                "border-primary/20 overflow-hidden rounded-xl border",
                 className
             )}
         >
             {/* Header */}
             <div
-                className="flex items-center justify-between p-3 bg-primary/10 cursor-pointer hover:bg-primary/15 transition-colors"
+                className="bg-primary/10 hover:bg-primary/15 flex cursor-pointer items-center justify-between p-3 transition-colors"
                 onClick={() => setIsExpanded(!isExpanded)}
             >
                 <div className="flex items-center gap-2">
-                    <BookOpen className="h-4 w-4 text-primary" />
-                    <span className="font-semibold text-sm">{tutorial.title}</span>
+                    <BookOpen className="text-primary h-4 w-4" />
+                    <span className="text-sm font-semibold">
+                        {tutorial.title}
+                    </span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <div className="text-muted-foreground flex items-center gap-1 text-xs">
                         <Clock className="h-3 w-3" />
                         {tutorial.estimatedTime}
                     </div>
                     {isExpanded ? (
-                        <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                        <ChevronUp className="text-muted-foreground h-4 w-4" />
                     ) : (
-                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                        <ChevronDown className="text-muted-foreground h-4 w-4" />
                     )}
                 </div>
             </div>
 
             {/* Steps */}
             {isExpanded && (
-                <div className="p-3 space-y-3">
+                <div className="space-y-3 p-3">
                     {/* Step Navigation */}
                     <div className="flex gap-1">
                         {tutorial.steps.map((step, index) => (
@@ -59,12 +67,12 @@ export function ChatTutorial({ tutorial, className }: ChatTutorialProps) {
                                 key={step.order}
                                 onClick={() => setCurrentStep(index)}
                                 className={cn(
-                                    "flex-1 h-1.5 rounded-full transition-colors",
+                                    "h-1.5 flex-1 rounded-full transition-colors",
                                     index === currentStep
                                         ? "bg-primary"
                                         : index < currentStep
-                                            ? "bg-primary/50"
-                                            : "bg-muted"
+                                          ? "bg-primary/50"
+                                          : "bg-muted"
                                 )}
                             />
                         ))}
@@ -79,22 +87,22 @@ export function ChatTutorial({ tutorial, className }: ChatTutorialProps) {
                         className="space-y-2"
                     >
                         <div className="flex items-center gap-2">
-                            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold">
+                            <span className="bg-primary text-primary-foreground flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold">
                                 {currentStep + 1}
                             </span>
-                            <h4 className="font-medium text-sm">
+                            <h4 className="text-sm font-medium">
                                 {tutorial.steps[currentStep].title}
                             </h4>
                         </div>
 
-                        <p className="text-sm text-muted-foreground pl-8">
+                        <p className="text-muted-foreground pl-8 text-sm">
                             {tutorial.steps[currentStep].content}
                         </p>
 
                         {tutorial.steps[currentStep].tip && (
-                            <div className="flex items-start gap-2 pl-8 mt-2">
-                                <Lightbulb className="h-4 w-4 text-yellow-500 shrink-0 mt-0.5" />
-                                <p className="text-xs text-muted-foreground italic">
+                            <div className="mt-2 flex items-start gap-2 pl-8">
+                                <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-yellow-500" />
+                                <p className="text-muted-foreground text-xs italic">
                                     {tutorial.steps[currentStep].tip}
                                 </p>
                             </div>
@@ -106,7 +114,9 @@ export function ChatTutorial({ tutorial, className }: ChatTutorialProps) {
                         <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
+                            onClick={() =>
+                                setCurrentStep(Math.max(0, currentStep - 1))
+                            }
                             disabled={currentStep === 0}
                             className="text-xs"
                         >
@@ -115,7 +125,14 @@ export function ChatTutorial({ tutorial, className }: ChatTutorialProps) {
                         <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => setCurrentStep(Math.min(tutorial.steps.length - 1, currentStep + 1))}
+                            onClick={() =>
+                                setCurrentStep(
+                                    Math.min(
+                                        tutorial.steps.length - 1,
+                                        currentStep + 1
+                                    )
+                                )
+                            }
                             disabled={currentStep === tutorial.steps.length - 1}
                             className="text-xs"
                         >

@@ -41,7 +41,8 @@ export const QuoteRequestEmail = ({
                     <Heading style={heading}>HBC Logistique</Heading>
                     <Text style={paragraph}>Bonjour,</Text>
                     <Text style={paragraph}>
-                        Une nouvelle demande de devis a été reçue. Voici les détails :
+                        Une nouvelle demande de devis a été reçue. Voici les
+                        détails :
                     </Text>
 
                     <Section style={section}>
@@ -75,7 +76,8 @@ export const QuoteRequestEmail = ({
 // Styles
 const main = {
     backgroundColor: "#f6f9fc",
-    fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
+    fontFamily:
+        '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
 };
 
 const container = {

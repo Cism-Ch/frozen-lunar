@@ -45,3 +45,7 @@ next-env.d.ts
 # Docs
 /docs
 mcp.json
+
+# Agents
+/agents
+.agents

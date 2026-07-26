@@ -8,15 +8,15 @@ import { z } from "zod";
 
 /**
  * POST /api/admin/init
- * 
+ *
  * Route d'initialisation du premier compte administrateur
  * Cette route ne peut être appelée qu'une seule fois (quand aucun admin n'existe)
- * 
+ *
  * Body attendu:
  * - name: string (nom complet de l'administrateur)
  * - email: string (adresse email valide)
  * - password: string (minimum 8 caractères)
- * 
+ *
  * Retourne:
  * - 200: Succès avec message de confirmation
  * - 400: Données invalides
@@ -34,11 +34,12 @@ export async function POST(request: NextRequest) {
         });
 
         if (adminCount > 0) {
-            const errorResponse = createErrorResponse(ERROR_CODES.ADMIN_ALREADY_EXISTS);
-            return NextResponse.json(
-                errorResponse,
-                { status: errorResponse.httpStatus }
+            const errorResponse = createErrorResponse(
+                ERROR_CODES.ADMIN_ALREADY_EXISTS
             );
+            return NextResponse.json(errorResponse, {
+                status: errorResponse.httpStatus,
+            });
         }
 
         // Parser et valider le corps de la requête
@@ -46,17 +47,19 @@ export async function POST(request: NextRequest) {
         try {
             body = await request.json();
         } catch (parseError: unknown) {
-            console.error("❌ Erreur de parsing JSON dans /api/admin/init:", parseError);
+            console.error(
+                "❌ Erreur de parsing JSON dans /api/admin/init:",
+                parseError
+            );
             const errorResponse = createErrorResponse(
                 ERROR_CODES.INVALID_FORMAT,
                 "Corps de requête JSON invalide"
             );
-            return NextResponse.json(
-                errorResponse,
-                { status: errorResponse.httpStatus }
-            );
+            return NextResponse.json(errorResponse, {
+                status: errorResponse.httpStatus,
+            });
         }
-        
+
         // Valider avec Zod
         const validated = adminInitSchema.parse(body);
 
@@ -89,7 +92,7 @@ export async function POST(request: NextRequest) {
     } catch (error: unknown) {
         // Log l'erreur complète pour le débogage côté serveur
         console.error("❌ Erreur lors de l'initialisation admin:", error);
-        
+
         // Gestion des erreurs de validation Zod
         if (error instanceof z.ZodError) {
             const firstError = error.issues[0];
@@ -97,17 +100,15 @@ export async function POST(request: NextRequest) {
                 ERROR_CODES.INVALID_FORMAT,
                 firstError.message
             );
-            return NextResponse.json(
-                errorResponse,
-                { status: errorResponse.httpStatus }
-            );
+            return NextResponse.json(errorResponse, {
+                status: errorResponse.httpStatus,
+            });
         }
 
         // Utiliser le gestionnaire d'erreurs centralisé
         const errorResponse = handleError(error);
-        return NextResponse.json(
-            errorResponse,
-            { status: errorResponse.httpStatus }
-        );
+        return NextResponse.json(errorResponse, {
+            status: errorResponse.httpStatus,
+        });
     }
 }

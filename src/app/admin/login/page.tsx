@@ -56,7 +56,9 @@ function LoginForm() {
             }
             const user = result.data?.user as UserWithRole;
             if (user?.role === "user") {
-                setError("Accès refusé. Vous devez avoir un rôle administrateur.");
+                setError(
+                    "Accès refusé. Vous devez avoir un rôle administrateur."
+                );
                 toast.error("Accès refusé");
                 await authClient.signOut();
                 setIsLoading(false);
@@ -77,43 +79,52 @@ function LoginForm() {
     return (
         <div className="min-h-screen w-full lg:grid lg:grid-cols-2">
             {/* Left Side - Branding & Testimonial */}
-            <div className="hidden lg:flex flex-col justify-between bg-zinc-900 p-10 text-white relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/40 to-zinc-900 z-0" />
-                <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20 z-0" />
+            <div className="relative hidden flex-col justify-between overflow-hidden bg-zinc-900 p-10 text-white lg:flex">
+                <div className="from-primary/40 absolute inset-0 z-0 bg-gradient-to-br to-zinc-900" />
+                <div className="absolute inset-0 z-0 bg-[url('/grid.svg')] opacity-20" />
 
                 <div className="relative z-10 flex items-center gap-2 text-lg font-medium">
-                    <div className="p-2 rounded-lg bg-white/10 backdrop-blur">
+                    <div className="rounded-lg bg-white/10 p-2 backdrop-blur">
                         <Truck className="h-6 w-6" />
                     </div>
                     HBC Logistique Admin
                 </div>
 
                 <div className="relative z-10 max-w-md space-y-4">
-                    <Quote className="h-10 w-10 text-primary/50" />
-                    <blockquote className="text-2xl font-medium leading-relaxed">
-                        &ldquo;La gestion logistique simplifiée. Une interface puissante pour piloter votre activité de transport avec précision.&rdquo;
+                    <Quote className="text-primary/50 h-10 w-10" />
+                    <blockquote className="text-2xl leading-relaxed font-medium">
+                        &ldquo;La gestion logistique simplifiée. Une interface
+                        puissante pour piloter votre activité de transport avec
+                        précision.&rdquo;
                     </blockquote>
                     <div className="flex items-center gap-4 pt-4">
-                        <div className="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center font-bold">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 font-bold">
                             HB
                         </div>
                         <div>
-                            <div className="font-semibold">Équipe Technique</div>
-                            <div className="text-sm text-zinc-400">HBC Logistique</div>
+                            <div className="font-semibold">
+                                Équipe Technique
+                            </div>
+                            <div className="text-sm text-zinc-400">
+                                HBC Logistique
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div className="relative z-10 text-sm text-zinc-400">
-                    &copy; {new Date().getFullYear()} HBC Logistique. Tous droits réservés.
+                    &copy; {new Date().getFullYear()} HBC Logistique. Tous
+                    droits réservés.
                 </div>
             </div>
 
             {/* Right Side - Login Form */}
-            <div className="flex items-center justify-center p-8 bg-background">
-                <div className="mx-auto w-full max-w-sm space-y-8 animate-in fade-in slide-in-from-right-8 duration-700">
+            <div className="bg-background flex items-center justify-center p-8">
+                <div className="animate-in fade-in slide-in-from-right-8 mx-auto w-full max-w-sm space-y-8 duration-700">
                     <div className="flex flex-col space-y-2 text-center lg:text-left">
-                        <h1 className="text-3xl font-bold tracking-tight">Bon retour</h1>
+                        <h1 className="text-3xl font-bold tracking-tight">
+                            Bon retour
+                        </h1>
                         <p className="text-muted-foreground">
                             Entrez vos identifiants pour accéder à votre espace.
                         </p>
@@ -133,16 +144,18 @@ function LoginForm() {
                                         autoComplete="email"
                                         autoCorrect="off"
                                         disabled={isLoading}
-                                        className="h-11 bg-muted/30"
+                                        className="bg-muted/30 h-11"
                                         required
                                     />
                                 </div>
                                 <div className="grid gap-2">
                                     <div className="flex items-center justify-between">
-                                        <Label htmlFor="password">Mot de passe</Label>
+                                        <Label htmlFor="password">
+                                            Mot de passe
+                                        </Label>
                                         <Link
                                             href="#"
-                                            className="text-sm font-medium text-primary hover:underline"
+                                            className="text-primary text-sm font-medium hover:underline"
                                             onClick={(e) => e.preventDefault()}
                                         >
                                             Mot de passe oublié ?
@@ -153,26 +166,31 @@ function LoginForm() {
                                         name="password"
                                         type="password"
                                         disabled={isLoading}
-                                        className="h-11 bg-muted/30"
+                                        className="bg-muted/30 h-11"
                                         required
                                     />
                                 </div>
-                                
+
                                 {error && (
-                                    <div className="flex items-center gap-2 p-3 text-sm text-red-600 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-md">
+                                    <div className="flex items-center gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-600 dark:border-red-900 dark:bg-red-950/20">
                                         <AlertCircle className="h-4 w-4 flex-shrink-0" />
                                         <span>{error}</span>
                                     </div>
                                 )}
 
-                                <Button disabled={isLoading} className="h-11 font-semibold shadow-lg hover:shadow-primary/25 transition-all mt-2">
+                                <Button
+                                    disabled={isLoading}
+                                    className="hover:shadow-primary/25 mt-2 h-11 font-semibold shadow-lg transition-all"
+                                >
                                     {isLoading ? (
                                         <>
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Connexion...
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
+                                            Connexion...
                                         </>
                                     ) : (
                                         <>
-                                            Se connecter <ArrowRight className="ml-2 h-4 w-4" />
+                                            Se connecter{" "}
+                                            <ArrowRight className="ml-2 h-4 w-4" />
                                         </>
                                     )}
                                 </Button>
@@ -184,7 +202,7 @@ function LoginForm() {
                                 <span className="w-full border-t" />
                             </div>
                             <div className="relative flex justify-center text-xs uppercase">
-                                <span className="bg-background px-2 text-muted-foreground">
+                                <span className="bg-background text-muted-foreground px-2">
                                     Accès sécurisé
                                 </span>
                             </div>
@@ -198,11 +216,13 @@ function LoginForm() {
 
 export default function AdminLoginPage() {
     return (
-        <Suspense fallback={
-            <div className="min-h-screen w-full flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-        }>
+        <Suspense
+            fallback={
+                <div className="flex min-h-screen w-full items-center justify-center">
+                    <Loader2 className="text-primary h-8 w-8 animate-spin" />
+                </div>
+            }
+        >
             <LoginForm />
         </Suspense>
     );

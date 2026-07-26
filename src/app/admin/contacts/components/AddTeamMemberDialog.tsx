@@ -27,7 +27,10 @@ interface AddTeamMemberDialogProps {
     onClose: () => void;
 }
 
-export function AddTeamMemberDialog({ isOpen, onClose }: AddTeamMemberDialogProps) {
+export function AddTeamMemberDialog({
+    isOpen,
+    onClose,
+}: AddTeamMemberDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -48,17 +51,27 @@ export function AddTeamMemberDialog({ isOpen, onClose }: AddTeamMemberDialogProp
                 <DialogHeader>
                     <DialogTitle>Ajouter un membre</DialogTitle>
                     <DialogDescription>
-                        Envoyez une invitation pour rejoindre l&apos;équipe administrative.
+                        Envoyez une invitation pour rejoindre l&apos;équipe
+                        administrative.
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="grid gap-4 py-4">
                     <div className="grid gap-2">
                         <Label htmlFor="name">Nom complet</Label>
-                        <Input id="name" placeholder="Ex: Jean Dupont" required />
+                        <Input
+                            id="name"
+                            placeholder="Ex: Jean Dupont"
+                            required
+                        />
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="email">Adresse email</Label>
-                        <Input id="email" type="email" placeholder="jean@hbclogistique.com" required />
+                        <Input
+                            id="email"
+                            type="email"
+                            placeholder="jean@hbclogistique.com"
+                            required
+                        />
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="role">Rôle</Label>
@@ -87,12 +100,17 @@ export function AddTeamMemberDialog({ isOpen, onClose }: AddTeamMemberDialogProp
                                 </SelectItem>
                             </SelectContent>
                         </Select>
-                        <p className="text-[0.8rem] text-muted-foreground mt-1">
+                        <p className="text-muted-foreground mt-1 text-[0.8rem]">
                             * Le développeur aura accès aux journaux techniques.
                         </p>
                     </div>
                     <DialogFooter>
-                        <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={onClose}
+                            disabled={isLoading}
+                        >
                             Annuler
                         </Button>
                         <Button type="submit" disabled={isLoading}>

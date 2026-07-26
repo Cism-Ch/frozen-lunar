@@ -5,18 +5,19 @@ import { Redis } from "@upstash/redis";
 
 /**
  * Middleware Next.js pour la protection des routes et le rate limiting
- * 
+ *
  * Fonctionnalités:
  * 1. Protection des routes /admin/* (sauf login et init)
  * 2. Rate limiting sur les routes /api/* (20 requêtes / 10 secondes)
  * 3. Exclusion des fichiers statiques et images
- * 
+ *
  * Le middleware s'exécute en Edge Runtime pour de meilleures performances
  */
 
-// Configuration du rate limiting
-const RATE_LIMIT_REQUESTS = 20;
-const RATE_LIMIT_WINDOW = "10 s";
+// Configuration du rate limiting (Configurable via variables d'environnement)
+const RATE_LIMIT_REQUESTS = Number(process.env.RATE_LIMIT_MAX_REQUESTS) || 20;
+const RATE_LIMIT_WINDOW_SECONDS = Number(process.env.RATE_LIMIT_WINDOW_SECONDS) || 10;
+const RATE_LIMIT_WINDOW = `${RATE_LIMIT_WINDOW_SECONDS} s` as const;
 
 // Initialisation du Redis pour le Rate Limiting (Edge compatible)
 // Si les variables d'environnement ne sont pas définies, le rate limiting sera désactivé
@@ -25,11 +26,13 @@ const redis = new Redis({
     token: process.env.UPSTASH_REDIS_REST_TOKEN || "",
 });
 
-// Configuration du Rate Limiter : 20 requêtes / 10 secondes par IP
-// Cette limite protège contre les abus tout en permettant une utilisation normale
+// Configuration du Rate Limiter : configurable par IP (défaut : 20 requêtes / 10s)
 const ratelimit = new Ratelimit({
     redis: redis,
-    limiter: Ratelimit.slidingWindow(RATE_LIMIT_REQUESTS, RATE_LIMIT_WINDOW),
+    limiter: Ratelimit.slidingWindow(
+        RATE_LIMIT_REQUESTS,
+        `${RATE_LIMIT_WINDOW_SECONDS} s`
+    ),
     analytics: true,
     prefix: "@upstash/ratelimit",
 });
@@ -58,8 +61,10 @@ export async function middleware(request: NextRequest) {
 
         // Vérifier la présence du cookie de session Better Auth
         // Le token est créé lors de la connexion et vérifié ici
-        const sessionToken = request.cookies.get("better-auth.session_token")?.value;
-        
+        const sessionToken = request.cookies.get(
+            "better-auth.session_token"
+        )?.value;
+
         if (!sessionToken) {
             // Pas de session : rediriger vers la page de login
             // Le callbackUrl permet de revenir à la page demandée après connexion
@@ -89,13 +94,13 @@ export async function middleware(request: NextRequest) {
             const res = success
                 ? NextResponse.next()
                 : NextResponse.json(
-                    { 
-                        error: "Trop de requêtes. Veuillez réessayer plus tard.",
-                        limit: `${RATE_LIMIT_REQUESTS} requêtes par ${RATE_LIMIT_WINDOW}`,
-                        retryAfter: new Date(reset).toISOString()
-                    },
-                    { status: 429 }
-                );
+                      {
+                          error: "Trop de requêtes. Veuillez réessayer plus tard.",
+                          limit: `${RATE_LIMIT_REQUESTS} requêtes par ${RATE_LIMIT_WINDOW}`,
+                          retryAfter: new Date(reset).toISOString(),
+                      },
+                      { status: 429 }
+                  );
 
             // Ajouter les headers de Rate Limit pour informer le client
             res.headers.set("X-RateLimit-Limit", limit.toString());

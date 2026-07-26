@@ -66,14 +66,20 @@ export const generateQuotePDF = (quote: Quote) => {
     doc.text(quote.dropoff, 20, 140, { maxWidth: 80 });
 
     // Date & Vehicle
-    doc.text(`Date prévue : ${format(new Date(quote.transportDate), "dd MMMM yyyy", { locale: fr })}`, 20, 155);
+    doc.text(
+        `Date prévue : ${format(new Date(quote.transportDate), "dd MMMM yyyy", { locale: fr })}`,
+        20,
+        155
+    );
     doc.text(`Véhicule : ${quote.type}`, 20, 160);
-
 
     // --- Pricing Table ---
     const tableData = [
         ["DESCRIPTION", "TOTAL"],
-        ["Prestation de transport (Aller simple)", quote.amount || "Nous contacter"],
+        [
+            "Prestation de transport (Aller simple)",
+            quote.amount || "Nous contacter",
+        ],
         ["Assurance marchandises", "Incluse"],
         ["Frais de gestion", "Inclus"],
     ];
@@ -82,12 +88,12 @@ export const generateQuotePDF = (quote: Quote) => {
         startY: 180,
         head: [tableData[0]],
         body: tableData.slice(1),
-        theme: 'grid',
+        theme: "grid",
         headStyles: { fillColor: [41, 128, 185], textColor: 255 },
         styles: { fontSize: 10, cellPadding: 5 },
         columnStyles: {
-            0: { cellWidth: 'auto' },
-            1: { cellWidth: 40, halign: 'right' },
+            0: { cellWidth: "auto" },
+            1: { cellWidth: 40, halign: "right" },
         },
     });
 
@@ -96,12 +102,22 @@ export const generateQuotePDF = (quote: Quote) => {
 
     doc.setFontSize(8);
     doc.setTextColor(150, 150, 150);
-    doc.text("Conditions de paiement : 30% à la commande, solde à la livraison.", 20, pageHeight - 30);
-    doc.text("Ce devis est soumis aux CGV disponibles sur notre site internet.", 20, pageHeight - 25);
+    doc.text(
+        "Conditions de paiement : 30% à la commande, solde à la livraison.",
+        20,
+        pageHeight - 30
+    );
+    doc.text(
+        "Ce devis est soumis aux CGV disponibles sur notre site internet.",
+        20,
+        pageHeight - 25
+    );
 
     doc.setFontSize(10);
     doc.setTextColor(0, 0, 0);
-    doc.text("Merci de votre confiance !", 105, pageHeight - 15, { align: "center" });
+    doc.text("Merci de votre confiance !", 105, pageHeight - 15, {
+        align: "center",
+    });
 
     doc.save(`Devis_${quote.id}.pdf`);
 };

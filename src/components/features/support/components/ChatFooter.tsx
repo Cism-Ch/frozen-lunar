@@ -22,12 +22,12 @@ export function ChatFooter({
     quickReplies,
     onQuickReply,
     onClose,
-    placeholder
+    placeholder,
 }: ChatFooterProps) {
     return (
         <>
             {/* Input Area */}
-            <div className="p-4 border-t bg-background shrink-0 safe-area-bottom">
+            <div className="bg-background safe-area-bottom shrink-0 border-t p-4">
                 <ChatInput
                     onSend={onSendMessage}
                     isLoading={isLoading}
@@ -38,10 +38,14 @@ export function ChatFooter({
             </div>
 
             {/* Footer Links */}
-            <div className="px-4 py-2 border-t bg-muted/30 text-center shrink-0">
-                <p className="text-[10px] text-muted-foreground">
+            <div className="bg-muted/30 shrink-0 border-t px-4 py-2 text-center">
+                <p className="text-muted-foreground text-[10px]">
                     Assistant HBC Logistique •
-                    <Link href="/contact" className="hover:underline ml-1" onClick={onClose}>
+                    <Link
+                        href="/contact"
+                        className="ml-1 hover:underline"
+                        onClick={onClose}
+                    >
                         Contacter un humain
                     </Link>
                 </p>

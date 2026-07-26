@@ -15,4 +15,3 @@ export type UserWithRole = {
     createdAt: Date;
     updatedAt: Date;
 };
-

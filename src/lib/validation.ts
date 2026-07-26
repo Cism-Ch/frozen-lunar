@@ -11,7 +11,7 @@ import { z } from "zod";
  */
 export const emailSchema = z
     .string({
-        message: "L'adresse email est requise"
+        message: "L'adresse email est requise",
     })
     .min(1, "L'adresse email ne peut pas être vide")
     .email("Format d'email invalide")
@@ -27,13 +27,16 @@ export const emailSchema = z
  */
 export const passwordSchema = z
     .string({
-        message: "Le mot de passe est requis"
+        message: "Le mot de passe est requis",
     })
     .min(12, "Le mot de passe doit contenir au moins 12 caractères")
     .regex(/[a-z]/, "Le mot de passe doit contenir au moins une minuscule")
     .regex(/[A-Z]/, "Le mot de passe doit contenir au moins une majuscule")
     .regex(/[0-9]/, "Le mot de passe doit contenir au moins un chiffre")
-    .regex(/[^a-zA-Z0-9]/, "Le mot de passe doit contenir au moins un caractère spécial");
+    .regex(
+        /[^a-zA-Z0-9]/,
+        "Le mot de passe doit contenir au moins un caractère spécial"
+    );
 
 /**
  * Validation de mot de passe simple (pour compatibilité avec code existant)
@@ -41,7 +44,7 @@ export const passwordSchema = z
  */
 export const simplePasswordSchema = z
     .string({
-        message: "Le mot de passe est requis"
+        message: "Le mot de passe est requis",
     })
     .min(8, "Le mot de passe doit contenir au moins 8 caractères");
 
@@ -50,7 +53,7 @@ export const simplePasswordSchema = z
  */
 export const nameSchema = z
     .string({
-        message: "Le nom est requis"
+        message: "Le nom est requis",
     })
     .min(2, "Le nom doit contenir au moins 2 caractères")
     .max(100, "Le nom ne peut pas dépasser 100 caractères")
@@ -60,7 +63,7 @@ export const nameSchema = z
  * Validation du rôle utilisateur
  */
 export const roleSchema = z.enum(["admin", "moderator", "developer", "user"], {
-    message: "Rôle invalide. Doit être: admin, moderator, developer ou user"
+    message: "Rôle invalide. Doit être: admin, moderator, developer ou user",
 });
 
 /**
@@ -97,9 +100,11 @@ export const adminInitSchema = z.object({
  */
 export const signInSchema = z.object({
     email: emailSchema,
-    password: z.string({
-        message: "Le mot de passe est requis"
-    }).min(1, "Le mot de passe ne peut pas être vide"),
+    password: z
+        .string({
+            message: "Le mot de passe est requis",
+        })
+        .min(1, "Le mot de passe ne peut pas être vide"),
 });
 
 /**

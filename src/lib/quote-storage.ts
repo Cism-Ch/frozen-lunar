@@ -65,25 +65,35 @@ export const quoteStorage = {
         return quotes.find((q) => q.id === id);
     },
 
-    add: (quote: Omit<Quote, "id" | "date" | "status" | "amount" | "history">) => {
+    add: (
+        quote: Omit<Quote, "id" | "date" | "status" | "amount" | "history">
+    ) => {
         const quotes = quoteStorage.getAll();
-        const sourceLabel = quote.source === "chat" ? "l'assistant virtuel" : "le formulaire web";
+        const sourceLabel =
+            quote.source === "chat"
+                ? "l'assistant virtuel"
+                : "le formulaire web";
         const newQuote: Quote = {
             ...quote,
             id: `DEV-${Date.now().toString().slice(-6)}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
-            date: new Date().toISOString().split('T')[0],
+            date: new Date().toISOString().split("T")[0],
             status: "En attente",
             amount: "À calculer",
             notes: quote.notes || "",
-            history: [{
-                id: Date.now().toString(),
-                action: "Création",
-                description: `Devis créé via ${sourceLabel}`,
-                timestamp: new Date().toISOString(),
-                user: "Système"
-            }]
+            history: [
+                {
+                    id: Date.now().toString(),
+                    action: "Création",
+                    description: `Devis créé via ${sourceLabel}`,
+                    timestamp: new Date().toISOString(),
+                    user: "Système",
+                },
+            ],
         };
-        localStorage.setItem(STORAGE_KEY, JSON.stringify([newQuote, ...quotes]));
+        localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify([newQuote, ...quotes])
+        );
         return newQuote;
     },
 
@@ -100,7 +110,7 @@ export const quoteStorage = {
                     action: historyAction,
                     timestamp: new Date().toISOString(),
                     user: "Admin",
-                    description: `Mise à jour: ${Object.keys(data).join(", ")}`
+                    description: `Mise à jour: ${Object.keys(data).join(", ")}`,
                 };
                 updatedQuote.history = [newEvent, ...(q.history || [])];
             }
@@ -123,11 +133,11 @@ export const quoteStorage = {
                 action: "Note Interne",
                 description: note,
                 timestamp: new Date().toISOString(),
-                user: "Admin"
+                user: "Admin",
             };
             return {
                 ...q,
-                history: [newEvent, ...(q.history || [])]
+                history: [newEvent, ...(q.history || [])],
             };
         });
         localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedQuotes));
@@ -137,5 +147,5 @@ export const quoteStorage = {
         const quotes = quoteStorage.getAll();
         const filteredQuotes = quotes.filter((q) => q.id !== id);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(filteredQuotes));
-    }
+    },
 };

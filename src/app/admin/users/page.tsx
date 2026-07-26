@@ -23,16 +23,19 @@ export default async function AdminUsersPage() {
             email: true,
             role: true,
             createdAt: true,
-        }
+        },
     });
 
     return (
         <div className="space-y-8">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Gestion des Utilisateurs</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">
+                        Gestion des Utilisateurs
+                    </h1>
                     <p className="text-muted-foreground mt-1">
-                        Administrateurs, modérateurs et développeurs ayant accès au dashboard.
+                        Administrateurs, modérateurs et développeurs ayant accès
+                        au dashboard.
                     </p>
                 </div>
                 <AddUserDialog />

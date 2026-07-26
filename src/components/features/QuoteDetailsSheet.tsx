@@ -1,15 +1,34 @@
 "use client";
 
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+    SheetDescription,
+    SheetFooter,
+} from "@/components/ui/sheet";
 import { Quote, QuoteSupplementaryInfo } from "@/lib/quote-storage";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { CalendarIcon, MapPin, Truck, Mail, Phone, User, CheckCircle, XCircle, MessageSquare, Info, Bot, FileText } from "lucide-react";
+import {
+    CalendarIcon,
+    MapPin,
+    Truck,
+    Mail,
+    Phone,
+    User,
+    CheckCircle,
+    XCircle,
+    MessageSquare,
+    Info,
+    Bot,
+    FileText,
+} from "lucide-react";
 import { format, isValid, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
-import { useState } from "react";
 import { updateQuoteStatusAction } from "@/app/actions/quote-management";
 
 interface QuoteDetailsSheetProps {
@@ -40,7 +59,9 @@ function safeFormatDate(dateString: string | undefined): string {
 }
 
 // Helper to format supplementary info nicely
-function formatSupplementaryInfo(info: QuoteSupplementaryInfo | undefined): { label: string; value: string }[] {
+function formatSupplementaryInfo(
+    info: QuoteSupplementaryInfo | undefined
+): { label: string; value: string }[] {
     if (!info) return [];
 
     const items: { label: string; value: string }[] = [];
@@ -53,22 +74,49 @@ function formatSupplementaryInfo(info: QuoteSupplementaryInfo | undefined): { la
             structure: "Charpente/Structure",
             other: "Autre",
         };
-        items.push({ label: "Catégorie", value: categoryLabels[info.category] || info.category });
+        items.push({
+            label: "Catégorie",
+            value: categoryLabels[info.category] || info.category,
+        });
     }
-    if (info.materialType) items.push({ label: "Type matériau", value: info.materialType });
+    if (info.materialType)
+        items.push({ label: "Type matériau", value: info.materialType });
     if (info.weight) items.push({ label: "Poids", value: info.weight });
-    if (info.packaging) items.push({ label: "Conditionnement", value: info.packaging });
-    if (info.hazardous !== undefined) items.push({ label: "Matières dangereuses", value: info.hazardous ? "Oui" : "Non" });
-    if (info.containerSize) items.push({ label: "Taille container", value: info.containerSize });
-    if (info.containerType) items.push({ label: "Type container", value: info.containerType });
-    if (info.loadingType) items.push({ label: "Chargement", value: info.loadingType });
-    if (info.isEmpty !== undefined) items.push({ label: "Container vide", value: info.isEmpty ? "Oui" : "Non" });
-    if (info.machineType) items.push({ label: "Type machine", value: info.machineType });
-    if (info.dimensions) items.push({ label: "Dimensions", value: info.dimensions });
-    if (info.requiresCrane !== undefined) items.push({ label: "Grue requise", value: info.requiresCrane ? "Oui" : "Non" });
-    if (info.structureType) items.push({ label: "Type structure", value: info.structureType });
+    if (info.packaging)
+        items.push({ label: "Conditionnement", value: info.packaging });
+    if (info.hazardous !== undefined)
+        items.push({
+            label: "Matières dangereuses",
+            value: info.hazardous ? "Oui" : "Non",
+        });
+    if (info.containerSize)
+        items.push({ label: "Taille container", value: info.containerSize });
+    if (info.containerType)
+        items.push({ label: "Type container", value: info.containerType });
+    if (info.loadingType)
+        items.push({ label: "Chargement", value: info.loadingType });
+    if (info.isEmpty !== undefined)
+        items.push({
+            label: "Container vide",
+            value: info.isEmpty ? "Oui" : "Non",
+        });
+    if (info.machineType)
+        items.push({ label: "Type machine", value: info.machineType });
+    if (info.dimensions)
+        items.push({ label: "Dimensions", value: info.dimensions });
+    if (info.requiresCrane !== undefined)
+        items.push({
+            label: "Grue requise",
+            value: info.requiresCrane ? "Oui" : "Non",
+        });
+    if (info.structureType)
+        items.push({ label: "Type structure", value: info.structureType });
     if (info.length) items.push({ label: "Longueur", value: info.length });
-    if (info.specialRequirements) items.push({ label: "Exigences spéciales", value: info.specialRequirements });
+    if (info.specialRequirements)
+        items.push({
+            label: "Exigences spéciales",
+            value: info.specialRequirements,
+        });
     if (info.accessInfo) items.push({ label: "Accès", value: info.accessInfo });
     if (info.urgency) {
         const urgencyLabels: Record<string, string> = {
@@ -76,13 +124,21 @@ function formatSupplementaryInfo(info: QuoteSupplementaryInfo | undefined): { la
             urgent: "Urgent",
             very_urgent: "Très urgent",
         };
-        items.push({ label: "Urgence", value: urgencyLabels[info.urgency] || info.urgency });
+        items.push({
+            label: "Urgence",
+            value: urgencyLabels[info.urgency] || info.urgency,
+        });
     }
 
     return items;
 }
 
-export function QuoteDetailsSheet({ quote, open, onOpenChange, onUpdate }: QuoteDetailsSheetProps) {
+export function QuoteDetailsSheet({
+    quote,
+    open,
+    onOpenChange,
+    onUpdate,
+}: QuoteDetailsSheetProps) {
     if (!quote) return null;
 
     const handleStatusUpdate = async (status: Quote["status"]) => {
@@ -105,79 +161,117 @@ export function QuoteDetailsSheet({ quote, open, onOpenChange, onUpdate }: Quote
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetContent className="w-full sm:max-w-xl overflow-y-auto p-0 gap-0">
-                <SheetHeader className="p-4 sm:p-6 bg-muted/10 border-b space-y-4 pr-12">
+            <SheetContent className="w-full gap-0 overflow-y-auto p-0 sm:max-w-xl">
+                <SheetHeader className="bg-muted/10 space-y-4 border-b p-4 pr-12 sm:p-6">
                     <div className="flex flex-col gap-2">
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-                            <SheetTitle className="text-xl sm:text-2xl font-bold flex items-center gap-2">
-                                <Truck className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                            <SheetTitle className="flex items-center gap-2 text-xl font-bold sm:text-2xl">
+                                <Truck className="text-primary h-5 w-5 sm:h-6 sm:w-6" />
                                 Détails du Devis
                             </SheetTitle>
                             <div className="flex flex-wrap gap-2">
                                 <Badge
                                     variant="outline"
                                     className={
-                                        quote.status === "Validé" ? "bg-green-500/10 text-green-600 border-green-200/50 hover:bg-green-500/20" :
-                                            quote.status === "Refusé" ? "bg-red-500/10 text-red-600 border-red-200/50 hover:bg-red-500/20" :
-                                                "bg-orange-500/10 text-orange-600 border-orange-200/50 hover:bg-orange-500/20"
+                                        quote.status === "Validé"
+                                            ? "border-green-200/50 bg-green-500/10 text-green-600 hover:bg-green-500/20"
+                                            : quote.status === "Refusé"
+                                              ? "border-red-200/50 bg-red-500/10 text-red-600 hover:bg-red-500/20"
+                                              : "border-orange-200/50 bg-orange-500/10 text-orange-600 hover:bg-orange-500/20"
                                     }
                                 >
                                     {quote.status}
                                 </Badge>
                                 {quote.source && (
-                                    <Badge variant="secondary" className="gap-1">
+                                    <Badge
+                                        variant="secondary"
+                                        className="gap-1"
+                                    >
                                         {quote.source === "chat" ? (
-                                            <><Bot className="h-3 w-3" /> Assistant</>
+                                            <>
+                                                <Bot className="h-3 w-3" />{" "}
+                                                Assistant
+                                            </>
                                         ) : (
-                                            <><FileText className="h-3 w-3" /> Formulaire</>
+                                            <>
+                                                <FileText className="h-3 w-3" />{" "}
+                                                Formulaire
+                                            </>
                                         )}
                                     </Badge>
                                 )}
                             </div>
                         </div>
                     </div>
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <SheetDescription className="flex items-center gap-2 text-xs sm:text-sm bg-background/50 p-2 rounded-md border w-full sm:w-fit">
+                    <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+                        <SheetDescription className="bg-background/50 flex w-full items-center gap-2 rounded-md border p-2 text-xs sm:w-fit sm:text-sm">
                             <span className="text-muted-foreground">Réf.</span>
-                            <span className="font-mono font-bold text-foreground truncate">{quote.id}</span>
+                            <span className="text-foreground truncate font-mono font-bold">
+                                {quote.id}
+                            </span>
                         </SheetDescription>
-                        <Button size="sm" variant="outline" className="gap-2 w-full sm:w-auto" asChild>
-                            <a href={`/admin/quotes/${encodeURIComponent(quote.id)}`}>
-                                Ouvrir l'espace de travail
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            className="w-full gap-2 sm:w-auto"
+                            asChild
+                        >
+                            <a
+                                href={`/admin/quotes/${encodeURIComponent(quote.id)}`}
+                            >
+                                Ouvrir l&apos;espace de travail
                             </a>
                         </Button>
                     </div>
                 </SheetHeader>
 
-                <div className="p-4 sm:p-6 space-y-6 sm:space-y-8">
+                <div className="space-y-6 p-4 sm:space-y-8 sm:p-6">
                     {/* Client Information */}
                     <div className="space-y-4">
-                        <div className="flex items-center gap-2 text-primary font-semibold tracking-wide text-sm uppercase">
+                        <div className="text-primary flex items-center gap-2 text-sm font-semibold tracking-wide uppercase">
                             <User className="h-4 w-4" />
                             Client
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="bg-card border p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                                <span className="text-xs text-muted-foreground uppercase font-semibold">Nom Complet</span>
-                                <p className="font-medium text-lg mt-1">{quote.client}</p>
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div className="bg-card rounded-xl border p-4 shadow-sm transition-shadow hover:shadow-md">
+                                <span className="text-muted-foreground text-xs font-semibold uppercase">
+                                    Nom Complet
+                                </span>
+                                <p className="mt-1 text-lg font-medium">
+                                    {quote.client}
+                                </p>
                             </div>
                             <div className="space-y-2">
-                                <a href={`mailto:${quote.email}`} className="flex items-center gap-3 p-3 rounded-lg border bg-muted/20 hover:bg-muted/40 transition-colors group">
-                                    <div className="p-2 bg-background rounded-full border shadow-sm group-hover:border-primary/50 transition-colors">
-                                        <Mail className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                                <a
+                                    href={`mailto:${quote.email}`}
+                                    className="bg-muted/20 hover:bg-muted/40 group flex items-center gap-3 rounded-lg border p-3 transition-colors"
+                                >
+                                    <div className="bg-background group-hover:border-primary/50 rounded-full border p-2 shadow-sm transition-colors">
+                                        <Mail className="text-muted-foreground group-hover:text-primary h-4 w-4 transition-colors" />
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="text-xs text-muted-foreground">Email</span>
-                                        <span className="font-medium text-sm truncate">{quote.email}</span>
+                                        <span className="text-muted-foreground text-xs">
+                                            Email
+                                        </span>
+                                        <span className="truncate text-sm font-medium">
+                                            {quote.email}
+                                        </span>
                                     </div>
                                 </a>
-                                <a href={`tel:${quote.phone}`} className="flex items-center gap-3 p-3 rounded-lg border bg-muted/20 hover:bg-muted/40 transition-colors group">
-                                    <div className="p-2 bg-background rounded-full border shadow-sm group-hover:border-primary/50 transition-colors">
-                                        <Phone className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                                <a
+                                    href={`tel:${quote.phone}`}
+                                    className="bg-muted/20 hover:bg-muted/40 group flex items-center gap-3 rounded-lg border p-3 transition-colors"
+                                >
+                                    <div className="bg-background group-hover:border-primary/50 rounded-full border p-2 shadow-sm transition-colors">
+                                        <Phone className="text-muted-foreground group-hover:text-primary h-4 w-4 transition-colors" />
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="text-xs text-muted-foreground">Téléphone</span>
-                                        <span className="font-medium text-sm">{quote.phone}</span>
+                                        <span className="text-muted-foreground text-xs">
+                                            Téléphone
+                                        </span>
+                                        <span className="text-sm font-medium">
+                                            {quote.phone}
+                                        </span>
                                     </div>
                                 </a>
                             </div>
@@ -188,22 +282,26 @@ export function QuoteDetailsSheet({ quote, open, onOpenChange, onUpdate }: Quote
 
                     {/* Transport Details */}
                     <div className="space-y-4">
-                        <div className="flex items-center gap-2 text-primary font-semibold tracking-wide text-sm uppercase">
+                        <div className="text-primary flex items-center gap-2 text-sm font-semibold tracking-wide uppercase">
                             <Truck className="h-4 w-4" />
                             Logistique
                         </div>
-                        <div className="bg-muted/10 border rounded-xl overflow-hidden">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 sm:divide-x divide-y sm:divide-y-0 divide-border border-b border-border/50">
-                                <div className="p-4 flex flex-col gap-1">
-                                    <span className="text-xs text-muted-foreground uppercase font-semibold">Type</span>
-                                    <span className="font-medium capitalize flex items-center gap-2">
+                        <div className="bg-muted/10 overflow-hidden rounded-xl border">
+                            <div className="divide-border border-border/50 grid grid-cols-1 divide-y border-b sm:grid-cols-2 sm:divide-x sm:divide-y-0">
+                                <div className="flex flex-col gap-1 p-4">
+                                    <span className="text-muted-foreground text-xs font-semibold uppercase">
+                                        Type
+                                    </span>
+                                    <span className="flex items-center gap-2 font-medium capitalize">
                                         {quote.type}
                                     </span>
                                 </div>
-                                <div className="p-4 flex flex-col gap-1">
-                                    <span className="text-xs text-muted-foreground uppercase font-semibold">Date Prévue</span>
+                                <div className="flex flex-col gap-1 p-4">
+                                    <span className="text-muted-foreground text-xs font-semibold uppercase">
+                                        Date Prévue
+                                    </span>
                                     <span className="text-medium flex items-center gap-2">
-                                        <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                                        <CalendarIcon className="text-muted-foreground h-4 w-4" />
                                         {safeFormatDate(quote.transportDate)}
                                     </span>
                                 </div>
@@ -213,32 +311,36 @@ export function QuoteDetailsSheet({ quote, open, onOpenChange, onUpdate }: Quote
 
                     {/* Itinerary */}
                     <div className="space-y-4">
-                        <div className="flex items-center gap-2 text-primary font-semibold tracking-wide text-sm uppercase">
+                        <div className="text-primary flex items-center gap-2 text-sm font-semibold tracking-wide uppercase">
                             <MapPin className="h-4 w-4" />
                             Itinéraire
                         </div>
-                        <div className="relative pl-8 py-2 ml-3 border-l-[3px] border-dotted border-muted-foreground/30 space-y-10">
+                        <div className="border-muted-foreground/30 relative ml-3 space-y-10 border-l-[3px] border-dotted py-2 pl-8">
                             <div className="relative">
-                                <div className="absolute -left-[39px] top-0 h-6 w-6 rounded-full border-4 border-background bg-green-500 shadow-md flex items-center justify-center">
+                                <div className="border-background absolute top-0 -left-[39px] flex h-6 w-6 items-center justify-center rounded-full border-4 bg-green-500 shadow-md">
                                     <div className="h-1.5 w-1.5 rounded-full bg-white" />
                                 </div>
-                                <div className="bg-card border p-4 rounded-lg shadow-sm relative group hover:border-green-500/50 transition-colors">
-                                    <span className="absolute -top-3 left-4 px-2 py-0.5 bg-green-500/10 text-xs font-semibold text-green-600 border border-green-500/20 rounded-full backdrop-blur-sm">
+                                <div className="bg-card group relative rounded-lg border p-4 shadow-sm transition-colors hover:border-green-500/50">
+                                    <span className="absolute -top-3 left-4 rounded-full border border-green-500/20 bg-green-500/10 px-2 py-0.5 text-xs font-semibold text-green-600 backdrop-blur-sm">
                                         DÉPART
                                     </span>
-                                    <p className="font-medium leading-relaxed mt-1 text-foreground/90">{quote.pickup}</p>
+                                    <p className="text-foreground/90 mt-1 leading-relaxed font-medium">
+                                        {quote.pickup}
+                                    </p>
                                 </div>
                             </div>
 
                             <div className="relative">
-                                <div className="absolute -left-[39px] top-0 h-6 w-6 rounded-full border-4 border-background bg-red-500 shadow-md flex items-center justify-center">
+                                <div className="border-background absolute top-0 -left-[39px] flex h-6 w-6 items-center justify-center rounded-full border-4 bg-red-500 shadow-md">
                                     <div className="h-1.5 w-1.5 rounded-full bg-white" />
                                 </div>
-                                <div className="bg-card border p-4 rounded-lg shadow-sm relative group hover:border-red-500/50 transition-colors">
-                                    <span className="absolute -top-3 left-4 px-2 py-0.5 bg-red-500/10 text-xs font-semibold text-red-600 border border-red-500/20 rounded-full backdrop-blur-sm">
+                                <div className="bg-card group relative rounded-lg border p-4 shadow-sm transition-colors hover:border-red-500/50">
+                                    <span className="absolute -top-3 left-4 rounded-full border border-red-500/20 bg-red-500/10 px-2 py-0.5 text-xs font-semibold text-red-600 backdrop-blur-sm">
                                         ARRIVÉE
                                     </span>
-                                    <p className="font-medium leading-relaxed mt-1 text-foreground/90">{quote.dropoff}</p>
+                                    <p className="text-foreground/90 mt-1 leading-relaxed font-medium">
+                                        {quote.dropoff}
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -249,18 +351,27 @@ export function QuoteDetailsSheet({ quote, open, onOpenChange, onUpdate }: Quote
                         <>
                             <Separator className="bg-border/50" />
                             <div className="space-y-4">
-                                <div className="flex items-center gap-2 text-primary font-semibold tracking-wide text-sm uppercase">
+                                <div className="text-primary flex items-center gap-2 text-sm font-semibold tracking-wide uppercase">
                                     <Info className="h-4 w-4" />
                                     Informations complémentaires
                                 </div>
-                                <div className="bg-muted/10 border rounded-xl p-4">
+                                <div className="bg-muted/10 rounded-xl border p-4">
                                     <div className="grid grid-cols-2 gap-3">
-                                        {supplementaryItems.map((item, index) => (
-                                            <div key={index} className="flex flex-col gap-0.5">
-                                                <span className="text-xs text-muted-foreground">{item.label}</span>
-                                                <span className="text-sm font-medium">{item.value}</span>
-                                            </div>
-                                        ))}
+                                        {supplementaryItems.map(
+                                            (item, index) => (
+                                                <div
+                                                    key={index}
+                                                    className="flex flex-col gap-0.5"
+                                                >
+                                                    <span className="text-muted-foreground text-xs">
+                                                        {item.label}
+                                                    </span>
+                                                    <span className="text-sm font-medium">
+                                                        {item.value}
+                                                    </span>
+                                                </div>
+                                            )
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -272,33 +383,37 @@ export function QuoteDetailsSheet({ quote, open, onOpenChange, onUpdate }: Quote
                         <>
                             <Separator className="bg-border/50" />
                             <div className="space-y-4">
-                                <div className="flex items-center gap-2 text-primary font-semibold tracking-wide text-sm uppercase">
+                                <div className="text-primary flex items-center gap-2 text-sm font-semibold tracking-wide uppercase">
                                     <MessageSquare className="h-4 w-4" />
                                     Notes du client
                                 </div>
-                                <div className="bg-muted/10 border rounded-xl p-4">
-                                    <p className="text-sm text-foreground/80 whitespace-pre-wrap">{quote.userNotes}</p>
+                                <div className="bg-muted/10 rounded-xl border p-4">
+                                    <p className="text-foreground/80 text-sm whitespace-pre-wrap">
+                                        {quote.userNotes}
+                                    </p>
                                 </div>
                             </div>
                         </>
                     )}
                 </div>
 
-                <SheetFooter className="p-6 bg-muted/10 border-t flex-col sm:flex-row gap-3">
+                <SheetFooter className="bg-muted/10 flex-col gap-3 border-t p-6 sm:flex-row">
                     {quote.status === "En attente" && (
                         <>
                             <Button
                                 variant="outline"
-                                className="w-full sm:w-auto border-destructive/20 text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
+                                className="border-destructive/20 text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 w-full sm:w-auto"
                                 onClick={() => handleStatusUpdate("Refusé")}
                             >
-                                <XCircle className="mr-2 h-4 w-4" /> Refuser le dossier
+                                <XCircle className="mr-2 h-4 w-4" /> Refuser le
+                                dossier
                             </Button>
                             <Button
-                                className="w-full sm:w-auto bg-green-600 hover:bg-green-700 shadow-lg shadow-green-900/10"
+                                className="w-full bg-green-600 shadow-lg shadow-green-900/10 hover:bg-green-700 sm:w-auto"
                                 onClick={() => handleStatusUpdate("Validé")}
                             >
-                                <CheckCircle className="mr-2 h-4 w-4" /> Valider et Traiter
+                                <CheckCircle className="mr-2 h-4 w-4" /> Valider
+                                et Traiter
                             </Button>
                         </>
                     )}
@@ -311,9 +426,8 @@ export function QuoteDetailsSheet({ quote, open, onOpenChange, onUpdate }: Quote
                             Réinitialiser le statut
                         </Button>
                     )}
-
                 </SheetFooter>
-            </SheetContent >
-        </Sheet >
+            </SheetContent>
+        </Sheet>
     );
 }

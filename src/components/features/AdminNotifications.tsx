@@ -1,7 +1,14 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Bell, Info, MessageSquare, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { useHasMounted } from "@/hooks/useHasMounted";
+import {
+    Bell,
+    Info,
+    MessageSquare,
+    AlertTriangle,
+    CheckCircle2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -23,7 +30,6 @@ import { toast } from "sonner";
 
 export function AdminNotifications() {
     const [notifications, setNotifications] = useState<Notification[]>([]);
-    const [isMounted, setIsMounted] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
     const loadNotifications = useCallback(async () => {
@@ -33,20 +39,19 @@ export function AdminNotifications() {
         }
     }, []);
 
-    useEffect(() => {
-        setIsMounted(true);
-    }, []);
+    const isMounted = useHasMounted();
 
     useEffect(() => {
         if (isMounted) {
-            loadNotifications();
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            void loadNotifications();
         }
     }, [isMounted, loadNotifications]);
 
     if (!isMounted) {
         return (
             <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5 text-muted-foreground" />
+                <Bell className="text-muted-foreground h-5 w-5" />
             </Button>
         );
     }
@@ -57,9 +62,7 @@ export function AdminNotifications() {
         setIsLoading(true);
         const result = await markAllNotificationsAsReadAction();
         if (result.success) {
-            setNotifications((prev) =>
-                prev.map((n) => ({ ...n, read: true }))
-            );
+            setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
             toast.success("Toutes les notifications marquées comme lues");
         } else {
             toast.error(result.error || "Erreur");
@@ -78,10 +81,14 @@ export function AdminNotifications() {
 
     const getIcon = (type: Notification["type"]) => {
         switch (type) {
-            case "info": return <Info className="h-4 w-4 text-blue-500" />;
-            case "warning": return <AlertTriangle className="h-4 w-4 text-amber-500" />;
-            case "success": return <CheckCircle2 className="h-4 w-4 text-green-500" />;
-            case "message": return <MessageSquare className="h-4 w-4 text-purple-500" />;
+            case "info":
+                return <Info className="h-4 w-4 text-blue-500" />;
+            case "warning":
+                return <AlertTriangle className="h-4 w-4 text-amber-500" />;
+            case "success":
+                return <CheckCircle2 className="h-4 w-4 text-green-500" />;
+            case "message":
+                return <MessageSquare className="h-4 w-4 text-purple-500" />;
         }
     };
 
@@ -89,18 +96,23 @@ export function AdminNotifications() {
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative">
-                    <Bell className="h-5 w-5 text-muted-foreground transition-colors hover:text-foreground" />
+                    <Bell className="text-muted-foreground hover:text-foreground h-5 w-5 transition-colors" />
                     {unreadCount > 0 && (
-                        <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-background animate-pulse" />
+                        <span className="ring-background absolute top-2 right-2 h-2.5 w-2.5 animate-pulse rounded-full bg-red-500 ring-2" />
                     )}
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80 p-0 overflow-hidden border-border/50 shadow-xl bg-background/95 backdrop-blur-md">
-                <div className="flex items-center justify-between p-4 border-b bg-muted/10">
+            <DropdownMenuContent
+                align="end"
+                className="border-border/50 bg-background/95 w-80 overflow-hidden p-0 shadow-xl backdrop-blur-md"
+            >
+                <div className="bg-muted/10 flex items-center justify-between border-b p-4">
                     <div className="flex items-center gap-2">
-                        <span className="font-semibold text-sm">Notifications</span>
+                        <span className="text-sm font-semibold">
+                            Notifications
+                        </span>
                         {unreadCount > 0 && (
-                            <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
+                            <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
                                 {unreadCount}
                             </span>
                         )}
@@ -109,7 +121,7 @@ export function AdminNotifications() {
                         <Button
                             variant="ghost"
                             size="sm"
-                            className="h-auto px-2 py-1 text-xs text-muted-foreground hover:text-primary"
+                            className="text-muted-foreground hover:text-primary h-auto px-2 py-1 text-xs"
                             onClick={markAllAsRead}
                             disabled={isLoading}
                         >
@@ -120,8 +132,8 @@ export function AdminNotifications() {
 
                 <ScrollArea className="h-[300px]">
                     {notifications.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-full p-8 text-muted-foreground">
-                            <Bell className="h-8 w-8 mb-2 opacity-20" />
+                        <div className="text-muted-foreground flex h-full flex-col items-center justify-center p-8">
+                            <Bell className="mb-2 h-8 w-8 opacity-20" />
                             <p className="text-sm">Aucune notification</p>
                         </div>
                     ) : (
@@ -130,23 +142,34 @@ export function AdminNotifications() {
                                 <DropdownMenuItem
                                     key={notification.id}
                                     className={cn(
-                                        "flex flex-col items-start gap-1 p-3 cursor-pointer focus:bg-muted/50",
-                                        !notification.read && "bg-muted/30 border-l-2 border-primary"
+                                        "focus:bg-muted/50 flex cursor-pointer flex-col items-start gap-1 p-3",
+                                        !notification.read &&
+                                            "bg-muted/30 border-primary border-l-2"
                                     )}
                                     onClick={() => markAsRead(notification.id)}
                                 >
-                                    <div className="flex items-start justify-between w-full gap-2">
-                                        <div className="flex items-center gap-2 font-medium text-sm">
+                                    <div className="flex w-full items-start justify-between gap-2">
+                                        <div className="flex items-center gap-2 text-sm font-medium">
                                             {getIcon(notification.type)}
-                                            <span className={cn(!notification.read && "text-foreground")}>
+                                            <span
+                                                className={cn(
+                                                    !notification.read &&
+                                                        "text-foreground"
+                                                )}
+                                            >
                                                 {notification.title}
                                             </span>
                                         </div>
-                                        <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-                                            {formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true, locale: fr })}
+                                        <span className="text-muted-foreground text-[10px] whitespace-nowrap">
+                                            {formatDistanceToNow(
+                                                new Date(
+                                                    notification.timestamp
+                                                ),
+                                                { addSuffix: true, locale: fr }
+                                            )}
                                         </span>
                                     </div>
-                                    <p className="text-xs text-muted-foreground line-clamp-2 pl-6">
+                                    <p className="text-muted-foreground line-clamp-2 pl-6 text-xs">
                                         {notification.description}
                                     </p>
                                 </DropdownMenuItem>
@@ -155,9 +178,13 @@ export function AdminNotifications() {
                     )}
                 </ScrollArea>
 
-                <div className="p-2 border-t bg-muted/10 text-center">
-                    <Button variant="ghost" size="sm" className="w-full text-xs h-8">
-                        Voir tout l'historique
+                <div className="bg-muted/10 border-t p-2 text-center">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-full text-xs"
+                    >
+                        Voir tout l&apos;historique
                     </Button>
                 </div>
             </DropdownMenuContent>

@@ -2,12 +2,23 @@
 
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, FileText, Settings, LogOut, Menu, Truck, Search, User, Users, Home } from "lucide-react";
+import {
+    LayoutDashboard,
+    FileText,
+    Settings,
+    LogOut,
+    Truck,
+    User,
+    Users,
+    Home,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Separator } from "@/components/ui/separator";
 import { motion, usePrefersReducedMotion } from "@/components/ui/motion";
 import { fadeInUp, staggerContainer, transitions } from "@/lib/animations";
+
+const MotionLink = motion.create(Link);
 
 interface SidebarContentProps {
     pathname: string;
@@ -43,31 +54,34 @@ const navItems = [
     },
 ];
 
-export function SidebarContent({ pathname, isLoggingOut, onLogout }: SidebarContentProps) {
+export function SidebarContent({
+    pathname,
+    isLoggingOut,
+    onLogout,
+}: SidebarContentProps) {
     const prefersReducedMotion = usePrefersReducedMotion();
-    const MotionLink = motion.create(Link);
 
     return (
-        <div className="flex flex-col h-full">
-            <div className="flex h-16 items-center px-6 border-b">
+        <div className="flex h-full flex-col">
+            <div className="flex h-16 items-center border-b px-6">
                 <MotionLink
                     href="/admin/dashboard"
-                    className="flex items-center gap-2 font-bold text-xl"
+                    className="flex items-center gap-2 text-xl font-bold"
                     whileHover={prefersReducedMotion ? {} : { scale: 1.02 }}
                     transition={transitions.spring}
                 >
                     <motion.div
-                        className="p-1.5 rounded-md bg-primary/10"
+                        className="bg-primary/10 rounded-md p-1.5"
                         whileHover={prefersReducedMotion ? {} : { rotate: 10 }}
                         transition={transitions.spring}
                     >
-                        <Truck className="h-5 w-5 text-primary" />
+                        <Truck className="text-primary h-5 w-5" />
                     </motion.div>
                     <span>HBC Admin</span>
                 </MotionLink>
             </div>
             <motion.div
-                className="flex-1 py-6 px-4 space-y-1"
+                className="flex-1 space-y-1 px-4 py-6"
                 initial="hidden"
                 animate="visible"
                 variants={staggerContainer}
@@ -81,14 +95,18 @@ export function SidebarContent({ pathname, isLoggingOut, onLogout }: SidebarCont
                         <Link
                             href={item.href}
                             className={cn(
-                                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all hover:bg-primary/5 hover:text-primary relative overflow-hidden",
+                                "hover:bg-primary/5 hover:text-primary relative flex items-center gap-3 overflow-hidden rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
                                 pathname === item.href
                                     ? "bg-primary/10 text-primary shadow-sm"
                                     : "text-muted-foreground"
                             )}
                         >
                             <motion.div
-                                whileHover={prefersReducedMotion ? {} : { scale: 1.1, rotate: 5 }}
+                                whileHover={
+                                    prefersReducedMotion
+                                        ? {}
+                                        : { scale: 1.1, rotate: 5 }
+                                }
                                 transition={transitions.spring}
                             >
                                 <item.icon className="h-4 w-4" />
@@ -96,7 +114,7 @@ export function SidebarContent({ pathname, isLoggingOut, onLogout }: SidebarCont
                             {item.title}
                             {pathname === item.href && (
                                 <motion.div
-                                    className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full"
+                                    className="bg-primary absolute top-0 bottom-0 left-0 w-1 rounded-r-full"
                                     layoutId="adminActiveNav"
                                     transition={transitions.spring}
                                 />
@@ -105,9 +123,11 @@ export function SidebarContent({ pathname, isLoggingOut, onLogout }: SidebarCont
                     </motion.div>
                 ))}
             </motion.div>
-            <div className="p-4 border-t space-y-4">
+            <div className="space-y-4 border-t p-4">
                 <div className="flex items-center justify-between px-2">
-                    <span className="text-xs font-medium text-muted-foreground">Thème</span>
+                    <span className="text-muted-foreground text-xs font-medium">
+                        Thème
+                    </span>
                     <ThemeToggle />
                 </div>
                 <Separator />
@@ -115,7 +135,11 @@ export function SidebarContent({ pathname, isLoggingOut, onLogout }: SidebarCont
                     whileHover={prefersReducedMotion ? {} : { x: 2 }}
                     transition={transitions.spring}
                 >
-                    <Button variant="ghost" className="w-full justify-start gap-3" asChild>
+                    <Button
+                        variant="ghost"
+                        className="w-full justify-start gap-3"
+                        asChild
+                    >
                         <Link href="/">
                             <Home className="h-4 w-4" />
                             Retour au site
@@ -126,9 +150,9 @@ export function SidebarContent({ pathname, isLoggingOut, onLogout }: SidebarCont
                     whileHover={prefersReducedMotion ? {} : { x: 2 }}
                     transition={transitions.spring}
                 >
-                    <Button 
-                        variant="ghost" 
-                        className="w-full justify-start gap-3 text-red-500 hover:text-red-600 hover:bg-red-50"
+                    <Button
+                        variant="ghost"
+                        className="w-full justify-start gap-3 text-red-500 hover:bg-red-50 hover:text-red-600"
                         onClick={onLogout}
                         disabled={isLoggingOut}
                     >

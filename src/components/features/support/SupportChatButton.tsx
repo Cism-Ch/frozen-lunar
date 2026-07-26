@@ -1,20 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Headset } from "lucide-react";
 import { SupportChatModal } from "./SupportChatModal";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useHasMounted } from "@/hooks/useHasMounted";
 
 export function SupportChatButton() {
     const [isOpen, setIsOpen] = useState(false);
-    const [isMounted, setIsMounted] = useState(false);
-
-    // Prevent hydration mismatch by only rendering after mount
-    useEffect(() => {
-        setIsMounted(true);
-    }, []);
+    const isMounted = useHasMounted();
 
     // Don't render anything until mounted (prevents SSR/client mismatch)
     if (!isMounted) {
@@ -30,8 +26,12 @@ export function SupportChatButton() {
                         initial={{ scale: 0, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0, opacity: 0 }}
-                        transition={{ type: "spring", stiffness: 260, damping: 20 }}
-                        className="fixed bottom-6 left-6 lg:bottom-8 lg:left-8 z-50"
+                        transition={{
+                            type: "spring",
+                            stiffness: 260,
+                            damping: 20,
+                        }}
+                        className="fixed bottom-6 left-6 z-50 lg:bottom-8 lg:left-8"
                     >
                         <Button
                             onClick={() => setIsOpen(true)}
@@ -39,7 +39,7 @@ export function SupportChatButton() {
                             className={cn(
                                 "h-14 w-14 lg:h-16 lg:w-16",
                                 "rounded-full",
-                                "shadow-2xl hover:shadow-3xl",
+                                "hover:shadow-3xl shadow-2xl",
                                 "hover:scale-110",
                                 "transition-all duration-300",
                                 // Secondary color (Deep Blue) to differentiate from WhatsApp
@@ -49,14 +49,16 @@ export function SupportChatButton() {
                             )}
                             aria-label="Ouvrir le support client"
                         >
-                            <Headset className="h-7 w-7 lg:h-8 lg:w-8 text-white group-hover:scale-110 transition-transform" />
+                            <Headset className="h-7 w-7 text-white transition-transform group-hover:scale-110 lg:h-8 lg:w-8" />
 
                             {/* Pulse animation */}
-                            <span className="absolute inset-0 rounded-full bg-secondary animate-ping opacity-20" />
+                            <span className="bg-secondary absolute inset-0 animate-ping rounded-full opacity-20" />
 
                             {/* Notification dot */}
-                            <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full border-2 border-white flex items-center justify-center">
-                                <span className="text-[8px] font-bold text-white">1</span>
+                            <span className="bg-primary absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full border-2 border-white">
+                                <span className="text-[8px] font-bold text-white">
+                                    1
+                                </span>
                             </span>
                         </Button>
 
@@ -65,9 +67,9 @@ export function SupportChatButton() {
                             initial={{ opacity: 0, x: 10 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.5 }}
-                            className="absolute left-full ml-3 top-1/2 -translate-y-1/2 hidden lg:block"
+                            className="absolute top-1/2 left-full ml-3 hidden -translate-y-1/2 lg:block"
                         >
-                            <div className="bg-popover text-popover-foreground px-3 py-1.5 rounded-lg shadow-lg text-sm whitespace-nowrap border">
+                            <div className="bg-popover text-popover-foreground rounded-lg border px-3 py-1.5 text-sm whitespace-nowrap shadow-lg">
                                 💬 Besoin d&apos;aide ?
                             </div>
                         </motion.div>

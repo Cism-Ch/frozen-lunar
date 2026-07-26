@@ -58,7 +58,8 @@ export function AddUserDialog() {
                     <DialogHeader>
                         <DialogTitle>Ajouter un utilisateur</DialogTitle>
                         <DialogDescription>
-                            Créez un nouvel accès au dashboard. Le mot de passe devra être communiqué à l'utilisateur.
+                            Créez un nouvel accès au dashboard. Le mot de passe
+                            devra être communiqué à l&apos;utilisateur.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
@@ -66,13 +67,25 @@ export function AddUserDialog() {
                             <Label htmlFor="name" className="text-right">
                                 Nom
                             </Label>
-                            <Input id="name" name="name" className="col-span-3" required minLength={2} />
+                            <Input
+                                id="name"
+                                name="name"
+                                className="col-span-3"
+                                required
+                                minLength={2}
+                            />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="email" className="text-right">
                                 Email
                             </Label>
-                            <Input id="email" name="email" type="email" className="col-span-3" required />
+                            <Input
+                                id="email"
+                                name="email"
+                                type="email"
+                                className="col-span-3"
+                                required
+                            />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="role" className="text-right">
@@ -83,10 +96,18 @@ export function AddUserDialog() {
                                     <SelectValue placeholder="Selectionner un rôle" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="user">Utilisateur</SelectItem>
-                                    <SelectItem value="moderator">Modérateur</SelectItem>
-                                    <SelectItem value="developer">Développeur</SelectItem>
-                                    <SelectItem value="admin">Administrateur</SelectItem>
+                                    <SelectItem value="user">
+                                        Utilisateur
+                                    </SelectItem>
+                                    <SelectItem value="moderator">
+                                        Modérateur
+                                    </SelectItem>
+                                    <SelectItem value="developer">
+                                        Développeur
+                                    </SelectItem>
+                                    <SelectItem value="admin">
+                                        Administrateur
+                                    </SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -94,12 +115,21 @@ export function AddUserDialog() {
                             <Label htmlFor="password" className="text-right">
                                 Password
                             </Label>
-                            <Input id="password" name="password" type="password" className="col-span-3" required minLength={8} />
+                            <Input
+                                id="password"
+                                name="password"
+                                type="password"
+                                className="col-span-3"
+                                required
+                                minLength={8}
+                            />
                         </div>
                     </div>
                     <DialogFooter>
                         <Button type="submit" disabled={isLoading}>
-                            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {isLoading && (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            )}
                             Créer le compte
                         </Button>
                     </DialogFooter>

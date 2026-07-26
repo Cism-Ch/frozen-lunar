@@ -4,7 +4,7 @@
 [![React](https://img.shields.io/badge/React-19.2.1-blue?logo=react)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
-[![License](https://img.shields.io/badge/License-Private-red)]()
+[![License](https://img.shields.io/badge/License-Private-red)](<>)
 
 > **Development Phase 1: UI Implementation** 🎨  
 > This is currently in the UI implementation phase before Phase 2: Backend integration
@@ -45,6 +45,7 @@ A modern, professional web platform for specialized logistics and transportation
 This repository contains the complete **frontend UI implementation** built with modern web technologies. All user interfaces, animations, and client-side interactions are fully functional.
 
 **Completed Features:**
+
 - ✅ Responsive landing page with hero section
 - ✅ Service showcase and features
 - ✅ Quote request wizard with multi-step form
@@ -57,6 +58,7 @@ This repository contains the complete **frontend UI implementation** built with 
 - ✅ Smooth animations and transitions
 
 **Current Limitations:**
+
 - ⚠️ Backend API integration pending
 - ⚠️ Database connectivity pending
 - ⚠️ Authentication system pending
@@ -65,6 +67,7 @@ This repository contains the complete **frontend UI implementation** built with 
 ### Phase 2: Backend Integration (Planned)
 
 The next phase will focus on:
+
 - 🔄 RESTful API development
 - 🔄 Database schema and implementation
 - 🔄 User authentication and authorization
@@ -76,6 +79,7 @@ The next phase will focus on:
 ## ✨ Features
 
 ### Public Features
+
 - **Modern Landing Page** - Eye-catching hero section with animations
 - **Service Catalog** - Detailed presentation of all transport services
 - **Interactive Quote Wizard** - Multi-step form for quote requests with validation
@@ -87,6 +91,7 @@ The next phase will focus on:
 - **Testimonials** - Customer reviews and ratings
 
 ### Admin Panel (UI)
+
 - **Dashboard** - Overview of business metrics and KPIs
 - **Quote Management** - Review and process quote requests
 - **Contact Management** - Client and team member profiles
@@ -95,6 +100,7 @@ The next phase will focus on:
 - **Export Functionality** - PDF generation for quotes
 
 ### UI Components
+
 - Custom form components with validation
 - Date pickers and selectors
 - Modal dialogs and sheets
@@ -107,11 +113,13 @@ The next phase will focus on:
 ## 🛠 Tech Stack
 
 ### Core Framework
+
 - **[Next.js 16](https://nextjs.org/)** - React framework with App Router
 - **[React 19](https://reactjs.org/)** - UI library
 - **[TypeScript 5](https://www.typescriptlang.org/)** - Type-safe development
 
 ### Styling & UI
+
 - **[Tailwind CSS 4](https://tailwindcss.com/)** - Utility-first CSS framework
 - **[Radix UI](https://www.radix-ui.com/)** - Accessible component primitives
 - **[Shadcn/ui](https://ui.shadcn.com/)** - Re-usable component library
@@ -119,11 +127,13 @@ The next phase will focus on:
 - **[Lucide React](https://lucide.dev/)** - Icon library
 
 ### Forms & Validation
+
 - **[React Hook Form](https://react-hook-form.com/)** - Form management
 - **[Zod](https://zod.dev/)** - Schema validation
 - **[@hookform/resolvers](https://github.com/react-hook-form/resolvers)** - Form validators
 
 ### Utilities
+
 - **[date-fns](https://date-fns.org/)** - Date manipulation
 - **[jsPDF](https://github.com/parallax/jsPDF)** - PDF generation
 - **[Sonner](https://sonner.emilkowal.ski/)** - Toast notifications
@@ -131,6 +141,7 @@ The next phase will focus on:
 - **[class-variance-authority](https://cva.style/)** - CSS utility organization
 
 ### Development Tools
+
 - **ESLint** - Code linting
 - **PostCSS** - CSS processing
 
@@ -144,36 +155,39 @@ The next phase will focus on:
 ### Installation
 
 1. **Clone the repository**
-   ```bash
-   git clone https://github.com/Cism-Ch/frozen-lunar.git
-   cd frozen-lunar
-   ```
+
+    ```bash
+    git clone https://github.com/Cism-Ch/frozen-lunar.git
+    cd frozen-lunar
+    ```
 
 2. **Install dependencies**
-   ```bash
-   npm install
-   # or
-   yarn install
-   # or
-   pnpm install
-   # or
-   bun install
-   ```
+
+    ```bash
+    npm install
+    # or
+    yarn install
+    # or
+    pnpm install
+    # or
+    bun install
+    ```
 
 3. **Run the development server**
-   ```bash
-   npm run dev
-   # or
-   yarn dev
-   # or
-   pnpm dev
-   # or
-   bun dev
-   ```
+
+    ```bash
+    npm run dev
+    # or
+    yarn dev
+    # or
+    pnpm dev
+    # or
+    bun dev
+    ```
 
 4. **Open your browser**
-   
-   Navigate to [http://localhost:3000](http://localhost:3000) to see the application.
+
+    Navigate to [http://localhost:3000](http://localhost:3000) to see the application.
 
 ### Environment Variables
 
@@ -226,16 +240,17 @@ frozen-lunar/
 
 ## 📜 Available Scripts
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start development server on [localhost:3000](http://localhost:3000) |
-| `npm run build` | Build production application |
-| `npm run start` | Start production server |
-| `npm run lint` | Run ESLint for code quality |
+| Command         | Description                                                         |
+| --------------- | ------------------------------------------------------------------- |
+| `npm run dev`   | Start development server on [localhost:3000](http://localhost:3000) |
+| `npm run build` | Build production application                                        |
+| `npm run start` | Start production server                                             |
+| `npm run lint`  | Run ESLint for code quality                                         |
 
 ## 🗺 Roadmap
 
 ### Phase 1: UI Implementation ✅ (Current)
+
 - [x] Landing page design and implementation
 - [x] Service pages and features
 - [x] Quote request wizard
@@ -246,6 +261,7 @@ frozen-lunar/
 - [x] Animation and transitions
 
 ### Phase 2: Backend Development 🔄 (Next)
+
 - [ ] Backend API architecture
 - [ ] Database design and setup
 - [ ] Authentication system (NextAuth.js)
@@ -256,6 +272,7 @@ frozen-lunar/
 - [ ] Admin role-based access control
 
 ### Phase 3: Production Ready 🎯 (Future)
+
 - [ ] Performance optimization
 - [ ] SEO optimization
 - [ ] Analytics integration

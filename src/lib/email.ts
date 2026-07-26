@@ -9,6 +9,7 @@ if (!apiKey) {
 
 export const resend = new Resend(apiKey || "re_123456789"); // Default to dummy key to prevent crash if missing
 
-export const EMAIL_SENDER = process.env.NODE_ENV === "production"
-    ? "contact@hbc-logistique.fr"
-    : "onboarding@resend.dev";
+export const EMAIL_SENDER =
+    process.env.NODE_ENV === "production"
+        ? "contact@hbc-logistique.fr"
+        : "onboarding@resend.dev";

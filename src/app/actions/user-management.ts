@@ -20,7 +20,7 @@ const authApi = auth.api;
 /**
  * Vérifie si l'utilisateur actuel est un administrateur
  * Lance une erreur si l'utilisateur n'est pas authentifié ou n'a pas le rôle admin
- * 
+ *
  * @returns L'utilisateur admin authentifié
  * @throws Error si l'utilisateur n'est pas admin
  */
@@ -42,7 +42,7 @@ async function requireAdmin() {
 
 /**
  * Crée un nouvel utilisateur avec Better Auth
- * 
+ *
  * @param formData FormData contenant email, name, password, role
  * @returns { success: boolean, message?: string, error?: string, code?: string }
  */
@@ -67,14 +67,14 @@ export async function createUserAction(formData: FormData) {
 
         // Vérifier si l'utilisateur existe déjà
         const existingUser = await prisma.user.findUnique({
-            where: { email: validated.email }
+            where: { email: validated.email },
         });
 
         if (existingUser) {
-            return { 
-                success: false, 
+            return {
+                success: false,
                 error: ERROR_CODES.UNIQUE_CONSTRAINT.message,
-                code: ERROR_CODES.UNIQUE_CONSTRAINT.code
+                code: ERROR_CODES.UNIQUE_CONSTRAINT.code,
             };
         }
 
@@ -90,7 +90,9 @@ export async function createUserAction(formData: FormData) {
         });
 
         if (!newUser) {
-            throw new Error("Erreur lors de la création de l'utilisateur via Better Auth");
+            throw new Error(
+                "Erreur lors de la création de l'utilisateur via Better Auth"
+            );
         }
 
         // Mettre à jour le rôle de l'utilisateur
@@ -102,31 +104,30 @@ export async function createUserAction(formData: FormData) {
 
         // Revalider le cache de la page des utilisateurs
         revalidatePath("/admin/users");
-        
-        return { 
-            success: true, 
-            message: `Utilisateur ${validated.name} créé avec succès` 
-        };
 
+        return {
+            success: true,
+            message: `Utilisateur ${validated.name} créé avec succès`,
+        };
     } catch (error: unknown) {
         console.error("❌ Erreur lors de la création d'utilisateur:", error);
-        
+
         // Gestion des erreurs de validation Zod
         if (error instanceof z.ZodError) {
             const firstError = error.issues[0];
-            return { 
-                success: false, 
+            return {
+                success: false,
                 error: firstError.message,
-                code: ERROR_CODES.INVALID_FORMAT.code
+                code: ERROR_CODES.INVALID_FORMAT.code,
             };
         }
 
         // Utiliser le gestionnaire d'erreurs centralisé
         const errorResponse = handleError(error);
-        return { 
-            success: false, 
+        return {
+            success: false,
             error: errorResponse.message,
-            code: errorResponse.code
+            code: errorResponse.code,
         };
     }
 }
@@ -134,7 +135,7 @@ export async function createUserAction(formData: FormData) {
 /**
  * Supprime un utilisateur par son ID
  * Empêche l'auto-suppression de l'admin connecté
- * 
+ *
  * @param formData FormData contenant userId
  * @returns { success: boolean, message?: string, error?: string, code?: string }
  */
@@ -142,7 +143,7 @@ export async function deleteUserAction(formData: FormData) {
     try {
         // Vérifier que l'utilisateur actuel est admin
         const admin = await requireAdmin();
-        
+
         const userId = formData.get("userId") as string;
 
         // Validation du paramètre
@@ -150,7 +151,7 @@ export async function deleteUserAction(formData: FormData) {
             return {
                 success: false,
                 error: ERROR_CODES.REQUIRED_FIELD.message,
-                code: ERROR_CODES.REQUIRED_FIELD.code
+                code: ERROR_CODES.REQUIRED_FIELD.code,
             };
         }
 
@@ -159,20 +160,20 @@ export async function deleteUserAction(formData: FormData) {
             return {
                 success: false,
                 error: "Vous ne pouvez pas supprimer votre propre compte",
-                code: ERROR_CODES.INSUFFICIENT_PERMISSIONS.code
+                code: ERROR_CODES.INSUFFICIENT_PERMISSIONS.code,
             };
         }
 
         // Vérifier que l'utilisateur existe
         const userToDelete = await prisma.user.findUnique({
-            where: { id: userId }
+            where: { id: userId },
         });
 
         if (!userToDelete) {
-            return { 
-                success: false, 
+            return {
+                success: false,
                 error: ERROR_CODES.RECORD_NOT_FOUND.message,
-                code: ERROR_CODES.RECORD_NOT_FOUND.code
+                code: ERROR_CODES.RECORD_NOT_FOUND.code,
             };
         }
 
@@ -185,21 +186,20 @@ export async function deleteUserAction(formData: FormData) {
 
         // Revalider le cache de la page des utilisateurs
         revalidatePath("/admin/users");
-        
-        return { 
-            success: true, 
-            message: `Utilisateur ${userToDelete.name} supprimé avec succès` 
-        };
 
+        return {
+            success: true,
+            message: `Utilisateur ${userToDelete.name} supprimé avec succès`,
+        };
     } catch (error: unknown) {
         console.error("❌ Erreur lors de la suppression d'utilisateur:", error);
-        
+
         // Utiliser le gestionnaire d'erreurs centralisé
         const errorResponse = handleError(error);
-        return { 
-            success: false, 
+        return {
+            success: false,
             error: errorResponse.message,
-            code: errorResponse.code
+            code: errorResponse.code,
         };
     }
 }

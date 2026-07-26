@@ -1,12 +1,16 @@
 import { Message, QueryCategory, Sentiment, SupportApiResponse } from "./types";
-import { AGENT_CONFIG, CATEGORY_KEYWORDS, SENTIMENT_INDICATORS } from "./config";
+import {
+    AGENT_CONFIG,
+    CATEGORY_KEYWORDS,
+    SENTIMENT_INDICATORS,
+} from "./config";
 import {
     findGuidedFlow,
     getTutorial,
     formatTutorialAsMessage,
     GuidedFlow,
     FlowOption,
-    CONTEXTUAL_QUICK_REPLIES
+    CONTEXTUAL_QUICK_REPLIES,
 } from "./tutorials";
 
 /**
@@ -48,33 +52,45 @@ export function resetConversation(): void {
  * Format options as clickable message
  */
 function formatOptionsMessage(options: FlowOption[]): string {
-    return options.map((opt, index) =>
-        `${opt.icon || "•"} **${opt.label}**`
-    ).join("\n");
+    return options
+        .map((opt) => `${opt.icon || "•"} **${opt.label}**`)
+        .join("\n");
 }
 
 /**
  * Find selected option from user message
  */
-function findSelectedOption(message: string, options: FlowOption[]): FlowOption | null {
+function findSelectedOption(
+    message: string,
+    options: FlowOption[]
+): FlowOption | null {
     const lowerMessage = message.toLowerCase();
 
     for (const option of options) {
         // Check if message matches option label or related keywords
         const labelLower = option.label.toLowerCase();
-        const responseLower = option.response.toLowerCase();
 
         // Extract key terms from label (remove emoji)
-        const labelTerms = labelLower.replace(/[^\w\sàâäéèêëïîôùûüÿç]/g, "").trim().split(/\s+/);
+        const labelTerms = labelLower
+            .replace(/[^\w\sàâäéèêëïîôùûüÿç]/g, "")
+            .trim()
+            .split(/\s+/);
 
         // Check for matches
-        if (labelTerms.some(term => term.length > 3 && lowerMessage.includes(term))) {
+        if (
+            labelTerms.some(
+                (term) => term.length > 3 && lowerMessage.includes(term)
+            )
+        ) {
             return option;
         }
 
         // Check for number selection (1, 2, 3, etc.)
         const optionIndex = options.indexOf(option) + 1;
-        if (lowerMessage === optionIndex.toString() || lowerMessage.includes(`option ${optionIndex}`)) {
+        if (
+            lowerMessage === optionIndex.toString() ||
+            lowerMessage.includes(`option ${optionIndex}`)
+        ) {
             return option;
         }
     }
@@ -89,7 +105,7 @@ function detectCategory(message: string): QueryCategory {
     const lowerMessage = message.toLowerCase();
 
     for (const [category, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
-        if (keywords.some(keyword => lowerMessage.includes(keyword))) {
+        if (keywords.some((keyword) => lowerMessage.includes(keyword))) {
             return category as QueryCategory;
         }
     }
@@ -103,10 +119,18 @@ function detectCategory(message: string): QueryCategory {
 function detectSentiment(message: string): Sentiment {
     const lowerMessage = message.toLowerCase();
 
-    if (SENTIMENT_INDICATORS.negative.some(word => lowerMessage.includes(word))) {
+    if (
+        SENTIMENT_INDICATORS.negative.some((word) =>
+            lowerMessage.includes(word)
+        )
+    ) {
         return "negative";
     }
-    if (SENTIMENT_INDICATORS.positive.some(word => lowerMessage.includes(word))) {
+    if (
+        SENTIMENT_INDICATORS.positive.some((word) =>
+            lowerMessage.includes(word)
+        )
+    ) {
         return "positive";
     }
 
@@ -116,18 +140,22 @@ function detectSentiment(message: string): Sentiment {
 /**
  * Generate enhanced response with guided flows
  */
-export async function generateMockResponse(userMessage: string): Promise<SupportApiResponse & {
-    options?: FlowOption[];
-    showTutorial?: boolean;
-    tutorialContent?: string;
-    quickReplyContext?: string;
-}> {
+export async function generateMockResponse(userMessage: string): Promise<
+    SupportApiResponse & {
+        options?: FlowOption[];
+        showTutorial?: boolean;
+        tutorialContent?: string;
+        quickReplyContext?: string;
+    }
+> {
     const category = detectCategory(userMessage);
     const sentiment = detectSentiment(userMessage);
     const shouldEscalate = sentiment === "negative";
 
     // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, AGENT_CONFIG.typingDelay));
+    await new Promise((resolve) =>
+        setTimeout(resolve, AGENT_CONFIG.typingDelay)
+    );
 
     let message: string;
     let options: FlowOption[] | undefined;
@@ -137,8 +165,14 @@ export async function generateMockResponse(userMessage: string): Promise<Support
     let suggestedActions: string[] | undefined;
 
     // Check if user selected from current options
-    if (conversationState.awaitingSelection && conversationState.currentOptions) {
-        const selectedOption = findSelectedOption(userMessage, conversationState.currentOptions);
+    if (
+        conversationState.awaitingSelection &&
+        conversationState.currentOptions
+    ) {
+        const selectedOption = findSelectedOption(
+            userMessage,
+            conversationState.currentOptions
+        );
 
         if (selectedOption) {
             message = selectedOption.response;
@@ -148,13 +182,16 @@ export async function generateMockResponse(userMessage: string): Promise<Support
                 suggestedActions = [selectedOption.action];
 
                 if (selectedOption.action === "contact_human") {
-                    message += "\n\n📞 Notre équipe vous contactera sous 24h. Vous pouvez aussi nous appeler directement au numéro indiqué sur notre site.";
+                    message +=
+                        "\n\n📞 Notre équipe vous contactera sous 24h. Vous pouvez aussi nous appeler directement au numéro indiqué sur notre site.";
                     quickReplyContext = "satisfaction";
                 } else if (selectedOption.action === "quote_form") {
-                    message += "\n\n👆 Cliquez sur 'Remplir le formulaire' ci-dessous pour démarrer votre demande de devis.";
+                    message +=
+                        "\n\n👆 Cliquez sur 'Remplir le formulaire' ci-dessous pour démarrer votre demande de devis.";
                     quickReplyContext = "afterQuoteInfo";
                 } else if (selectedOption.action === "show_services") {
-                    message += "\n\n🚚 Consultez notre page 'Services' pour découvrir toutes nos prestations.";
+                    message +=
+                        "\n\n🚚 Consultez notre page 'Services' pour découvrir toutes nos prestations.";
                     quickReplyContext = "initial";
                 }
             }
@@ -169,11 +206,17 @@ export async function generateMockResponse(userMessage: string): Promise<Support
             }
 
             // Set follow-up options if available
-            if (selectedOption.followUpOptions && selectedOption.followUpOptions.length > 0) {
+            if (
+                selectedOption.followUpOptions &&
+                selectedOption.followUpOptions.length > 0
+            ) {
                 options = selectedOption.followUpOptions;
-                conversationState.currentOptions = selectedOption.followUpOptions;
+                conversationState.currentOptions =
+                    selectedOption.followUpOptions;
                 conversationState.awaitingSelection = true;
-                message += "\n\n" + formatOptionsMessage(selectedOption.followUpOptions);
+                message +=
+                    "\n\n" +
+                    formatOptionsMessage(selectedOption.followUpOptions);
             } else {
                 conversationState.awaitingSelection = false;
                 conversationState.currentOptions = null;
@@ -197,7 +240,8 @@ export async function generateMockResponse(userMessage: string): Promise<Support
 
     // Handle escalation (negative sentiment)
     if (shouldEscalate) {
-        message = "Je comprends votre frustration et je suis vraiment désolé pour cette situation. 🙏\n\nJe vais immédiatement transmettre votre demande à un conseiller qui vous contactera dans les plus brefs délais.\n\nEn attendant, puis-je faire autre chose pour vous ?";
+        message =
+            "Je comprends votre frustration et je suis vraiment désolé pour cette situation. 🙏\n\nJe vais immédiatement transmettre votre demande à un conseiller qui vous contactera dans les plus brefs délais.\n\nEn attendant, puis-je faire autre chose pour vous ?";
         quickReplyContext = "afterProblem";
         suggestedActions = ["contact_human"];
         conversationState.awaitingSelection = false;
@@ -220,30 +264,41 @@ export async function generateMockResponse(userMessage: string): Promise<Support
         conversationState.currentOptions = guidedFlow.options;
         conversationState.awaitingSelection = true;
 
-        message = guidedFlow.initialMessage + "\n\n" + formatOptionsMessage(guidedFlow.options);
+        message =
+            guidedFlow.initialMessage +
+            "\n\n" +
+            formatOptionsMessage(guidedFlow.options);
         options = guidedFlow.options;
         quickReplyContext = "initial";
     } else {
         // Default category-based response with guidance
-        const categoryResponses: Record<QueryCategory, { message: string; context: string }> = {
+        const categoryResponses: Record<
+            QueryCategory,
+            { message: string; context: string }
+        > = {
             quote: {
-                message: "Je vois que vous vous intéressez à nos tarifs ! 📋\n\nPour vous fournir un devis précis, j'aurais besoin de quelques informations. Quel type de transport vous intéresse ?",
+                message:
+                    "Je vois que vous vous intéressez à nos tarifs ! 📋\n\nPour vous fournir un devis précis, j'aurais besoin de quelques informations. Quel type de transport vous intéresse ?",
                 context: "afterQuoteInfo",
             },
             transport: {
-                message: "Vous souhaitez suivre un transport ! 📦\n\nPour vous aider, j'ai besoin de votre numéro de commande (format HBC-XXXXX). Vous le trouverez dans l'email de confirmation.",
+                message:
+                    "Vous souhaitez suivre un transport ! 📦\n\nPour vous aider, j'ai besoin de votre numéro de commande (format HBC-XXXXX). Vous le trouverez dans l'email de confirmation.",
                 context: "afterTrackingHelp",
             },
             billing: {
-                message: "Je vais vous aider avec votre question de facturation. 💰\n\nDe quoi avez-vous besoin exactement ?",
+                message:
+                    "Je vais vous aider avec votre question de facturation. 💰\n\nDe quoi avez-vous besoin exactement ?",
                 context: "initial",
             },
             technical: {
-                message: "Je suis là pour vous aider à résoudre ce problème technique. 🔧\n\nPouvez-vous me décrire ce qui se passe ? Plus vous me donnez de détails, mieux je pourrai vous assister.",
+                message:
+                    "Je suis là pour vous aider à résoudre ce problème technique. 🔧\n\nPouvez-vous me décrire ce qui se passe ? Plus vous me donnez de détails, mieux je pourrai vous assister.",
                 context: "afterProblem",
             },
             general: {
-                message: "Je suis là pour vous aider ! 😊\n\nQue souhaitez-vous savoir sur nos services de transport spécialisé ?",
+                message:
+                    "Je suis là pour vous aider ! 😊\n\nQue souhaitez-vous savoir sur nos services de transport spécialisé ?",
                 context: "initial",
             },
         };
@@ -273,7 +328,10 @@ export async function generateMockResponse(userMessage: string): Promise<Support
  * Get current quick replies based on context
  */
 export function getCurrentQuickReplies(): typeof CONTEXTUAL_QUICK_REPLIES.initial {
-    return CONTEXTUAL_QUICK_REPLIES[conversationState.context] || CONTEXTUAL_QUICK_REPLIES.initial;
+    return (
+        CONTEXTUAL_QUICK_REPLIES[conversationState.context] ||
+        CONTEXTUAL_QUICK_REPLIES.initial
+    );
 }
 
 /**

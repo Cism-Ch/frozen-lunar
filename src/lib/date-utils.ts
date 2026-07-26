@@ -9,28 +9,28 @@ import { fr } from "date-fns/locale";
  * @returns Formatted date string or fallback text
  */
 export function safeFormatDate(
-  dateString: string | undefined | null,
-  formatStr: string = "dd MMMM yyyy",
-  fallback: string = "Date invalide"
+    dateString: string | undefined | null,
+    formatStr: string = "dd MMMM yyyy",
+    fallback: string = "Date invalide"
 ): string {
-  if (!dateString) {
-    return fallback;
-  }
-
-  try {
-    const date = new Date(dateString);
-    
-    // Check if the date is valid
-    if (isNaN(date.getTime())) {
-      console.warn("Invalid date value:", dateString);
-      return fallback;
+    if (!dateString) {
+        return fallback;
     }
 
-    return format(date, formatStr, { locale: fr });
-  } catch (error) {
-    console.error("Error formatting date:", dateString, error);
-    return fallback;
-  }
+    try {
+        const date = new Date(dateString);
+
+        // Check if the date is valid
+        if (isNaN(date.getTime())) {
+            console.warn("Invalid date value:", dateString);
+            return fallback;
+        }
+
+        return format(date, formatStr, { locale: fr });
+    } catch (error) {
+        console.error("Error formatting date:", dateString, error);
+        return fallback;
+    }
 }
 
 /**
@@ -38,23 +38,25 @@ export function safeFormatDate(
  * @param dateString - The date string to parse
  * @returns Valid Date object or null
  */
-export function safeParseDate(dateString: string | undefined | null): Date | null {
-  if (!dateString) {
-    return null;
-  }
-
-  try {
-    const date = new Date(dateString);
-    
-    // Check if the date is valid
-    if (isNaN(date.getTime())) {
-      console.warn("Invalid date value:", dateString);
-      return null;
+export function safeParseDate(
+    dateString: string | undefined | null
+): Date | null {
+    if (!dateString) {
+        return null;
     }
 
-    return date;
-  } catch (error) {
-    console.error("Error parsing date:", dateString, error);
-    return null;
-  }
+    try {
+        const date = new Date(dateString);
+
+        // Check if the date is valid
+        if (isNaN(date.getTime())) {
+            console.warn("Invalid date value:", dateString);
+            return null;
+        }
+
+        return date;
+    } catch (error) {
+        console.error("Error parsing date:", dateString, error);
+        return null;
+    }
 }

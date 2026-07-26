@@ -13,9 +13,16 @@ interface WizardFooterProps {
     onSubmit: () => void; // Usually passed as form.handleSubmit(onSubmit) result, but here we trigger the button
 }
 
-export function WizardFooter({ step, totalSteps, isSubmitting, onNext, onPrev, onSubmit }: WizardFooterProps) {
+export function WizardFooter({
+    step,
+    totalSteps,
+    isSubmitting,
+    onNext,
+    onPrev,
+    onSubmit,
+}: WizardFooterProps) {
     return (
-        <CardFooter className="flex justify-between p-6 bg-muted/10 border-t">
+        <CardFooter className="bg-muted/10 flex justify-between border-t p-6">
             {step > 1 ? (
                 <Button
                     type="button"
@@ -30,7 +37,12 @@ export function WizardFooter({ step, totalSteps, isSubmitting, onNext, onPrev, o
             )}
 
             {step < totalSteps ? (
-                <Button type="button" onClick={onNext} size="lg" className="px-8 font-semibold shadow-lg hover:shadow-primary/25 transition-all">
+                <Button
+                    type="button"
+                    onClick={onNext}
+                    size="lg"
+                    className="hover:shadow-primary/25 px-8 font-semibold shadow-lg transition-all"
+                >
                     Continuer <ChevronRight className="ml-2 h-5 w-5" />
                 </Button>
             ) : (
@@ -38,15 +50,17 @@ export function WizardFooter({ step, totalSteps, isSubmitting, onNext, onPrev, o
                     onClick={onSubmit}
                     disabled={isSubmitting}
                     size="lg"
-                    className="px-8 font-semibold shadow-lg hover:shadow-primary/25 transition-all"
+                    className="hover:shadow-primary/25 px-8 font-semibold shadow-lg transition-all"
                 >
                     {isSubmitting ? (
                         <>
-                            <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Envoi...
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />{" "}
+                            Envoi...
                         </>
                     ) : (
                         <>
-                            Demander mon devis <Check className="ml-2 h-5 w-5" />
+                            Demander mon devis{" "}
+                            <Check className="ml-2 h-5 w-5" />
                         </>
                     )}
                 </Button>

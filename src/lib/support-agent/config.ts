@@ -7,16 +7,16 @@ import { QuickReply, QueryCategory } from "./types";
 export const AGENT_CONFIG = {
     // Model settings (for Phase 2 Gemini integration)
     model: "gemini-1.5-flash", // Fast & cost-effective
-    maxInputTokens: 500,       // Limit user input to control costs
-    maxOutputTokens: 300,      // Concise responses
-    temperature: 0.3,          // Focused, consistent responses
+    maxInputTokens: 500, // Limit user input to control costs
+    maxOutputTokens: 300, // Concise responses
+    temperature: 0.3, // Focused, consistent responses
 
     // Input limits for UI
-    maxInputChars: 500,        // Character limit for input field
+    maxInputChars: 500, // Character limit for input field
 
     // Response timing
-    typingDelay: 800,          // Simulate typing delay (ms)
-    minTypingTime: 500,        // Minimum typing indicator time (ms)
+    typingDelay: 800, // Simulate typing delay (ms)
+    minTypingTime: 500, // Minimum typing indicator time (ms)
 
     // Quick replies for common questions
     quickReplies: [
@@ -53,7 +53,8 @@ Services: transport de matériaux, containers, charpentes, machines industrielle
     welcomeMessage: {
         id: "welcome",
         role: "assistant" as const,
-        content: "Bonjour ! 👋 Je suis l'assistant HBC Logistique. Comment puis-je vous aider aujourd'hui ?",
+        content:
+            "Bonjour ! 👋 Je suis l'assistant HBC Logistique. Comment puis-je vous aider aujourd'hui ?",
         timestamp: new Date(),
     },
 
@@ -69,16 +70,57 @@ Services: transport de matériaux, containers, charpentes, machines industrielle
 
 // Phase 2: Keywords for quick categorization (token-saving approach)
 export const CATEGORY_KEYWORDS: Record<QueryCategory, string[]> = {
-    technical: ["technique", "problème", "erreur", "bug", "fonctionne pas", "marche pas"],
-    billing: ["facture", "paiement", "prix", "coût", "tarif", "montant", "euros"],
+    technical: [
+        "technique",
+        "problème",
+        "erreur",
+        "bug",
+        "fonctionne pas",
+        "marche pas",
+    ],
+    billing: [
+        "facture",
+        "paiement",
+        "prix",
+        "coût",
+        "tarif",
+        "montant",
+        "euros",
+    ],
     quote: ["devis", "estimation", "combien", "gratuit", "demande"],
-    transport: ["suivi", "commande", "colis", "livraison", "où", "statut", "expédition"],
+    transport: [
+        "suivi",
+        "commande",
+        "colis",
+        "livraison",
+        "où",
+        "statut",
+        "expédition",
+    ],
     general: ["information", "question", "aide", "bonjour", "merci", "contact"],
 };
 
 // Sentiment keywords for quick analysis
 export const SENTIMENT_INDICATORS = {
-    positive: ["merci", "super", "excellent", "parfait", "génial", "content", "satisfait"],
-    negative: ["nul", "mauvais", "horrible", "inacceptable", "furieux", "colère", "plainte", "arnaque", "scandaleux"],
+    positive: [
+        "merci",
+        "super",
+        "excellent",
+        "parfait",
+        "génial",
+        "content",
+        "satisfait",
+    ],
+    negative: [
+        "nul",
+        "mauvais",
+        "horrible",
+        "inacceptable",
+        "furieux",
+        "colère",
+        "plainte",
+        "arnaque",
+        "scandaleux",
+    ],
     neutral: [], // Default if no strong indicators
 };

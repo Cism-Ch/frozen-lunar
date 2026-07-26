@@ -40,9 +40,9 @@ export function SupportChatModal({ isOpen, onClose }: SupportChatModalProps) {
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent
                 className={cn(
-                    "p-0 gap-0 overflow-hidden",
-                    "sm:max-w-[420px] sm:h-[650px] sm:max-h-[85vh]",
-                    "max-sm:w-screen max-sm:h-[100dvh] max-sm:max-w-none max-sm:max-h-none max-sm:rounded-none", // Mobile full screen with dvh
+                    "gap-0 overflow-hidden p-0",
+                    "sm:h-[650px] sm:max-h-[85vh] sm:max-w-[420px]",
+                    "max-sm:h-[100dvh] max-sm:max-h-none max-sm:w-screen max-sm:max-w-none max-sm:rounded-none", // Mobile full screen with dvh
                     "flex flex-col border-none shadow-2xl",
                     "data-[state=open]:animate-in data-[state=closed]:animate-out",
                     "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
@@ -67,10 +67,16 @@ export function SupportChatModal({ isOpen, onClose }: SupportChatModalProps) {
                 <ChatFooter
                     onSendMessage={sendMessage}
                     isLoading={isLoading}
-                    quickReplies={chatItems.length <= 3 && !quoteFlowState.isActive ? currentQuickReplies : []}
+                    quickReplies={
+                        chatItems.length <= 3 && !quoteFlowState.isActive
+                            ? currentQuickReplies
+                            : []
+                    }
                     onQuickReply={(reply) => sendMessage(reply.text)}
                     onClose={onClose}
-                    placeholder={quoteFlowState.isActive ? "Votre réponse..." : undefined}
+                    placeholder={
+                        quoteFlowState.isActive ? "Votre réponse..." : undefined
+                    }
                 />
             </DialogContent>
         </Dialog>

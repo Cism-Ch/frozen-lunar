@@ -8,7 +8,11 @@ export const transitions = {
     spring: { type: "spring", stiffness: 300, damping: 30 } as Transition,
     springBouncy: { type: "spring", stiffness: 400, damping: 25 } as Transition,
     smooth: { type: "tween", ease: "easeOut", duration: 0.4 } as Transition,
-    snappy: { type: "tween", ease: [0.25, 0.1, 0.25, 1], duration: 0.3 } as Transition,
+    snappy: {
+        type: "tween",
+        ease: [0.25, 0.1, 0.25, 1],
+        duration: 0.3,
+    } as Transition,
     slow: { type: "tween", ease: "easeOut", duration: 0.6 } as Transition,
 } as const;
 
@@ -20,8 +24,8 @@ export const fadeIn: Variants = {
     hidden: { opacity: 0 },
     visible: {
         opacity: 1,
-        transition: transitions.smooth
-    }
+        transition: transitions.smooth,
+    },
 };
 
 export const fadeInUp: Variants = {
@@ -29,8 +33,8 @@ export const fadeInUp: Variants = {
     visible: {
         opacity: 1,
         y: 0,
-        transition: transitions.spring
-    }
+        transition: transitions.spring,
+    },
 };
 
 export const fadeInDown: Variants = {
@@ -38,8 +42,8 @@ export const fadeInDown: Variants = {
     visible: {
         opacity: 1,
         y: 0,
-        transition: transitions.spring
-    }
+        transition: transitions.spring,
+    },
 };
 
 export const fadeInLeft: Variants = {
@@ -47,8 +51,8 @@ export const fadeInLeft: Variants = {
     visible: {
         opacity: 1,
         x: 0,
-        transition: transitions.spring
-    }
+        transition: transitions.spring,
+    },
 };
 
 export const fadeInRight: Variants = {
@@ -56,8 +60,8 @@ export const fadeInRight: Variants = {
     visible: {
         opacity: 1,
         x: 0,
-        transition: transitions.spring
-    }
+        transition: transitions.spring,
+    },
 };
 
 export const scaleIn: Variants = {
@@ -65,8 +69,8 @@ export const scaleIn: Variants = {
     visible: {
         opacity: 1,
         scale: 1,
-        transition: transitions.spring
-    }
+        transition: transitions.spring,
+    },
 };
 
 export const scaleInBounce: Variants = {
@@ -74,8 +78,8 @@ export const scaleInBounce: Variants = {
     visible: {
         opacity: 1,
         scale: 1,
-        transition: transitions.springBouncy
-    }
+        transition: transitions.springBouncy,
+    },
 };
 
 // ============================================
@@ -88,9 +92,9 @@ export const staggerContainer: Variants = {
         opacity: 1,
         transition: {
             staggerChildren: 0.1,
-            delayChildren: 0.1
-        }
-    }
+            delayChildren: 0.1,
+        },
+    },
 };
 
 export const staggerContainerFast: Variants = {
@@ -99,9 +103,9 @@ export const staggerContainerFast: Variants = {
         opacity: 1,
         transition: {
             staggerChildren: 0.05,
-            delayChildren: 0.05
-        }
-    }
+            delayChildren: 0.05,
+        },
+    },
 };
 
 export const staggerContainerSlow: Variants = {
@@ -110,9 +114,9 @@ export const staggerContainerSlow: Variants = {
         opacity: 1,
         transition: {
             staggerChildren: 0.15,
-            delayChildren: 0.2
-        }
-    }
+            delayChildren: 0.2,
+        },
+    },
 };
 
 // ============================================
@@ -123,30 +127,30 @@ export const cardHover: Variants = {
     rest: {
         scale: 1,
         y: 0,
-        transition: transitions.spring
+        transition: transitions.spring,
     },
     hover: {
         scale: 1.02,
         y: -4,
-        transition: transitions.spring
-    }
+        transition: transitions.spring,
+    },
 };
 
 export const cardHoverSubtle: Variants = {
     rest: {
         scale: 1,
-        transition: transitions.smooth
+        transition: transitions.smooth,
     },
     hover: {
         scale: 1.01,
-        transition: transitions.smooth
-    }
+        transition: transitions.smooth,
+    },
 };
 
 export const buttonHover: Variants = {
     rest: { scale: 1 },
     hover: { scale: 1.05 },
-    tap: { scale: 0.98 }
+    tap: { scale: 0.98 },
 };
 
 export const iconFloat: Variants = {
@@ -156,20 +160,20 @@ export const iconFloat: Variants = {
         transition: {
             type: "spring",
             stiffness: 400,
-            damping: 10
-        }
-    }
+            damping: 10,
+        },
+    },
 };
 
 export const iconRotate: Variants = {
     rest: { rotate: 0 },
-    hover: { rotate: 12 }
+    hover: { rotate: 12 },
 };
 
 export const glowPulse: Variants = {
     rest: {
         opacity: 0.5,
-        scale: 1
+        scale: 1,
     },
     hover: {
         opacity: 0.8,
@@ -177,9 +181,9 @@ export const glowPulse: Variants = {
         transition: {
             repeat: Infinity,
             repeatType: "reverse",
-            duration: 1
-        }
-    }
+            duration: 1,
+        },
+    },
 };
 
 // ============================================
@@ -189,7 +193,7 @@ export const glowPulse: Variants = {
 export const revealOnScroll: Variants = {
     offscreen: {
         y: 50,
-        opacity: 0
+        opacity: 0,
     },
     onscreen: {
         y: 0,
@@ -197,15 +201,15 @@ export const revealOnScroll: Variants = {
         transition: {
             type: "spring",
             bounce: 0.3,
-            duration: 0.8
-        }
-    }
+            duration: 0.8,
+        },
+    },
 };
 
 export const revealFromLeft: Variants = {
     offscreen: {
         x: -100,
-        opacity: 0
+        opacity: 0,
     },
     onscreen: {
         x: 0,
@@ -213,15 +217,15 @@ export const revealFromLeft: Variants = {
         transition: {
             type: "spring",
             bounce: 0.3,
-            duration: 0.8
-        }
-    }
+            duration: 0.8,
+        },
+    },
 };
 
 export const revealFromRight: Variants = {
     offscreen: {
         x: 100,
-        opacity: 0
+        opacity: 0,
     },
     onscreen: {
         x: 0,
@@ -229,9 +233,9 @@ export const revealFromRight: Variants = {
         transition: {
             type: "spring",
             bounce: 0.3,
-            duration: 0.8
-        }
-    }
+            duration: 0.8,
+        },
+    },
 };
 
 // ============================================
@@ -243,13 +247,13 @@ export const pageTransition: Variants = {
     animate: {
         opacity: 1,
         y: 0,
-        transition: transitions.smooth
+        transition: transitions.smooth,
     },
     exit: {
         opacity: 0,
         y: -10,
-        transition: { duration: 0.2 }
-    }
+        transition: { duration: 0.2 },
+    },
 };
 
 export const slideInFromBottom: Variants = {
@@ -257,9 +261,9 @@ export const slideInFromBottom: Variants = {
     animate: {
         opacity: 1,
         y: 0,
-        transition: transitions.spring
+        transition: transitions.spring,
     },
-    exit: { opacity: 0, y: 20 }
+    exit: { opacity: 0, y: 20 },
 };
 
 // ============================================
@@ -268,16 +272,16 @@ export const slideInFromBottom: Variants = {
 
 export const shimmer: Variants = {
     rest: {
-        backgroundPosition: "-200% 0"
+        backgroundPosition: "-200% 0",
     },
     hover: {
         backgroundPosition: "200% 0",
         transition: {
             duration: 1.5,
             ease: "linear",
-            repeat: Infinity
-        }
-    }
+            repeat: Infinity,
+        },
+    },
 };
 
 // Text character stagger for hero headings
@@ -287,16 +291,16 @@ export const textRevealContainer: Variants = {
         opacity: 1,
         transition: {
             staggerChildren: 0.03,
-            delayChildren: 0.1
-        }
-    }
+            delayChildren: 0.1,
+        },
+    },
 };
 
 export const textRevealChild: Variants = {
     hidden: {
         opacity: 0,
         y: 20,
-        rotateX: -90
+        rotateX: -90,
     },
     visible: {
         opacity: 1,
@@ -305,9 +309,9 @@ export const textRevealChild: Variants = {
         transition: {
             type: "spring",
             damping: 12,
-            stiffness: 200
-        }
-    }
+            stiffness: 200,
+        },
+    },
 };
 
 // ============================================
@@ -319,6 +323,6 @@ export const counterVariants: Variants = {
     visible: {
         opacity: 1,
         scale: 1,
-        transition: transitions.springBouncy
-    }
+        transition: transitions.springBouncy,
+    },
 };

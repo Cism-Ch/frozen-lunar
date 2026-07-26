@@ -19,7 +19,8 @@ export type QuoteFlowStep =
     | "confirm"
     | "complete";
 
-export type ItemCategory = "materials" | "container" | "machinery" | "structure" | "other";
+export type ItemCategory =
+    "materials" | "container" | "machinery" | "structure" | "other";
 
 export interface QuoteFlowData {
     itemType: string;
@@ -222,7 +223,10 @@ export const CATEGORY_QUESTIONS: Record<ItemCategory, CategoryQuestion[]> = {
             options: [
                 { label: "✅ Aucune", value: "aucune" },
                 { label: "🚨 Convoi exceptionnel", value: "convoi" },
-                { label: "📋 Autorisation préfectorale", value: "autorisation" },
+                {
+                    label: "📋 Autorisation préfectorale",
+                    value: "autorisation",
+                },
                 { label: "🔒 Transport sécurisé", value: "securise" },
             ],
         },
@@ -341,17 +345,29 @@ export const CATEGORY_QUESTIONS: Record<ItemCategory, CategoryQuestion[]> = {
 
 export const ITEM_TYPE_CATEGORIES: Record<string, ItemCategory> = {
     "Matériaux de construction": "materials",
-    "Container": "container",
+    Container: "container",
     "Machine industrielle": "machinery",
     "Charpente/Structure": "structure",
-    "Autre": "other",
+    Autre: "other",
 };
 
 export const ITEM_TYPE_OPTIONS = [
-    { label: "🧱 Matériaux de construction", value: "Matériaux de construction", icon: "🧱" },
+    {
+        label: "🧱 Matériaux de construction",
+        value: "Matériaux de construction",
+        icon: "🧱",
+    },
     { label: "📦 Container", value: "Container", icon: "📦" },
-    { label: "⚙️ Machine industrielle", value: "Machine industrielle", icon: "⚙️" },
-    { label: "🏗️ Charpente/Structure", value: "Charpente/Structure", icon: "🏗️" },
+    {
+        label: "⚙️ Machine industrielle",
+        value: "Machine industrielle",
+        icon: "⚙️",
+    },
+    {
+        label: "🏗️ Charpente/Structure",
+        value: "Charpente/Structure",
+        icon: "🏗️",
+    },
     { label: "📋 Autre", value: "Autre", icon: "📋" },
 ];
 
@@ -369,7 +385,7 @@ export const STEPS_ORDER: QuoteFlowStep[] = [
     "contact_phone",
     "category_questions",
     "notes",
-    "confirm"
+    "confirm",
 ];
 
 // ============================================
@@ -410,7 +426,7 @@ export function getStepMessage(state: QuoteFlowState): string {
             return "📍 Quelle est l'adresse de **livraison** (arrivée) ?";
 
         case "date":
-            return "📅 Quelle est votre **date de transport souhaitée** ?\n\n(Exemple: 25/12/2024 ou \"dans 2 semaines\")";
+            return '📅 Quelle est votre **date de transport souhaitée** ?\n\n(Exemple: 25/12/2024 ou "dans 2 semaines")';
 
         case "contact_name":
             return "👤 Quel est votre **nom complet** ?";
@@ -422,7 +438,8 @@ export function getStepMessage(state: QuoteFlowState): string {
             return "📱 Quel est votre **numéro de téléphone** ?";
 
         case "category_questions":
-            const question = state.categoryQuestions[state.currentQuestionIndex];
+            const question =
+                state.categoryQuestions[state.currentQuestionIndex];
             if (question) {
                 // Determine if this is essentially part of the "notes" or "details" phase
                 const current = state.currentQuestionIndex + 1;
@@ -432,7 +449,7 @@ export function getStepMessage(state: QuoteFlowState): string {
             return "";
 
         case "notes":
-            return "📝 Avez-vous d'autres **précisions** ou **notes spéciales** à ajouter ?\n\n(Optionnel - répondez \"non\" pour passer)";
+            return '📝 Avez-vous d\'autres **précisions** ou **notes spéciales** à ajouter ?\n\n(Optionnel - répondez "non" pour passer)';
 
         case "confirm":
             return formatQuoteSummary(state.data);
@@ -454,19 +471,27 @@ export function formatQuoteSummary(data: Partial<QuoteFlowData>): string {
         `📱 **Tél:** ${data.phone || "Non spécifié"}`,
     ];
 
-    if (data.supplementaryInfo && Object.keys(data.supplementaryInfo).length > 0) {
+    if (
+        data.supplementaryInfo &&
+        Object.keys(data.supplementaryInfo).length > 0
+    ) {
         // Only show relevant info keys (exclude internal ones if any)
         const info = data.supplementaryInfo;
-        const relevantKeys = Object.keys(info).filter(k => k !== 'category');
+        const relevantKeys = Object.keys(info).filter((k) => k !== "category");
         if (relevantKeys.length > 0) {
             lines.push("\n**Détails techniques:**");
             if (info.weight) lines.push(`  • Poids: ${info.weight}`);
-            if (info.dimensions) lines.push(`  • Dimensions: ${info.dimensions}`);
+            if (info.dimensions)
+                lines.push(`  • Dimensions: ${info.dimensions}`);
             if (info.accessInfo) lines.push(`  • Accès: ${info.accessInfo}`);
-            if (info.specialRequirements) lines.push(`  • Autres: ${info.specialRequirements}`);
-            if (info.materialType) lines.push(`  • Matériau: ${info.materialType}`);
-            if (info.containerSize) lines.push(`  • Taille: ${info.containerSize}`);
-            if (info.containerType) lines.push(`  • Type: ${info.containerType}`);
+            if (info.specialRequirements)
+                lines.push(`  • Autres: ${info.specialRequirements}`);
+            if (info.materialType)
+                lines.push(`  • Matériau: ${info.materialType}`);
+            if (info.containerSize)
+                lines.push(`  • Taille: ${info.containerSize}`);
+            if (info.containerType)
+                lines.push(`  • Type: ${info.containerType}`);
         }
     }
 
@@ -529,21 +554,28 @@ export function processFlowAnswer(
             break;
 
         case "category_questions":
-            const currentQ = state.categoryQuestions[state.currentQuestionIndex];
+            const currentQ =
+                state.categoryQuestions[state.currentQuestionIndex];
             if (currentQ) {
-                const supplementaryInfo = { ...newState.data.supplementaryInfo };
+                const supplementaryInfo = {
+                    ...newState.data.supplementaryInfo,
+                };
 
                 if (currentQ.type === "boolean") {
-                    (supplementaryInfo as any)[currentQ.field] =
-                        answer.toLowerCase().includes("oui") || answer.toLowerCase() === "true";
+                    (supplementaryInfo as Record<string, unknown>)[currentQ.field] =
+                        answer.toLowerCase().includes("oui") ||
+                        answer.toLowerCase() === "true";
                 } else {
-                    (supplementaryInfo as any)[currentQ.field] = answer;
+                    (supplementaryInfo as Record<string, unknown>)[currentQ.field] = answer;
                 }
 
                 newState.data.supplementaryInfo = supplementaryInfo;
             }
 
-            if (state.currentQuestionIndex < state.categoryQuestions.length - 1) {
+            if (
+                state.currentQuestionIndex <
+                state.categoryQuestions.length - 1
+            ) {
                 newState.currentQuestionIndex = state.currentQuestionIndex + 1;
             } else {
                 // After last specific question, go to generic notes
@@ -552,14 +584,20 @@ export function processFlowAnswer(
             break;
 
         case "notes":
-            if (answer.toLowerCase() !== "non" && answer.toLowerCase() !== "passer") {
+            if (
+                answer.toLowerCase() !== "non" &&
+                answer.toLowerCase() !== "passer"
+            ) {
                 newState.data.userNotes = answer;
             }
             newState.currentStep = "confirm";
             break;
 
         case "confirm":
-            if (answer.toLowerCase().includes("oui") || answer.toLowerCase().includes("confirm")) {
+            if (
+                answer.toLowerCase().includes("oui") ||
+                answer.toLowerCase().includes("confirm")
+            ) {
                 newState.currentStep = "complete";
                 newState.isActive = false;
                 return { newState, complete: true };
@@ -574,13 +612,16 @@ export function processFlowAnswer(
     return { newState, complete: false };
 }
 
-export function getStepOptions(state: QuoteFlowState): { label: string; value: string }[] | null {
+export function getStepOptions(
+    state: QuoteFlowState
+): { label: string; value: string }[] | null {
     switch (state.currentStep) {
         case "itemType":
             return ITEM_TYPE_OPTIONS;
 
         case "category_questions":
-            const question = state.categoryQuestions[state.currentQuestionIndex];
+            const question =
+                state.categoryQuestions[state.currentQuestionIndex];
             if (question?.type === "select" && question.options) {
                 return question.options;
             }
@@ -593,9 +634,7 @@ export function getStepOptions(state: QuoteFlowState): { label: string; value: s
             return null;
 
         case "notes":
-            return [
-                { label: "⏭️ Passer (pas de notes)", value: "non" },
-            ];
+            return [{ label: "⏭️ Passer (pas de notes)", value: "non" }];
 
         case "confirm":
             return [

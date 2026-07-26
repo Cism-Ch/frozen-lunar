@@ -8,9 +8,9 @@ function validateDatabaseConfig(): void {
     if (!process.env.DATABASE_URL) {
         throw new Error(
             "❌ DATABASE_URL n'est pas configurée.\n" +
-            "Veuillez créer un fichier .env à la racine du projet avec:\n" +
-            'DATABASE_URL="postgresql://user:password@localhost:5432/frozen_lunar?schema=public"\n' +
-            "Voir .env.example pour plus de détails."
+                "Veuillez créer un fichier .env à la racine du projet avec:\n" +
+                'DATABASE_URL="postgresql://user:password@localhost:5432/frozen_lunar?schema=public"\n' +
+                "Voir .env.example pour plus de détails."
         );
     }
 }
@@ -22,12 +22,13 @@ function validateDatabaseConfig(): void {
 const prismaClientSingleton = () => {
     // Valider la configuration avant de créer le client
     validateDatabaseConfig();
-    
+
     return new PrismaClient({
         // Log des requêtes en développement pour faciliter le débogage
-        log: process.env.NODE_ENV === "development" 
-            ? ["error", "warn"] 
-            : ["error"],
+        log:
+            process.env.NODE_ENV === "development"
+                ? ["error", "warn"]
+                : ["error"],
     });
 };
 

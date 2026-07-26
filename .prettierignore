@@ -1,0 +1,7 @@
+.next/
+node_modules/
+public/
+docs/old/
+.agents/
+dist/
+pnpm-lock.yaml

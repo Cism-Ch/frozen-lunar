@@ -11,7 +11,17 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Search, Filter, Download, Trash2, CheckCircle, XCircle, Clock, FileText } from "lucide-react";
+import {
+    MoreHorizontal,
+    Search,
+    Filter,
+    Download,
+    Trash2,
+    CheckCircle,
+    XCircle,
+    Clock,
+    FileText,
+} from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -35,7 +45,11 @@ import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { QuoteDetailsSheet } from "@/components/features/QuoteDetailsSheet";
 import { FadeIn, AnimatedCard, motion } from "@/components/ui/motion";
-import { getQuotesAction, deleteQuoteAction, updateQuoteStatusAction } from "@/app/actions/quote-management";
+import {
+    getQuotesAction,
+    deleteQuoteAction,
+    updateQuoteStatusAction,
+} from "@/app/actions/quote-management";
 
 // Safe date formatting for dates that might be free-text (from chat)
 function safeFormatDate(dateString: string | undefined): string {
@@ -60,23 +74,22 @@ function safeFormatDate(dateString: string | undefined): string {
 import { useRealtimeQuotes } from "@/hooks/useRealtimeQuotes";
 
 export default function QuotesPage() {
-    // Enable Realtime Updates
-    useRealtimeQuotes();
-
     const [quotes, setQuotes] = useState<Quote[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
 
     const loadQuotes = async () => {
         try {
-            const result = await getQuotesAction({ 
+            const result = await getQuotesAction({
                 status: statusFilter,
-                search: searchTerm 
+                search: searchTerm,
             });
             if (result.success && result.quotes) {
                 setQuotes(result.quotes as Quote[]);
             } else {
-                toast.error(result.error || "Erreur lors du chargement des devis");
+                toast.error(
+                    result.error || "Erreur lors du chargement des devis"
+                );
             }
         } catch (error: unknown) {
             console.error("Error loading quotes:", error);
@@ -84,8 +97,16 @@ export default function QuotesPage() {
         }
     };
 
+    // Enable Realtime Updates avec rafraîchissement des données
+    useRealtimeQuotes({
+        onQuoteInserted: loadQuotes,
+        onQuoteUpdated: loadQuotes,
+        onQuoteDeleted: loadQuotes,
+    });
+
     useEffect(() => {
-        loadQuotes();
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        void loadQuotes();
         // Note: searchTerm is intentionally excluded from dependencies
         // because search is performed client-side (see filteredQuotes below)
         // and we only want to reload from server when statusFilter changes
@@ -115,7 +136,9 @@ export default function QuotesPage() {
                     await loadQuotes();
                     toast.success("Devis supprimé");
                 } else {
-                    toast.error(result.error || "Erreur lors de la suppression");
+                    toast.error(
+                        result.error || "Erreur lors de la suppression"
+                    );
                 }
             } catch (error: unknown) {
                 console.error("Error deleting quote:", error);
@@ -125,7 +148,7 @@ export default function QuotesPage() {
     };
 
     // Client-side filtering for search (server-side filtering is also available)
-    const filteredQuotes = quotes.filter(quote => {
+    const filteredQuotes = quotes.filter((quote) => {
         if (searchTerm) {
             const matchesSearch =
                 quote.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -151,9 +174,11 @@ export default function QuotesPage() {
     return (
         <div className="space-y-8">
             <FadeIn direction="down">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-center sm:text-left">
+                <div className="flex flex-col justify-between gap-4 text-center sm:flex-row sm:items-center sm:text-left">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Gestion des Devis</h1>
+                        <h1 className="text-3xl font-bold tracking-tight">
+                            Gestion des Devis
+                        </h1>
                         <p className="text-muted-foreground mt-1">
                             Consultez et gérez les demandes de devis clients.
                         </p>
@@ -174,28 +199,41 @@ export default function QuotesPage() {
                 <AnimatedCard hoverEffect="subtle">
                     <Card>
                         <CardHeader>
-                            <div className="flex flex-col md:flex-row gap-4 md:items-center justify-between">
+                            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                                 <CardTitle>Toutes les demandes</CardTitle>
-                                <div className="flex flex-col sm:flex-row gap-2">
+                                <div className="flex flex-col gap-2 sm:flex-row">
                                     <div className="relative">
-                                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                        <Search className="text-muted-foreground absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2" />
                                         <Input
                                             placeholder="Rechercher..."
-                                            className="pl-8 w-full sm:w-[250px]"
+                                            className="w-full pl-8 sm:w-[250px]"
                                             value={searchTerm}
-                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            onChange={(e) =>
+                                                setSearchTerm(e.target.value)
+                                            }
                                         />
                                     </div>
-                                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                                    <Select
+                                        value={statusFilter}
+                                        onValueChange={setStatusFilter}
+                                    >
                                         <SelectTrigger className="w-full sm:w-[180px]">
-                                            <Filter className="mr-2 h-4 w-4 text-muted-foreground" />
+                                            <Filter className="text-muted-foreground mr-2 h-4 w-4" />
                                             <SelectValue placeholder="Filtrer par statut" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="all">Tous les statuts</SelectItem>
-                                            <SelectItem value="En attente">En attente</SelectItem>
-                                            <SelectItem value="Validé">Validé</SelectItem>
-                                            <SelectItem value="Refusé">Refusé</SelectItem>
+                                            <SelectItem value="all">
+                                                Tous les statuts
+                                            </SelectItem>
+                                            <SelectItem value="En attente">
+                                                En attente
+                                            </SelectItem>
+                                            <SelectItem value="Validé">
+                                                Validé
+                                            </SelectItem>
+                                            <SelectItem value="Refusé">
+                                                Refusé
+                                            </SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -204,7 +242,7 @@ export default function QuotesPage() {
                         <CardContent>
                             {filteredQuotes.length === 0 ? (
                                 <motion.div
-                                    className="text-center py-12 text-muted-foreground"
+                                    className="text-muted-foreground py-12 text-center"
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                 >
@@ -217,159 +255,324 @@ export default function QuotesPage() {
                                         {filteredQuotes.map((quote, index) => (
                                             <motion.div
                                                 key={quote.id}
-                                                className="p-4 border rounded-lg bg-card hover:bg-muted/50 transition-colors cursor-pointer"
-                                                onClick={() => handleQuoteClick(quote)}
+                                                className="bg-card hover:bg-muted/50 cursor-pointer rounded-lg border p-4 transition-colors"
+                                                onClick={() =>
+                                                    handleQuoteClick(quote)
+                                                }
                                                 initial={{ opacity: 0, y: 10 }}
                                                 animate={{ opacity: 1, y: 0 }}
-                                                transition={{ delay: index * 0.05 }}
+                                                transition={{
+                                                    delay: index * 0.05,
+                                                }}
                                                 whileHover={{ x: 4 }}
                                             >
-                                                <div className="flex items-start justify-between gap-2 mb-3">
+                                                <div className="mb-3 flex items-start justify-between gap-2">
                                                     <div>
-                                                        <p className="font-medium">{quote.client}</p>
-                                                        <p className="text-xs text-muted-foreground">{quote.email}</p>
+                                                        <p className="font-medium">
+                                                            {quote.client}
+                                                        </p>
+                                                        <p className="text-muted-foreground text-xs">
+                                                            {quote.email}
+                                                        </p>
                                                     </div>
                                                     <Badge
                                                         variant={
-                                                            quote.status === "Validé" ? "default" :
-                                                                quote.status === "Refusé" ? "destructive" : "secondary"
+                                                            quote.status ===
+                                                            "Validé"
+                                                                ? "default"
+                                                                : quote.status ===
+                                                                    "Refusé"
+                                                                  ? "destructive"
+                                                                  : "secondary"
                                                         }
                                                         className={
-                                                            quote.status === "Validé" ? "bg-green-500" :
-                                                                quote.status === "En attente" ? "bg-orange-500/10 text-orange-600" : ""
+                                                            quote.status ===
+                                                            "Validé"
+                                                                ? "bg-green-500"
+                                                                : quote.status ===
+                                                                    "En attente"
+                                                                  ? "bg-orange-500/10 text-orange-600"
+                                                                  : ""
                                                         }
                                                     >
-                                                        {quote.status === "Validé" && <CheckCircle className="mr-1 h-3 w-3" />}
-                                                        {quote.status === "Refusé" && <XCircle className="mr-1 h-3 w-3" />}
-                                                        {quote.status === "En attente" && <Clock className="mr-1 h-3 w-3" />}
+                                                        {quote.status ===
+                                                            "Validé" && (
+                                                            <CheckCircle className="mr-1 h-3 w-3" />
+                                                        )}
+                                                        {quote.status ===
+                                                            "Refusé" && (
+                                                            <XCircle className="mr-1 h-3 w-3" />
+                                                        )}
+                                                        {quote.status ===
+                                                            "En attente" && (
+                                                            <Clock className="mr-1 h-3 w-3" />
+                                                        )}
                                                         {quote.status}
                                                     </Badge>
                                                 </div>
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <Badge variant="outline">{quote.type}</Badge>
-                                                    <span className="text-xs text-muted-foreground">
-                                                        {safeFormatDate(quote.transportDate || quote.date)}
+                                                <div className="mb-2 flex items-center gap-2">
+                                                    <Badge variant="outline">
+                                                        {quote.type}
+                                                    </Badge>
+                                                    <span className="text-muted-foreground text-xs">
+                                                        {safeFormatDate(
+                                                            quote.transportDate ||
+                                                                quote.date
+                                                        )}
                                                     </span>
                                                 </div>
-                                                <p className="text-xs text-muted-foreground truncate">
-                                                    {quote.pickup} → {quote.dropoff}
+                                                <p className="text-muted-foreground truncate text-xs">
+                                                    {quote.pickup} →{" "}
+                                                    {quote.dropoff}
                                                 </p>
                                             </motion.div>
                                         ))}
                                     </div>
 
                                     {/* Desktop Table View */}
-                                    <div className="rounded-md border overflow-x-auto hidden md:block">
+                                    <div className="hidden overflow-x-auto rounded-md border md:block">
                                         <Table>
                                             <TableHeader>
                                                 <TableRow>
-                                                    <TableHead>Référence</TableHead>
-                                                    <TableHead>Client</TableHead>
-                                                    <TableHead>Détails Transport</TableHead>
-                                                    <TableHead>Date Prévue</TableHead>
-                                                    <TableHead>Statut</TableHead>
-                                                    <TableHead className="text-right">Actions</TableHead>
+                                                    <TableHead>
+                                                        Référence
+                                                    </TableHead>
+                                                    <TableHead>
+                                                        Client
+                                                    </TableHead>
+                                                    <TableHead>
+                                                        Détails Transport
+                                                    </TableHead>
+                                                    <TableHead>
+                                                        Date Prévue
+                                                    </TableHead>
+                                                    <TableHead>
+                                                        Statut
+                                                    </TableHead>
+                                                    <TableHead className="text-right">
+                                                        Actions
+                                                    </TableHead>
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
-                                                {filteredQuotes.map((quote, index) => (
-                                                    <motion.tr
-                                                        key={quote.id}
-                                                        className="cursor-pointer hover:bg-muted/50 transition-colors"
-                                                        onClick={(e) => {
-                                                            if ((e.target as HTMLElement).closest('[data-radix-collection-item], [role="menuitem"], button')) return;
-                                                            handleQuoteClick(quote);
-                                                        }}
-                                                        initial={{ opacity: 0, x: -10 }}
-                                                        animate={{ opacity: 1, x: 0 }}
-                                                        transition={{ delay: index * 0.03 }}
-                                                        whileHover={{ backgroundColor: "rgba(0,0,0,0.02)" }}
-                                                    >
-                                                        <TableCell className="font-medium font-mono text-xs">
-                                                            {quote.id.slice(0, 8)}...
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <div className="flex flex-col">
-                                                                <span className="font-medium">{quote.client}</span>
-                                                                <span className="text-xs text-muted-foreground">{quote.email}</span>
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <div className="flex flex-col gap-1">
-                                                                <Badge variant="outline" className="w-fit">
-                                                                    {quote.type}
-                                                                </Badge>
-                                                                <div className="text-xs text-muted-foreground flex items-center gap-1">
-                                                                    <span className="truncate max-w-[100px]">{quote.pickup}</span>
-                                                                    <span>→</span>
-                                                                    <span className="truncate max-w-[100px]">{quote.dropoff}</span>
+                                                {filteredQuotes.map(
+                                                    (quote, index) => (
+                                                        <motion.tr
+                                                            key={quote.id}
+                                                            className="hover:bg-muted/50 cursor-pointer transition-colors"
+                                                            onClick={(e) => {
+                                                                if (
+                                                                    (
+                                                                        e.target as HTMLElement
+                                                                    ).closest(
+                                                                        '[data-radix-collection-item], [role="menuitem"], button'
+                                                                    )
+                                                                )
+                                                                    return;
+                                                                handleQuoteClick(
+                                                                    quote
+                                                                );
+                                                            }}
+                                                            initial={{
+                                                                opacity: 0,
+                                                                x: -10,
+                                                            }}
+                                                            animate={{
+                                                                opacity: 1,
+                                                                x: 0,
+                                                            }}
+                                                            transition={{
+                                                                delay:
+                                                                    index *
+                                                                    0.03,
+                                                            }}
+                                                            whileHover={{
+                                                                backgroundColor:
+                                                                    "rgba(0,0,0,0.02)",
+                                                            }}
+                                                        >
+                                                            <TableCell className="font-mono text-xs font-medium">
+                                                                {quote.id.slice(
+                                                                    0,
+                                                                    8
+                                                                )}
+                                                                ...
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <div className="flex flex-col">
+                                                                    <span className="font-medium">
+                                                                        {
+                                                                            quote.client
+                                                                        }
+                                                                    </span>
+                                                                    <span className="text-muted-foreground text-xs">
+                                                                        {
+                                                                            quote.email
+                                                                        }
+                                                                    </span>
                                                                 </div>
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell className="text-sm">
-                                                            {safeFormatDate(quote.transportDate || quote.date)}
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <Badge
-                                                                variant={
-                                                                    quote.status === "Validé" ? "default" :
-                                                                        quote.status === "Refusé" ? "destructive" : "secondary"
-                                                                }
-                                                                className={
-                                                                    quote.status === "Validé" ? "bg-green-500 hover:bg-green-600" :
-                                                                        quote.status === "En attente" ? "bg-orange-500/10 text-orange-600 hover:bg-orange-500/20" : ""
-                                                                }
-                                                            >
-                                                                {quote.status === "Validé" && <CheckCircle className="mr-1 h-3 w-3" />}
-                                                                {quote.status === "Refusé" && <XCircle className="mr-1 h-3 w-3" />}
-                                                                {quote.status === "En attente" && <Clock className="mr-1 h-3 w-3" />}
-                                                                {quote.status}
-                                                            </Badge>
-                                                        </TableCell>
-                                                        <TableCell className="text-right">
-                                                            <DropdownMenu>
-                                                                <DropdownMenuTrigger asChild>
-                                                                    <Button variant="ghost" className="h-8 w-8 p-0">
-                                                                        <span className="sr-only">Ouvrir menu</span>
-                                                                        <MoreHorizontal className="h-4 w-4" />
-                                                                    </Button>
-                                                                </DropdownMenuTrigger>
-                                                                <DropdownMenuContent align="end">
-                                                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                                    <DropdownMenuItem onClick={() => handleStatusChange(quote.id, "Validé")}>
-                                                                        <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
-                                                                        Valider
-                                                                    </DropdownMenuItem>
-                                                                    <DropdownMenuItem onClick={() => handleStatusChange(quote.id, "Refusé")}>
-                                                                        <XCircle className="mr-2 h-4 w-4 text-red-500" />
-                                                                        Refuser
-                                                                    </DropdownMenuItem>
-                                                                    <DropdownMenuItem onClick={() => handleStatusChange(quote.id, "En attente")}>
-                                                                        <Clock className="mr-2 h-4 w-4 text-orange-500" />
-                                                                        Mettre en attente
-                                                                    </DropdownMenuItem>
-                                                                    <DropdownMenuItem asChild>
-                                                                        <a href={`/admin/quotes/${encodeURIComponent(quote.id)}`} className="cursor-pointer">
-                                                                            <FileText className="mr-2 h-4 w-4" />
-                                                                            Voir le dossier complet
-                                                                        </a>
-                                                                    </DropdownMenuItem>
-                                                                    <DropdownMenuSeparator />
-                                                                    <DropdownMenuItem
-                                                                        className="text-red-600 focus:text-red-600"
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            handleDelete(quote.id)
-                                                                        }}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <div className="flex flex-col gap-1">
+                                                                    <Badge
+                                                                        variant="outline"
+                                                                        className="w-fit"
                                                                     >
-                                                                        <Trash2 className="mr-2 h-4 w-4" />
-                                                                        Supprimer
-                                                                    </DropdownMenuItem>
-                                                                </DropdownMenuContent>
-                                                            </DropdownMenu>
-                                                        </TableCell>
-                                                    </motion.tr>
-                                                ))}
+                                                                        {
+                                                                            quote.type
+                                                                        }
+                                                                    </Badge>
+                                                                    <div className="text-muted-foreground flex items-center gap-1 text-xs">
+                                                                        <span className="max-w-[100px] truncate">
+                                                                            {
+                                                                                quote.pickup
+                                                                            }
+                                                                        </span>
+                                                                        <span>
+                                                                            →
+                                                                        </span>
+                                                                        <span className="max-w-[100px] truncate">
+                                                                            {
+                                                                                quote.dropoff
+                                                                            }
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            </TableCell>
+                                                            <TableCell className="text-sm">
+                                                                {safeFormatDate(
+                                                                    quote.transportDate ||
+                                                                        quote.date
+                                                                )}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <Badge
+                                                                    variant={
+                                                                        quote.status ===
+                                                                        "Validé"
+                                                                            ? "default"
+                                                                            : quote.status ===
+                                                                                "Refusé"
+                                                                              ? "destructive"
+                                                                              : "secondary"
+                                                                    }
+                                                                    className={
+                                                                        quote.status ===
+                                                                        "Validé"
+                                                                            ? "bg-green-500 hover:bg-green-600"
+                                                                            : quote.status ===
+                                                                                "En attente"
+                                                                              ? "bg-orange-500/10 text-orange-600 hover:bg-orange-500/20"
+                                                                              : ""
+                                                                    }
+                                                                >
+                                                                    {quote.status ===
+                                                                        "Validé" && (
+                                                                        <CheckCircle className="mr-1 h-3 w-3" />
+                                                                    )}
+                                                                    {quote.status ===
+                                                                        "Refusé" && (
+                                                                        <XCircle className="mr-1 h-3 w-3" />
+                                                                    )}
+                                                                    {quote.status ===
+                                                                        "En attente" && (
+                                                                        <Clock className="mr-1 h-3 w-3" />
+                                                                    )}
+                                                                    {
+                                                                        quote.status
+                                                                    }
+                                                                </Badge>
+                                                            </TableCell>
+                                                            <TableCell className="text-right">
+                                                                <DropdownMenu>
+                                                                    <DropdownMenuTrigger
+                                                                        asChild
+                                                                    >
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            className="h-8 w-8 p-0"
+                                                                        >
+                                                                            <span className="sr-only">
+                                                                                Ouvrir
+                                                                                menu
+                                                                            </span>
+                                                                            <MoreHorizontal className="h-4 w-4" />
+                                                                        </Button>
+                                                                    </DropdownMenuTrigger>
+                                                                    <DropdownMenuContent align="end">
+                                                                        <DropdownMenuLabel>
+                                                                            Actions
+                                                                        </DropdownMenuLabel>
+                                                                        <DropdownMenuItem
+                                                                            onClick={() =>
+                                                                                handleStatusChange(
+                                                                                    quote.id,
+                                                                                    "Validé"
+                                                                                )
+                                                                            }
+                                                                        >
+                                                                            <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
+                                                                            Valider
+                                                                        </DropdownMenuItem>
+                                                                        <DropdownMenuItem
+                                                                            onClick={() =>
+                                                                                handleStatusChange(
+                                                                                    quote.id,
+                                                                                    "Refusé"
+                                                                                )
+                                                                            }
+                                                                        >
+                                                                            <XCircle className="mr-2 h-4 w-4 text-red-500" />
+                                                                            Refuser
+                                                                        </DropdownMenuItem>
+                                                                        <DropdownMenuItem
+                                                                            onClick={() =>
+                                                                                handleStatusChange(
+                                                                                    quote.id,
+                                                                                    "En attente"
+                                                                                )
+                                                                            }
+                                                                        >
+                                                                            <Clock className="mr-2 h-4 w-4 text-orange-500" />
+                                                                            Mettre
+                                                                            en
+                                                                            attente
+                                                                        </DropdownMenuItem>
+                                                                        <DropdownMenuItem
+                                                                            asChild
+                                                                        >
+                                                                            <a
+                                                                                href={`/admin/quotes/${encodeURIComponent(quote.id)}`}
+                                                                                className="cursor-pointer"
+                                                                            >
+                                                                                <FileText className="mr-2 h-4 w-4" />
+                                                                                Voir
+                                                                                le
+                                                                                dossier
+                                                                                complet
+                                                                            </a>
+                                                                        </DropdownMenuItem>
+                                                                        <DropdownMenuSeparator />
+                                                                        <DropdownMenuItem
+                                                                            className="text-red-600 focus:text-red-600"
+                                                                            onClick={(
+                                                                                e
+                                                                            ) => {
+                                                                                e.stopPropagation();
+                                                                                handleDelete(
+                                                                                    quote.id
+                                                                                );
+                                                                            }}
+                                                                        >
+                                                                            <Trash2 className="mr-2 h-4 w-4" />
+                                                                            Supprimer
+                                                                        </DropdownMenuItem>
+                                                                    </DropdownMenuContent>
+                                                                </DropdownMenu>
+                                                            </TableCell>
+                                                        </motion.tr>
+                                                    )
+                                                )}
                                             </TableBody>
                                         </Table>
                                     </div>

@@ -13,16 +13,27 @@ export interface EstimationResult {
 }
 
 export const geminiService = {
-    async estimateTransport(pickup: string, dropoff: string, type: string): Promise<EstimationResult> {
+    async estimateTransport(
+        pickup: string,
+        dropoff: string,
+        type: string
+    ): Promise<EstimationResult> {
         if (!API_KEY) {
             // Mock response if no API key
-            return new Promise(resolve => setTimeout(() => resolve({
-                price: "450 - 550€ HT",
-                distance: "Approx. 450 km",
-                duration: "Approx. 5h30",
-                confidence: "Moyenne (Mode démo)",
-                reasoning: "Estimation basée sur une moyenne nationale de 1€/km + frais fixes pour ce type de véhicule."
-            }), 1500));
+            return new Promise((resolve) =>
+                setTimeout(
+                    () =>
+                        resolve({
+                            price: "450 - 550€ HT",
+                            distance: "Approx. 450 km",
+                            duration: "Approx. 5h30",
+                            confidence: "Moyenne (Mode démo)",
+                            reasoning:
+                                "Estimation basée sur une moyenne nationale de 1€/km + frais fixes pour ce type de véhicule.",
+                        }),
+                    1500
+                )
+            );
         }
 
         try {
@@ -48,7 +59,10 @@ export const geminiService = {
             const text = response.text();
 
             // Basic cleanup to ensure JSON parsing
-            const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
+            const jsonStr = text
+                .replace(/```json/g, "")
+                .replace(/```/g, "")
+                .trim();
             return JSON.parse(jsonStr);
         } catch (error: unknown) {
             if (error instanceof Error) {
@@ -60,24 +74,30 @@ export const geminiService = {
         }
     },
 
-    async draftEmail(type: "validation" | "refusal" | "question", clientName: string, quoteId: string): Promise<{ subject: string, body: string }> {
+    async draftEmail(
+        type: "validation" | "refusal" | "question",
+        clientName: string,
+        quoteId: string
+    ): Promise<{ subject: string; body: string }> {
         if (!API_KEY) {
             // Mock response
             const mocks = {
                 validation: {
                     subject: `Validation de votre devis N°${quoteId}`,
-                    body: `Bonjour ${clientName},\n\nNous avons le plaisir de vous informer que votre devis N°${quoteId} a été validé par notre équipe.\n\nVous recevrez prochainement les instructions pour la prise en charge.\n\nCordialement,\nL'équipe HBC Logistique`
+                    body: `Bonjour ${clientName},\n\nNous avons le plaisir de vous informer que votre devis N°${quoteId} a été validé par notre équipe.\n\nVous recevrez prochainement les instructions pour la prise en charge.\n\nCordialement,\nL'équipe HBC Logistique`,
                 },
                 refusal: {
                     subject: `Concernant votre demande de devis N°${quoteId}`,
-                    body: `Bonjour ${clientName},\n\nAprès étude de votre demande N°${quoteId}, nous ne sommes malheureusement pas en mesure d'y répondre favorablement pour le moment.\n\nNous restons à votre disposition pour toute autre demande.\n\nCordialement,\nL'équipe HBC Logistique`
+                    body: `Bonjour ${clientName},\n\nAprès étude de votre demande N°${quoteId}, nous ne sommes malheureusement pas en mesure d'y répondre favorablement pour le moment.\n\nNous restons à votre disposition pour toute autre demande.\n\nCordialement,\nL'équipe HBC Logistique`,
                 },
                 question: {
                     subject: `Question concernant le devis N°${quoteId}`,
-                    body: `Bonjour ${clientName},\n\nNous traitons actuellement votre demande de devis N°${quoteId}. \n\nPourriez-vous nous préciser [VOTRE QUESTION ICI] ?\n\nDans l'attente de votre retour,\n\nCordialement,\nL'équipe HBC Logistique`
-                }
+                    body: `Bonjour ${clientName},\n\nNous traitons actuellement votre demande de devis N°${quoteId}. \n\nPourriez-vous nous préciser [VOTRE QUESTION ICI] ?\n\nDans l'attente de votre retour,\n\nCordialement,\nL'équipe HBC Logistique`,
+                },
             };
-            return new Promise(resolve => setTimeout(() => resolve(mocks[type]), 1000));
+            return new Promise((resolve) =>
+                setTimeout(() => resolve(mocks[type]), 1000)
+            );
         }
 
         try {
@@ -95,15 +115,22 @@ export const geminiService = {
             const result = await model.generateContent(prompt);
             const response = await result.response;
             const text = response.text();
-            const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
+            const jsonStr = text
+                .replace(/```json/g, "")
+                .replace(/```/g, "")
+                .trim();
             return JSON.parse(jsonStr);
         } catch (error: unknown) {
             if (error instanceof Error) {
-                console.error("Gemini draftEmail Error:", error.message, error.stack);
+                console.error(
+                    "Gemini draftEmail Error:",
+                    error.message,
+                    error.stack
+                );
             } else {
                 console.error("Gemini draftEmail Error:", error);
             }
             throw new Error("Erreur de génération d'email");
         }
-    }
+    },
 };

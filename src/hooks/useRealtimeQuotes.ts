@@ -1,50 +1,104 @@
-import { useEffect, useState } from "react";
+"use client";
+
+import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-// Initialisation unique du client client-side
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!
-);
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey =
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-export function useRealtimeQuotes() {
+// Dynamic singleton initialization with fallback guard
+const supabase =
+    supabaseUrl && supabaseKey
+        ? createClient(supabaseUrl, supabaseKey)
+        : null;
+
+interface RealtimeOptions {
+    onQuoteInserted?: (newQuote: unknown) => void;
+    onQuoteUpdated?: (updatedQuote: unknown) => void;
+    onQuoteDeleted?: (deletedQuote: unknown) => void;
+    enableToast?: boolean;
+}
+
+/**
+ * Custom React Hook pour s'abonner aux changements Supabase Realtime sur la table quote.
+ * Supporte les callbacks optimistes et les notifications de toast en direct.
+ */
+export function useRealtimeQuotes(options?: RealtimeOptions) {
     const router = useRouter();
     const [isConnected, setIsConnected] = useState(false);
 
+    const onQuoteInserted = options?.onQuoteInserted;
+    const onQuoteUpdated = options?.onQuoteUpdated;
+    const onQuoteDeleted = options?.onQuoteDeleted;
+    const enableToast = options?.enableToast ?? true;
+
+    const handleRealtimeEvent = useCallback(
+        (payload: { eventType: string; new: unknown; old: unknown }) => {
+            console.log("⚡ Supabase Realtime Event:", payload.eventType, payload);
+
+            if (payload.eventType === "INSERT") {
+                if (enableToast) {
+                    toast.info("⚡ Nouvelle demande de devis reçue !");
+                }
+                onQuoteInserted?.(payload.new);
+            } else if (payload.eventType === "UPDATE") {
+                if (enableToast) {
+                    toast.info("⚡ Un devis a été mis à jour.");
+                }
+                onQuoteUpdated?.(payload.new);
+            } else if (payload.eventType === "DELETE") {
+                if (enableToast) {
+                    toast.info("⚡ Devis supprimé.");
+                }
+                onQuoteDeleted?.(payload.old);
+            }
+
+            // Refresh Next.js Server Components if needed
+            router.refresh();
+        },
+        [router, onQuoteInserted, onQuoteUpdated, onQuoteDeleted, enableToast]
+    );
+
     useEffect(() => {
+        if (!supabase) {
+            console.warn(
+                "⚠️ Supabase Realtime non initialisé. Variables NEXT_PUBLIC_SUPABASE_* manquantes."
+            );
+            return;
+        }
+
+        // Souscription sélective sur la table "quote" du schéma "public"
         const channel = supabase
             .channel("realtime-quotes")
             .on(
                 "postgres_changes",
                 {
-                    event: "*", // Écoute INSERT, UPDATE, DELETE
+                    event: "*",
                     schema: "public",
                     table: "quote",
                 },
                 (payload) => {
-                    // Lors d'un changement, on peut soit mettre à jour le state local directement,
-                    // soit invalider le cache Next.js pour recharger les données.
-                    // Ici, on opte pour un refresh router pour garantir la fraîcheur des données.
-                    console.log("Realtime change detected:", payload);
-                    router.refresh();
-
-                    if (payload.eventType === "INSERT") {
-                        toast.info("Nouvelle demande de devis reçue !");
-                    }
+                    handleRealtimeEvent(
+                        payload as unknown as { eventType: string; new: unknown; old: unknown }
+                    );
                 }
             )
             .subscribe((status) => {
                 if (status === "SUBSCRIBED") {
                     setIsConnected(true);
+                } else if (status === "CLOSED" || status === "CHANNEL_ERROR") {
+                    setIsConnected(false);
                 }
             });
 
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [router]);
+    }, [handleRealtimeEvent]);
 
     return { isConnected };
 }

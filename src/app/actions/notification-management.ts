@@ -1,9 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import prisma from "@/lib/prisma";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
+import { handleError } from "@/lib/error-handler";
 
 /**
  * Server Actions for Notification Management
@@ -31,7 +31,11 @@ export async function getNotificationsAction() {
         });
 
         if (!session) {
-            return { success: false, error: "Non authentifié", notifications: [] };
+            return {
+                success: false,
+                error: "Non authentifié",
+                notifications: [],
+            };
         }
 
         // For now, return mock notifications
@@ -40,7 +44,8 @@ export async function getNotificationsAction() {
             {
                 id: "1",
                 title: "Nouveau devis reçu",
-                description: "Un client a demandé un devis pour un transport Paris-Lyon.",
+                description:
+                    "Un client a demandé un devis pour un transport Paris-Lyon.",
                 type: "info",
                 read: false,
                 timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
@@ -49,10 +54,13 @@ export async function getNotificationsAction() {
             {
                 id: "2",
                 title: "Paiement confirmé",
-                description: "Le paiement pour la commande #INV-2024-001 a été reçu.",
+                description:
+                    "Le paiement pour la commande #INV-2024-001 a été reçu.",
                 type: "success",
                 read: false,
-                timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+                timestamp: new Date(
+                    Date.now() - 1000 * 60 * 60 * 2
+                ).toISOString(),
                 userId: session.user.id,
             },
         ];
@@ -60,10 +68,12 @@ export async function getNotificationsAction() {
         return { success: true, notifications };
     } catch (error: unknown) {
         console.error("Get Notifications Error:", error);
-        if (error instanceof Error) {
-            return { success: false, error: error.message, notifications: [] };
-        }
-        return { success: false, error: "Erreur lors de la récupération des notifications", notifications: [] };
+        const errorResponse = handleError(error);
+        return {
+            success: false,
+            error: errorResponse.message,
+            notifications: [],
+        };
     }
 }
 
@@ -93,10 +103,8 @@ export async function markNotificationAsReadAction(notificationId: string) {
         return { success: true };
     } catch (error: unknown) {
         console.error("Mark Notification Error:", error);
-        if (error instanceof Error) {
-            return { success: false, error: error.message };
-        }
-        return { success: false, error: "Erreur lors de la mise à jour" };
+        const errorResponse = handleError(error);
+        return { success: false, error: errorResponse.message };
     }
 }
 
@@ -123,10 +131,8 @@ export async function markAllNotificationsAsReadAction() {
         return { success: true };
     } catch (error: unknown) {
         console.error("Mark All Notifications Error:", error);
-        if (error instanceof Error) {
-            return { success: false, error: error.message };
-        }
-        return { success: false, error: "Erreur lors de la mise à jour" };
+        const errorResponse = handleError(error);
+        return { success: false, error: errorResponse.message };
     }
 }
 
@@ -153,9 +159,7 @@ export async function getUnreadNotificationCountAction() {
         return { success: true, count };
     } catch (error: unknown) {
         console.error("Get Unread Count Error:", error);
-        if (error instanceof Error) {
-            return { success: false, error: error.message, count: 0 };
-        }
-        return { success: false, error: "Erreur lors du comptage", count: 0 };
+        const errorResponse = handleError(error);
+        return { success: false, error: errorResponse.message, count: 0 };
     }
 }

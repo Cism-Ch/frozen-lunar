@@ -11,7 +11,8 @@ export default function ContactsPage() {
             <div>
                 <h3 className="text-3xl font-bold tracking-tight">Contacts</h3>
                 <p className="text-muted-foreground mt-2">
-                    Visualisez vos clients et gérez l&apos;équipe administrative.
+                    Visualisez vos clients et gérez l&apos;équipe
+                    administrative.
                 </p>
             </div>
 
@@ -25,11 +26,17 @@ export default function ContactsPage() {
                     </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="clients" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+                <TabsContent
+                    value="clients"
+                    className="animate-in fade-in slide-in-from-bottom-2 duration-500"
+                >
                     <ClientList />
                 </TabsContent>
 
-                <TabsContent value="team" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+                <TabsContent
+                    value="team"
+                    className="animate-in fade-in slide-in-from-bottom-2 duration-500"
+                >
                     <TeamList />
                 </TabsContent>
             </Tabs>

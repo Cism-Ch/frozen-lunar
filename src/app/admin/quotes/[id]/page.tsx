@@ -6,7 +6,13 @@ import { Quote, quoteStorage } from "@/lib/quote-storage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -25,7 +31,6 @@ import {
     FileText,
     Download,
     Sparkles,
-    MessageSquare
 } from "lucide-react";
 import { safeFormatDate } from "@/lib/date-utils";
 import { toast } from "sonner";
@@ -42,11 +47,11 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { 
-    getQuoteByIdAction, 
-    updateQuoteAction, 
+import {
+    getQuoteByIdAction,
+    updateQuoteAction,
     updateQuoteStatusAction,
-    addQuoteNoteAction 
+    addQuoteNoteAction,
 } from "@/app/actions/quote-management";
 
 export default function QuoteModerationPage() {
@@ -60,9 +65,10 @@ export default function QuoteModerationPage() {
     // Editable states
     const [amount, setAmount] = useState("");
     const [notes, setNotes] = useState("");
-    const [hasChanges, setHasChanges] = useState(false);
 
-    const [aiEstimation, setAiEstimation] = useState<EstimationResult | null>(null);
+    const [aiEstimation, setAiEstimation] = useState<EstimationResult | null>(
+        null
+    );
     const [estimating, setEstimating] = useState(false);
 
     // Email Drawer State
@@ -74,12 +80,20 @@ export default function QuoteModerationPage() {
         if (!quote) return;
         setEstimating(true);
         try {
-            const result = await geminiService.estimateTransport(quote.pickup, quote.dropoff, quote.type);
+            const result = await geminiService.estimateTransport(
+                quote.pickup,
+                quote.dropoff,
+                quote.type
+            );
             setAiEstimation(result);
             toast.success("Estimation générée par IA");
         } catch (error: unknown) {
             if (error instanceof Error) {
-                console.error("Error during AI estimation:", error.message, error.stack);
+                console.error(
+                    "Error during AI estimation:",
+                    error.message,
+                    error.stack
+                );
             } else {
                 console.error("Error during AI estimation:", error);
             }
@@ -89,18 +103,28 @@ export default function QuoteModerationPage() {
         }
     };
 
-    const handleGenerateEmail = async (type: "validation" | "refusal" | "question") => {
+    const handleGenerateEmail = async (
+        type: "validation" | "refusal" | "question"
+    ) => {
         if (!quote) return;
         setGeneratingEmail(true);
         setEmailOpen(true);
         setEmailDraft({ subject: "Génération en cours...", body: "" });
 
         try {
-            const draft = await geminiService.draftEmail(type, quote.client, quote.id);
+            const draft = await geminiService.draftEmail(
+                type,
+                quote.client,
+                quote.id
+            );
             setEmailDraft(draft);
         } catch (error: unknown) {
             if (error instanceof Error) {
-                console.error("Error generating AI email:", error.message, error.stack);
+                console.error(
+                    "Error generating AI email:",
+                    error.message,
+                    error.stack
+                );
             } else {
                 console.error("Error generating AI email:", error);
             }
@@ -113,13 +137,17 @@ export default function QuoteModerationPage() {
 
     const applyEstimation = async () => {
         if (aiEstimation && quote) {
-            const priceValue = aiEstimation.price.replace(/[^0-9,]/g, '') + "€ HT"; // Basic parsing
+            const priceValue =
+                aiEstimation.price.replace(/[^0-9,]/g, "") + "€ HT"; // Basic parsing
             setAmount(priceValue);
-            
+
             try {
-                await addQuoteNoteAction(quote.id, `Estimation IA appliquée: ${aiEstimation.price}`);
+                await addQuoteNoteAction(
+                    quote.id,
+                    `Estimation IA appliquée: ${aiEstimation.price}`
+                );
                 toast.success("Prix appliqué");
-                
+
                 // Refresh quote to see history
                 const result = await getQuoteByIdAction(quote.id);
                 if (result.success && result.quote) {
@@ -127,17 +155,17 @@ export default function QuoteModerationPage() {
                 }
             } catch (error: unknown) {
                 console.error("Error applying estimation:", error);
-                toast.error("Erreur lors de l&apos;application de l&apos;estimation");
+                toast.error(
+                    "Erreur lors de l&apos;application de l&apos;estimation"
+                );
             }
         }
     };
 
-
-
     useEffect(() => {
         const loadQuote = async () => {
             if (!id) return;
-            
+
             try {
                 const result = await getQuoteByIdAction(decodeURIComponent(id));
                 if (result.success && result.quote) {
@@ -163,10 +191,10 @@ export default function QuoteModerationPage() {
         if (!quote) return;
 
         try {
-            const result = await updateQuoteAction(
-                quote.id,
-                { amount, userNotes: notes }
-            );
+            const result = await updateQuoteAction(quote.id, {
+                amount,
+                userNotes: notes,
+            });
 
             if (result.success) {
                 // Reload quote to get fresh history
@@ -175,7 +203,6 @@ export default function QuoteModerationPage() {
                     setQuote(refreshResult.quote as Quote);
                 }
 
-                setHasChanges(false);
                 toast.success("Modifications enregistrées");
             } else {
                 toast.error(result.error || "Erreur lors de la sauvegarde");
@@ -207,41 +234,52 @@ export default function QuoteModerationPage() {
         }
     };
 
-    // Detect changes
-    useEffect(() => {
-        if (!quote) return;
-        const isChanged = amount !== (quote.amount || "") || notes !== (quote.notes || "");
-        setHasChanges(isChanged);
-    }, [amount, notes, quote]);
+    // Derived state for changes
+    const hasChanges = quote
+        ? amount !== (quote.amount || "") || notes !== (quote.notes || "")
+        : false;
 
-    if (loading) return <div className="p-8 text-center text-muted-foreground">Chargement du dossier...</div>;
+    if (loading)
+        return (
+            <div className="text-muted-foreground p-8 text-center">
+                Chargement du dossier...
+            </div>
+        );
     if (!quote) return null;
 
     return (
-        <div className="space-y-6 max-w-7xl mx-auto">
+        <div className="mx-auto max-w-7xl space-y-6">
             {/* Header */}
             <div className="flex flex-col gap-4">
                 <div className="flex items-start gap-3 sm:gap-4">
                     <Link href="/admin/quotes">
-                        <Button variant="outline" size="icon" className="h-9 w-9 shrink-0">
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-9 w-9 shrink-0"
+                        >
                             <ArrowLeft className="h-4 w-4" />
                         </Button>
                     </Link>
-                    <div className="flex-1 min-w-0">
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-                            <h1 className="text-lg sm:text-2xl font-bold tracking-tight truncate">Dossier {quote.id.slice(0, 8)}...</h1>
+                    <div className="min-w-0 flex-1">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                            <h1 className="truncate text-lg font-bold tracking-tight sm:text-2xl">
+                                Dossier {quote.id.slice(0, 8)}...
+                            </h1>
                             <Badge
                                 variant="outline"
                                 className={
-                                    quote.status === "Validé" ? "bg-green-500/10 text-green-600 border-green-200/50" :
-                                        quote.status === "Refusé" ? "bg-red-500/10 text-red-600 border-red-200/50" :
-                                            "bg-orange-500/10 text-orange-600 border-orange-200/50"
+                                    quote.status === "Validé"
+                                        ? "border-green-200/50 bg-green-500/10 text-green-600"
+                                        : quote.status === "Refusé"
+                                          ? "border-red-200/50 bg-red-500/10 text-red-600"
+                                          : "border-orange-200/50 bg-orange-500/10 text-orange-600"
                                 }
                             >
                                 {quote.status}
                             </Badge>
                         </div>
-                        <p className="text-muted-foreground text-sm mt-1">
+                        <p className="text-muted-foreground mt-1 text-sm">
                             Créé le {safeFormatDate(quote.date, "dd MMMM yyyy")}
                         </p>
                     </div>
@@ -253,78 +291,106 @@ export default function QuoteModerationPage() {
                         size="sm"
                         onClick={() => {
                             generateQuotePDF(quote);
-                            quoteStorage.addNote(quote.id, "PDF généré et téléchargé");
+                            quoteStorage.addNote(
+                                quote.id,
+                                "PDF généré et téléchargé"
+                            );
                             const updated = quoteStorage.getById(quote.id);
                             if (updated) setQuote(updated);
                         }}
                         className="gap-2"
                     >
                         <Download className="h-4 w-4" />
-                        <span className="hidden sm:inline">Télécharger</span> PDF
+                        <span className="hidden sm:inline">
+                            Télécharger
+                        </span>{" "}
+                        PDF
                     </Button>
 
                     {hasChanges && (
-                        <Button onClick={handleSaveChanges} size="sm" className="bg-primary text-primary-foreground shadow-lg gap-2">
+                        <Button
+                            onClick={handleSaveChanges}
+                            size="sm"
+                            className="bg-primary text-primary-foreground gap-2 shadow-lg"
+                        >
                             <Save className="h-4 w-4" />
-                            <span className="hidden sm:inline">Enregistrer</span>
+                            <span className="hidden sm:inline">
+                                Enregistrer
+                            </span>
                         </Button>
                     )}
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
                 {/* Left Column - Read Only Context */}
                 <div className="space-y-6 lg:col-span-2">
                     {/* Itinerary Card */}
                     <Card>
                         <CardHeader className="pb-4">
-                            <CardTitle className="text-lg flex items-center gap-2">
-                                <MapPin className="h-5 w-5 text-primary" />
+                            <CardTitle className="flex items-center gap-2 text-lg">
+                                <MapPin className="text-primary h-5 w-5" />
                                 Itinéraire & Transport
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="space-y-8 relative pl-6">
+                            <div className="relative space-y-8 pl-6">
                                 {/* Dotted Line */}
-                                <div className="absolute left-6 top-3 bottom-3 w-px border-l-2 border-dashed border-muted-foreground/20" />
+                                <div className="border-muted-foreground/20 absolute top-3 bottom-3 left-6 w-px border-l-2 border-dashed" />
 
                                 {/* Pickup */}
                                 <div className="relative pl-8">
-                                    <div className="absolute left-[-5px] top-0 h-4 w-4 rounded-full border-2 border-green-500 bg-background shadow-sm" />
-                                    <div className="bg-muted/10 p-4 rounded-lg border">
-                                        <h4 className="text-xs font-semibold text-green-600 uppercase tracking-wider mb-1">Départ</h4>
-                                        <p className="font-medium text-lg">{quote.pickup}</p>
+                                    <div className="bg-background absolute top-0 left-[-5px] h-4 w-4 rounded-full border-2 border-green-500 shadow-sm" />
+                                    <div className="bg-muted/10 rounded-lg border p-4">
+                                        <h4 className="mb-1 text-xs font-semibold tracking-wider text-green-600 uppercase">
+                                            Départ
+                                        </h4>
+                                        <p className="text-lg font-medium">
+                                            {quote.pickup}
+                                        </p>
                                     </div>
                                 </div>
 
                                 {/* Dropoff */}
                                 <div className="relative pl-8">
-                                    <div className="absolute left-[-5px] top-0 h-4 w-4 rounded-full border-2 border-red-500 bg-background shadow-sm" />
-                                    <div className="bg-muted/10 p-4 rounded-lg border">
-                                        <h4 className="text-xs font-semibold text-red-600 uppercase tracking-wider mb-1">Arrivée</h4>
-                                        <p className="font-medium text-lg">{quote.dropoff}</p>
+                                    <div className="bg-background absolute top-0 left-[-5px] h-4 w-4 rounded-full border-2 border-red-500 shadow-sm" />
+                                    <div className="bg-muted/10 rounded-lg border p-4">
+                                        <h4 className="mb-1 text-xs font-semibold tracking-wider text-red-600 uppercase">
+                                            Arrivée
+                                        </h4>
+                                        <p className="text-lg font-medium">
+                                            {quote.dropoff}
+                                        </p>
                                     </div>
                                 </div>
                             </div>
 
                             <Separator className="my-6" />
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div className="flex items-center gap-3 p-3 bg-muted/20 rounded-lg">
-                                    <CalendarIcon className="h-5 w-5 text-muted-foreground" />
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <div className="bg-muted/20 flex items-center gap-3 rounded-lg p-3">
+                                    <CalendarIcon className="text-muted-foreground h-5 w-5" />
                                     <div>
-                                        <p className="text-xs text-muted-foreground">Date Prévue</p>
+                                        <p className="text-muted-foreground text-xs">
+                                            Date Prévue
+                                        </p>
                                         <p className="font-medium">
-                                            {safeFormatDate(quote.transportDate, "dd MMM yyyy")}
+                                            {safeFormatDate(
+                                                quote.transportDate,
+                                                "dd MMM yyyy"
+                                            )}
                                         </p>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-3 p-3 bg-muted/20 rounded-lg">
-                                    <Truck className="h-5 w-5 text-muted-foreground" />
+                                <div className="bg-muted/20 flex items-center gap-3 rounded-lg p-3">
+                                    <Truck className="text-muted-foreground h-5 w-5" />
                                     <div>
-                                        <p className="text-xs text-muted-foreground">Type de Véhicule</p>
-                                        <p className="font-medium capitalize">{quote.type}</p>
+                                        <p className="text-muted-foreground text-xs">
+                                            Type de Véhicule
+                                        </p>
+                                        <p className="font-medium capitalize">
+                                            {quote.type}
+                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -334,30 +400,44 @@ export default function QuoteModerationPage() {
                     {/* Client Card */}
                     <Card>
                         <CardHeader className="pb-4">
-                            <CardTitle className="text-lg flex items-center gap-2">
-                                <User className="h-5 w-5 text-primary" />
+                            <CardTitle className="flex items-center gap-2 text-lg">
+                                <User className="text-primary h-5 w-5" />
                                 Informations Client
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                 <div>
-                                    <h3 className="tex-sm font-medium text-muted-foreground mb-1">Contact Principal</h3>
-                                    <p className="text-lg font-medium">{quote.client}</p>
+                                    <h3 className="tex-sm text-muted-foreground mb-1 font-medium">
+                                        Contact Principal
+                                    </h3>
+                                    <p className="text-lg font-medium">
+                                        {quote.client}
+                                    </p>
                                 </div>
 
                                 <div className="space-y-3">
-                                    <a href={`mailto:${quote.email}`} className="flex items-center gap-3 p-2 hover:bg-muted rounded-md transition-colors group">
-                                        <div className="p-2 bg-primary/5 rounded-full group-hover:bg-primary/10">
-                                            <Mail className="h-4 w-4 text-primary" />
+                                    <a
+                                        href={`mailto:${quote.email}`}
+                                        className="hover:bg-muted group flex items-center gap-3 rounded-md p-2 transition-colors"
+                                    >
+                                        <div className="bg-primary/5 group-hover:bg-primary/10 rounded-full p-2">
+                                            <Mail className="text-primary h-4 w-4" />
                                         </div>
-                                        <span className="text-sm font-medium">{quote.email}</span>
+                                        <span className="text-sm font-medium">
+                                            {quote.email}
+                                        </span>
                                     </a>
-                                    <a href={`tel:${quote.phone}`} className="flex items-center gap-3 p-2 hover:bg-muted rounded-md transition-colors group">
-                                        <div className="p-2 bg-primary/5 rounded-full group-hover:bg-primary/10">
-                                            <Phone className="h-4 w-4 text-primary" />
+                                    <a
+                                        href={`tel:${quote.phone}`}
+                                        className="hover:bg-muted group flex items-center gap-3 rounded-md p-2 transition-colors"
+                                    >
+                                        <div className="bg-primary/5 group-hover:bg-primary/10 rounded-full p-2">
+                                            <Phone className="text-primary h-4 w-4" />
                                         </div>
-                                        <span className="text-sm font-medium">{quote.phone}</span>
+                                        <span className="text-sm font-medium">
+                                            {quote.phone}
+                                        </span>
                                     </a>
                                 </div>
                             </div>
@@ -366,9 +446,9 @@ export default function QuoteModerationPage() {
                 </div>
 
                 {/* Right Column - Workspace */}
-                <div className="space-y-6 text-foreground">
+                <div className="text-foreground space-y-6">
                     {/* Tarification */}
-                    <Card className="border-l-4 border-l-primary/50 overflow-hidden">
+                    <Card className="border-l-primary/50 overflow-hidden border-l-4">
                         <div className="absolute top-0 right-0 p-4 opacity-5">
                             <Euro className="h-24 w-24" />
                         </div>
@@ -378,17 +458,22 @@ export default function QuoteModerationPage() {
                                 Tarification
                             </CardTitle>
                             <CardDescription>
-                                Définissez le prix final ou une estimation pour le client.
+                                Définissez le prix final ou une estimation pour
+                                le client.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-2">
-                                <label className="text-sm font-medium">Montant (Devise incluse ex: 150€)</label>
+                                <label className="text-sm font-medium">
+                                    Montant (Devise incluse ex: 150€)
+                                </label>
                                 <div className="flex gap-2">
                                     <Input
                                         value={amount}
-                                        onChange={(e) => setAmount(e.target.value)}
-                                        className="text-lg font-mono"
+                                        onChange={(e) =>
+                                            setAmount(e.target.value)
+                                        }
+                                        className="font-mono text-lg"
                                         placeholder="Ex: 450€ HT"
                                     />
                                     <Button
@@ -398,19 +483,28 @@ export default function QuoteModerationPage() {
                                         disabled={estimating}
                                         title="Estimer avec IA"
                                     >
-                                        <Sparkles className={`h-4 w-4 text-purple-600 ${estimating ? "animate-pulse" : ""}`} />
+                                        <Sparkles
+                                            className={`h-4 w-4 text-purple-600 ${estimating ? "animate-pulse" : ""}`}
+                                        />
                                     </Button>
                                 </div>
                                 {aiEstimation && (
-                                    <div className="mt-4 p-3 bg-purple-500/5 border border-purple-200/20 rounded-lg text-sm space-y-2 animate-in fade-in slide-in-from-top-2">
-                                        <div className="flex flex-col sm:flex-row sm:justify-between gap-1 font-medium text-purple-700">
-                                            <span>Estimation: {aiEstimation.price}</span>
-                                            <span>{aiEstimation.distance} / {aiEstimation.duration}</span>
+                                    <div className="animate-in fade-in slide-in-from-top-2 mt-4 space-y-2 rounded-lg border border-purple-200/20 bg-purple-500/5 p-3 text-sm">
+                                        <div className="flex flex-col gap-1 font-medium text-purple-700 sm:flex-row sm:justify-between">
+                                            <span>
+                                                Estimation: {aiEstimation.price}
+                                            </span>
+                                            <span>
+                                                {aiEstimation.distance} /{" "}
+                                                {aiEstimation.duration}
+                                            </span>
                                         </div>
-                                        <p className="text-xs text-muted-foreground">{aiEstimation.reasoning}</p>
+                                        <p className="text-muted-foreground text-xs">
+                                            {aiEstimation.reasoning}
+                                        </p>
                                         <Button
                                             variant="link"
-                                            className="h-auto p-0 text-purple-600 text-xs"
+                                            className="h-auto p-0 text-xs text-purple-600"
                                             onClick={applyEstimation}
                                         >
                                             Appliquer ce prix
@@ -418,7 +512,6 @@ export default function QuoteModerationPage() {
                                     </div>
                                 )}
                             </div>
-
                         </CardContent>
                     </Card>
 
@@ -430,15 +523,16 @@ export default function QuoteModerationPage() {
                                 Notes Internes
                             </CardTitle>
                             <CardDescription>
-                                Visible uniquement par l&apos;équipe admin et les chauffeurs.
+                                Visible uniquement par l&apos;équipe admin et
+                                les chauffeurs.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <Textarea
                                 value={notes}
                                 onChange={(e) => setNotes(e.target.value)}
-                                className="min-h-[150px] resize-none focus-visible:ring-primary/20"
-                                placeholder="Instructions spéciales, codes d&apos;accès, spécificités du chargement..."
+                                className="focus-visible:ring-primary/20 min-h-[150px] resize-none"
+                                placeholder="Instructions spéciales, codes d'accès, spécificités du chargement..."
                             />
                         </CardContent>
                     </Card>
@@ -446,13 +540,13 @@ export default function QuoteModerationPage() {
                     {/* Actions Rapides */}
                     <Card>
                         <CardHeader>
-                            <CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">
+                            <CardTitle className="text-muted-foreground text-sm tracking-wider uppercase">
                                 Actions
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
                             <Button
-                                className="w-full justify-start text-green-600 bg-green-500/10 hover:bg-green-500/20 border-green-200/20 hover:border-green-300/30"
+                                className="w-full justify-start border-green-200/20 bg-green-500/10 text-green-600 hover:border-green-300/30 hover:bg-green-500/20"
                                 variant="outline"
                                 onClick={() => handleStatusChange("Validé")}
                             >
@@ -461,7 +555,7 @@ export default function QuoteModerationPage() {
                             </Button>
 
                             <Button
-                                className="w-full justify-start text-red-600 bg-red-500/10 hover:bg-red-500/20 border-red-200/20 hover:border-red-300/30"
+                                className="w-full justify-start border-red-200/20 bg-red-500/10 text-red-600 hover:border-red-300/30 hover:bg-red-500/20"
                                 variant="outline"
                                 onClick={() => handleStatusChange("Refusé")}
                             >
@@ -472,7 +566,7 @@ export default function QuoteModerationPage() {
                             <Separator className="my-2" />
 
                             <Button
-                                className="w-full justify-start text-orange-600 bg-orange-500/10 hover:bg-orange-500/20 border-orange-200/20 hover:border-orange-300/30"
+                                className="w-full justify-start border-orange-200/20 bg-orange-500/10 text-orange-600 hover:border-orange-300/30 hover:bg-orange-500/20"
                                 variant="outline"
                                 onClick={() => handleStatusChange("En attente")}
                             >
@@ -482,12 +576,28 @@ export default function QuoteModerationPage() {
 
                             <Separator className="my-2" />
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                <Button size="sm" variant="ghost" className="justify-start sm:justify-center" onClick={() => handleGenerateEmail("validation")}>
-                                    <Sparkles className="mr-2 h-3 w-3 text-purple-500" /> Email Validation
+                            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="justify-start sm:justify-center"
+                                    onClick={() =>
+                                        handleGenerateEmail("validation")
+                                    }
+                                >
+                                    <Sparkles className="mr-2 h-3 w-3 text-purple-500" />{" "}
+                                    Email Validation
                                 </Button>
-                                <Button size="sm" variant="ghost" className="justify-start sm:justify-center" onClick={() => handleGenerateEmail("refusal")}>
-                                    <Sparkles className="mr-2 h-3 w-3 text-purple-500" /> Email Refus
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="justify-start sm:justify-center"
+                                    onClick={() =>
+                                        handleGenerateEmail("refusal")
+                                    }
+                                >
+                                    <Sparkles className="mr-2 h-3 w-3 text-purple-500" />{" "}
+                                    Email Refus
                                 </Button>
                             </div>
                         </CardContent>
@@ -496,7 +606,7 @@ export default function QuoteModerationPage() {
                     {/* Historique */}
                     <Card>
                         <CardHeader>
-                            <CardTitle className="text-sm uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                            <CardTitle className="text-muted-foreground flex items-center gap-2 text-sm tracking-wider uppercase">
                                 <Clock className="h-4 w-4" />
                                 Historique
                             </CardTitle>
@@ -513,7 +623,8 @@ export default function QuoteModerationPage() {
                     <DialogHeader>
                         <DialogTitle>Assistant de Rédaction IA</DialogTitle>
                         <DialogDescription>
-                            Modifiez le brouillon généré avant de l&apos;envoyer (Simulation).
+                            Modifiez le brouillon généré avant de l&apos;envoyer
+                            (Simulation).
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
@@ -521,7 +632,12 @@ export default function QuoteModerationPage() {
                             <Label>Objet</Label>
                             <Input
                                 value={emailDraft.subject}
-                                onChange={(e) => setEmailDraft({ ...emailDraft, subject: e.target.value })}
+                                onChange={(e) =>
+                                    setEmailDraft({
+                                        ...emailDraft,
+                                        subject: e.target.value,
+                                    })
+                                }
                                 disabled={generatingEmail}
                             />
                         </div>
@@ -529,25 +645,41 @@ export default function QuoteModerationPage() {
                             <Label>Message</Label>
                             <Textarea
                                 value={emailDraft.body}
-                                onChange={(e) => setEmailDraft({ ...emailDraft, body: e.target.value })}
+                                onChange={(e) =>
+                                    setEmailDraft({
+                                        ...emailDraft,
+                                        body: e.target.value,
+                                    })
+                                }
                                 className="h-[200px]"
                                 disabled={generatingEmail}
                             />
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button variant="secondary" onClick={() => setEmailOpen(false)}>Annuler</Button>
-                        <Button onClick={() => {
-                            toast.success("Email envoyé (Simulation)");
-                            setEmailOpen(false);
-                            // Log communication in history
-                            if (quote) quoteStorage.addNote(quote.id, `Email envoyé: ${emailDraft.subject}`);
-                        }}>
+                        <Button
+                            variant="secondary"
+                            onClick={() => setEmailOpen(false)}
+                        >
+                            Annuler
+                        </Button>
+                        <Button
+                            onClick={() => {
+                                toast.success("Email envoyé (Simulation)");
+                                setEmailOpen(false);
+                                // Log communication in history
+                                if (quote)
+                                    quoteStorage.addNote(
+                                        quote.id,
+                                        `Email envoyé: ${emailDraft.subject}`
+                                    );
+                            }}
+                        >
                             Envoyer
                         </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </div >
+        </div>
     );
 }
