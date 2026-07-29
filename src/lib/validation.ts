@@ -87,12 +87,12 @@ export const createUserSchemaSimple = z.object({
 });
 
 /**
- * Schéma pour l'initialisation admin
+ * Schéma pour l'initialisation admin (politique de mot de passe renforcée)
  */
 export const adminInitSchema = z.object({
     email: emailSchema,
     name: nameSchema,
-    password: simplePasswordSchema, // Utilise le schéma simple pour ne pas bloquer l'init
+    password: passwordSchema, // Politique de mot de passe renforcée OWASP
 });
 
 /**

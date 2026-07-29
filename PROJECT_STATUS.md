@@ -212,11 +212,17 @@
 
 ### P3 — Futur (backlog)
 
-- [ ] **TASK-013** : Force mot de passe renforcée
+- [x] **TASK-013** : Force mot de passe renforcée
+    - Fichiers : `src/lib/validation.ts`, `tests/unit/validation.test.ts`
+    - Statut : ✅ Terminé (Politique OWASP appliquée sur adminInitSchema & createUserSchema : 12 caractères min, majuscule, minuscule, chiffre et symbole obligatoire)
 - [ ] **TASK-014** : Documentation OpenAPI/Swagger
 - [ ] **TASK-015** : Intégration payment gateway
-- [ ] **TASK-016** : Analytics (Vercel Analytics)
-- [ ] **TASK-017** : SEO avancé (sitemap, structured data)
+- [x] **TASK-018** : Analytics Métier & Mode Démo (Données JSON & Injection BDD)
+    - Fichiers : `prisma/demo-data.json`, `src/app/actions/demo-actions.ts`, `src/components/features/admin/DemoModeControl.tsx`, `src/app/admin/dashboard/page.tsx`
+    - Statut : ✅ Terminé (Jeux de données réelles BTP/Logistique, Server Actions d'injection et purge, composant UI d'activation en 1-clic)
+- [x] **TASK-017** : SEO avancé (sitemap, robots.txt, structured data)
+    - Fichiers : `src/app/sitemap.ts`, `src/app/robots.ts`, `src/components/layout/JsonLd.tsx`, `src/app/layout.tsx`
+    - Statut : ✅ Terminé (Sitemap XML dynamique, robots.txt avec exclusion des routes admin/api, métadonnées OpenGraph & données structurées Schema.org LogisticsService)
 
 ---
 
@@ -224,23 +230,23 @@
 
 | Service             | Statut       | Config                       | Client               | Notes                                   |
 | ------------------- | ------------ | ---------------------------- | -------------------- | --------------------------------------- |
-| Supabase PostgreSQL | ✅ Configuré | `DATABASE_URL`, `DIRECT_URL` | `src/lib/prisma.ts`  | Singleton Prisma                        |
-| Better-Auth         | ✅ Configuré | —                            | `src/lib/auth.ts`    | Email/Password, rôles (admin/user)      |
-| Upstash Redis       | ✅ Configuré | `UPSTASH_*`                  | `src/lib/redis.ts`   | Rate limiting dans middleware           |
-| Upstash QStash      | ⚠️ Partiel   | `QSTASH_TOKEN`               | `src/lib/qstash.ts`  | Client initialisé, workers manquants    |
-| Tigris S3           | ⚠️ Partiel   | `TIGRIS_*`                   | `src/lib/storage.ts` | Client initialisé, upload à implémenter |
-| Resend              | ⚠️ Partiel   | `RESEND_KEY`                 | `src/lib/email.ts`   | Client initialisé, templates partiels   |
+| Supabase PostgreSQL | ✅ Configuré | `DATABASE_URL`, `DIRECT_URL` | `src/lib/prisma.ts`  | Singleton Prisma, RLS actif             |
+| Better-Auth         | ✅ Configuré | `BETTER_AUTH_*`              | `src/lib/auth.ts`    | Email/Password, rôles (admin/user)      |
+| Upstash Redis       | ✅ Configuré | `UPSTASH_*`                  | `src/lib/redis.ts`   | Rate limiting configurable              |
+| Upstash QStash      | ✅ Configuré | `QSTASH_TOKEN`               | `src/lib/qstash.ts`  | Queues async Email & PDF + Workers      |
+| Tigris S3           | ✅ Configuré | `TIGRIS_*`                   | `src/lib/storage.ts` | Upload par URLs signées & FileUpload UI |
+| Resend              | ✅ Configuré | `RESEND_KEY`                 | `src/lib/email.ts`   | Templates React Email HTML typés        |
 | Gemini AI           | ✅ Configuré | `GEMINI_API_KEY`             | `src/lib/gemini.ts`  | Support chat, fallback mock             |
 
 ---
 
 ## Dettes Techniques
 
-| ID     | Description                                                                        | Fichier                                  | Impact                           |
+| ID     | Description                                                                        | Fichier                                  | Statut                           |
 | ------ | ---------------------------------------------------------------------------------- | ---------------------------------------- | -------------------------------- |
-| DT-001 | `quote-storage.ts` utilise encore `localStorage` pour certaines pages admin        | `src/lib/quote-storage.ts`               | Migration vers Prisma nécessaire |
-| DT-002 | Erreurs Prisma détectées par `constructor.name.includes()` au lieu de `instanceof` | `src/app/api/admin/`, `src/app/actions/` | Fragile avec minification        |
-| DT-003 | Rate limiting hardcodé (20 req/10s) au lieu de via env vars                        | `middleware.ts`                          | Pas configurable par env         |
-| DT-004 | Pas de tests automatisés                                                           | —                                        | Risque de régression             |
-| DT-005 | Pas de monitoring en production                                                    | —                                        | Erreurs silencieuses             |
-| DT-006 | README.md encore en "Phase 1" alors que Phase 2 est en cours                       | `README.md`                              | Documentation décalée            |
+| DT-001 | Nettoyage final du fallback `quote-storage.ts` vers 100% Prisma Server Actions    | `src/lib/quote-storage.ts`               | ⏳ Optionnel / Obsolète         |
+| DT-002 | Erreurs Prisma résolues avec `instanceof`                                          | `src/app/actions/`                       | ✅ Résolu (TASK-002)             |
+| DT-003 | Rate limiting configurable via `process.env`                                       | `middleware.ts`                          | ✅ Résolu (TASK-009)             |
+| DT-004 | Suite de 32 tests automatisés Vitest                                               | `tests/`                                 | ✅ Résolu (TASK-001)             |
+| DT-005 | Logging structuré Pino & Monitoring centralisé                                     | `src/lib/logger.ts`                      | ✅ Résolu (TASK-010)             |
+| DT-006 | README.md & Documentation à jour                                                   | `README.md`, `CHANGELOG.md`              | ✅ Résolu (V1 Release)           |

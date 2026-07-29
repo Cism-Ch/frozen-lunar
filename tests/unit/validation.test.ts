@@ -6,6 +6,7 @@ import {
     nameSchema,
     roleSchema,
     createUserSchema,
+    adminInitSchema,
     validateData,
 } from "@/lib/validation";
 
@@ -96,6 +97,26 @@ describe("Validation Schemas (Zod)", () => {
             expect(() => roleSchema.parse("superuser")).toThrow(
                 "Rôle invalide"
             );
+        });
+    });
+
+    describe("adminInitSchema (TASK-013)", () => {
+        it("should accept compliant strong password for admin initialization", () => {
+            const result = adminInitSchema.safeParse({
+                email: "admin@hbc-logistique.fr",
+                name: "Super Admin",
+                password: "AdminPassword2026!",
+            });
+            expect(result.success).toBe(true);
+        });
+
+        it("should reject weak password for admin initialization", () => {
+            const result = adminInitSchema.safeParse({
+                email: "admin@hbc-logistique.fr",
+                name: "Super Admin",
+                password: "admin",
+            });
+            expect(result.success).toBe(false);
         });
     });
 

@@ -7,9 +7,24 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- **Politique de mot de passe renforcée (OWASP)** (`TASK-013`) :
+    - Application de la politique stricte de mot de passe OWASP sur `adminInitSchema` et `createUserSchema` dans `src/lib/validation.ts` (12 caractères minimum, majuscule, minuscule, chiffre et caractère spécial requis).
+    - Ajout des tests unitaires de validation dans `tests/unit/validation.test.ts`.
+
+- **SEO Avancé & Données Structurées Schema.org** (`TASK-017`) :
+    - Fichier `src/app/sitemap.ts` pour la génération dynamique du sitemap XML de toutes les pages publiques (`/`, `/services`, `/devis`, `/about`, `/contact`, `/legal/`).
+    - Fichier `src/app/robots.ts` interdisant l'indexation des routes sensibles (`/admin/`, `/api/`) et fournissant l'URL du sitemap.
+    - Composant `JsonLd.tsx` injectant le schéma Schema.org `LogisticsService` & `LocalBusiness` pour les rich snippets Google.
+    - Métadonnées globales enrichies dans `src/app/layout.tsx` (OpenGraph, Twitter Cards, mots-clés logistiques).
+
+- **Analytics Métier & Mode Démo Activable en 1-Clic** (`TASK-018`) :
+    - Création du jeu de données démo réelles `prisma/demo-data.json` simulant 8 demandes de devis réelles d'entreprises majeures du BTP (Vinci, Eiffage, Bouygues, SNCF, Nexity).
+    - Server Actions `injectDemoDataAction` et `clearDemoDataAction` dans `src/app/actions/demo-actions.ts` pour peupler et purger directement la base PostgreSQL.
+    - Composant UI `DemoModeControl.tsx` intégré en haut du tableau de bord admin (`/admin/dashboard`) pour activer la démonstration en 1-clic avec notifications sonner et synchronisation Supabase Realtime.
+
 ### Planned
 - Intégration de Sentry pour la télémétrie de production.
-- SEO avancé (Structured Data & Sitemap dynamique).
 
 ---
 

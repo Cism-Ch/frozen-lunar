@@ -34,6 +34,8 @@ import {
 } from "@/components/ui/motion";
 import { getQuotesAction } from "@/app/actions/quote-management";
 import { useRealtimeQuotes } from "@/hooks/useRealtimeQuotes";
+import { DemoModeControl } from "@/components/features/admin/DemoModeControl";
+import { BusinessAnalytics } from "@/components/features/admin/BusinessAnalytics";
 
 export default function DashboardPage() {
     const [quotes, setQuotes] = useState<Quote[]>([]);
@@ -136,6 +138,9 @@ export default function DashboardPage() {
                 </div>
             </FadeIn>
 
+            {/* Mode Démo & Injection de Données Test */}
+            <DemoModeControl />
+
             {/* Stats Grid */}
             <StaggerContainer
                 className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
@@ -179,6 +184,9 @@ export default function DashboardPage() {
                     </StaggerItem>
                 ))}
             </StaggerContainer>
+
+            {/* Business Intelligence & Analytics Métier */}
+            <BusinessAnalytics quotes={quotes} />
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
                 {/* Revenue Chart Placeholder */}

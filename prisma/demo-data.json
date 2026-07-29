@@ -1,0 +1,137 @@
+[
+    {
+        "clientName": "Vinci Construction France",
+        "email": "logistique@vinci-construction.fr",
+        "phone": "01 47 16 30 00",
+        "itemType": "Charpentes métalliques lourdes (22m)",
+        "pickupLocation": "Port de Marseille Fos, 13015 Marseille",
+        "dropoffLocation": "Chantier Tour Horizon, 69003 Lyon",
+        "transportDate": "2026-07-28T08:00:00.000Z",
+        "status": "VALIDATED",
+        "amount": "4 850 €",
+        "userNotes": "Livraison matinale impérative avant 9h. Convoi exceptionnel de Catégorie 2.",
+        "source": "FORM",
+        "supplementaryInfo": {
+            "weightTonnes": 18.5,
+            "urgent": true,
+            "craneRequired": true
+        }
+    },
+    {
+        "clientName": "Eiffage Infrastructures",
+        "email": "approvisionnement@eiffage.com",
+        "phone": "04 72 81 40 50",
+        "itemType": "Container Maritime 40ft High Cube",
+        "pickupLocation": "Le Havre Port 2000, 76600 Le Havre",
+        "dropoffLocation": "Zone Industrielle Nord, 59000 Lille",
+        "transportDate": "2026-07-29T10:30:00.000Z",
+        "status": "PENDING",
+        "amount": "2 100 €",
+        "userNotes": "Châssis porte-conteneur à prévoir sur site.",
+        "source": "CHAT",
+        "supplementaryInfo": {
+            "containerType": "40ft HC",
+            "hazardous": false
+        }
+    },
+    {
+        "clientName": "Bouygues Bâtiment Grand Ouest",
+        "email": "logistique.ouest@bouygues-construction.com",
+        "phone": "02 40 92 11 22",
+        "itemType": "Modules préfabriqués d'habitation (4 unités)",
+        "pickupLocation": "Usine Algeco, 44000 Nantes",
+        "dropoffLocation": "Base de vie Eco-Quartier, 35000 Rennes",
+        "transportDate": "2026-07-30T07:30:00.000Z",
+        "status": "VALIDATED",
+        "amount": "6 400 €",
+        "userNotes": "Transport par camion plateau de grande longueur.",
+        "source": "FORM",
+        "supplementaryInfo": {
+            "unitsCount": 4,
+            "escortCar": true
+        }
+    },
+    {
+        "clientName": "Nexity Immobilier Pro",
+        "email": "direction.logistique@nexity.fr",
+        "phone": "01 85 55 12 34",
+        "itemType": "Matériaux de construction & Palettes de parpaings",
+        "pickupLocation": "Carrière Point P, 31000 Toulouse",
+        "dropoffLocation": "Chantier Résidence Les Pins, 33000 Bordeaux",
+        "transportDate": "2026-08-01T09:00:00.000Z",
+        "status": "PENDING",
+        "amount": "1 650 €",
+        "userNotes": "Chargement le vendredi après-midi, livraison samedi matin.",
+        "source": "FORM",
+        "supplementaryInfo": {
+            "palletsCount": 24,
+            "forkliftNeeded": true
+        }
+    },
+    {
+        "clientName": "SNCF Réseau Logistique",
+        "email": "fret.matériel@sncf.fr",
+        "phone": "01 53 25 60 00",
+        "itemType": "Pelle mécanique Caterpillar 320 (23T)",
+        "pickupLocation": "Dépôt SNCF, 67000 Strasbourg",
+        "dropoffLocation": "Voie Férrée Secteur Est, 57000 Metz",
+        "transportDate": "2026-08-02T14:00:00.000Z",
+        "status": "VALIDATED",
+        "amount": "3 900 €",
+        "userNotes": "Porte-engin surbaissé indispensable. Arrimage certifié.",
+        "source": "CHAT",
+        "supplementaryInfo": {
+            "equipmentWeight": 23,
+            "oversized": true
+        }
+    },
+    {
+        "clientName": "SOGEA environnement",
+        "email": "contact@sogea-vinci.com",
+        "phone": "05 56 00 12 88",
+        "itemType": "Tuyaux fonte d'adduction d'eau DN800",
+        "pickupLocation": "Usine Saint-Gobain, 54000 Nancy",
+        "dropoffLocation": "Station de Pompage, 34000 Montpellier",
+        "transportDate": "2026-07-25T11:00:00.000Z",
+        "status": "REJECTED",
+        "amount": "2 800 €",
+        "userNotes": "Transport décliné en raison d'incompatibilité de planning.",
+        "source": "FORM",
+        "supplementaryInfo": {
+            "rejectionReason": "Planning indisponible aux dates demandées"
+        }
+    },
+    {
+        "clientName": "NGE BTP & Génie Civil",
+        "email": "logistique@nge.fr",
+        "phone": "04 90 44 80 00",
+        "itemType": "Bungalows de chantier & Groupes électrogènes",
+        "pickupLocation": "Parc matériel NGE, 13100 Aix-en-Provence",
+        "dropoffLocation": "Chantier Autoroutier A8, 06000 Nice",
+        "transportDate": "2026-08-03T06:00:00.000Z",
+        "status": "PENDING",
+        "amount": " À calculer",
+        "userNotes": "Demande en cours d'étude tarifaire par notre expert.",
+        "source": "CHAT",
+        "supplementaryInfo": {
+            "needsQuoteReview": true
+        }
+    },
+    {
+        "clientName": "Etablissements Moreau Bois & Charpente",
+        "email": "g.moreau@moreau-bois.fr",
+        "phone": "03 20 55 99 11",
+        "itemType": "Poutres en bois lamellé-collé (16m)",
+        "pickupLocation": "Scierie des Vosges, 88000 Épinal",
+        "dropoffLocation": "Chantier Gymnase Municipal, 75015 Paris",
+        "transportDate": "2026-08-04T08:30:00.000Z",
+        "status": "VALIDATED",
+        "amount": "2 950 €",
+        "userNotes": "Protection bâchée intégrale requise contre la pluie.",
+        "source": "FORM",
+        "supplementaryInfo": {
+            "tarpedCovering": true,
+            "woodLengthMeters": 16
+        }
+    }
+]
