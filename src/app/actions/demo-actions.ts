@@ -100,7 +100,10 @@ export async function clearDemoDataAction() {
             error: null,
         };
     } catch (error: unknown) {
-        console.error("❌ Erreur lors de la suppression des données démo:", error);
+        console.error(
+            "❌ Erreur lors de la suppression des données démo:",
+            error
+        );
         return {
             data: null,
             error: handleError(error).message,

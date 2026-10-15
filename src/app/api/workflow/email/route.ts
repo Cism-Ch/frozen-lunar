@@ -20,7 +20,8 @@ async function handler(req: NextRequest) {
             quoteId,
         } = body;
 
-        const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || "contact@hbc-logistique.fr";
+        const adminEmail =
+            process.env.ADMIN_NOTIFICATION_EMAIL || "contact@hbc-logistique.fr";
 
         if (type === "client_confirmation") {
             // Envoi de la confirmation au client
@@ -40,10 +41,16 @@ async function handler(req: NextRequest) {
 
             if (error) {
                 console.error("Resend Client Confirmation Error:", error);
-                return NextResponse.json({ error: error.message }, { status: 500 });
+                return NextResponse.json(
+                    { error: error.message },
+                    { status: 500 }
+                );
             }
 
-            return NextResponse.json({ status: "Client confirmation email sent", data });
+            return NextResponse.json({
+                status: "Client confirmation email sent",
+                data,
+            });
         }
 
         // Par défaut: notification administrateur
@@ -68,18 +75,25 @@ async function handler(req: NextRequest) {
             return NextResponse.json({ error: error.message }, { status: 500 });
         }
 
-        return NextResponse.json({ status: "Admin notification email sent", data });
+        return NextResponse.json({
+            status: "Admin notification email sent",
+            data,
+        });
     } catch (err: unknown) {
         console.error("Email Workflow Error:", err);
         return NextResponse.json(
-            { error: err instanceof Error ? err.message : "Internal Server Error" },
+            {
+                error:
+                    err instanceof Error
+                        ? err.message
+                        : "Internal Server Error",
+            },
             { status: 500 }
         );
     }
 }
 
 // Sécurise la route en production via QStash signature
-export const POST =
-    process.env.QSTASH_CURRENT_SIGNING_KEY
-        ? verifySignatureAppRouter(handler)
-        : handler;
+export const POST = process.env.QSTASH_CURRENT_SIGNING_KEY
+    ? verifySignatureAppRouter(handler)
+    : handler;

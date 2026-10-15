@@ -2,10 +2,19 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+    CardDescription,
+} from "@/components/ui/card";
 import { Sparkles, Trash2, Database, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-import { injectDemoDataAction, clearDemoDataAction } from "@/app/actions/demo-actions";
+import {
+    injectDemoDataAction,
+    clearDemoDataAction,
+} from "@/app/actions/demo-actions";
 
 export function DemoModeControl() {
     const [loadingInject, setLoadingInject] = useState(false);
@@ -52,10 +61,14 @@ export function DemoModeControl() {
             <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
                     <Database className="text-primary h-5 w-5" />
-                    <CardTitle className="text-lg font-bold">Mode Démo & Données Test</CardTitle>
+                    <CardTitle className="text-lg font-bold">
+                        Mode Démo & Données Test
+                    </CardTitle>
                 </div>
                 <CardDescription>
-                    Injectez des demandes de devis réalistes (compagnies du BTP, fret lourd, transport spécialisé) directement en base PostgreSQL pour tester l&apos;interface admin.
+                    Injectez des demandes de devis réalistes (compagnies du BTP,
+                    fret lourd, transport spécialisé) directement en base
+                    PostgreSQL pour tester l&apos;interface admin.
                 </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-wrap items-center gap-3">

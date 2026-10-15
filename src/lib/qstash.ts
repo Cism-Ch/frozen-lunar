@@ -9,9 +9,7 @@ if (!qstashToken) {
     );
 }
 
-export const qstash = qstashToken
-    ? new Client({ token: qstashToken })
-    : null;
+export const qstash = qstashToken ? new Client({ token: qstashToken }) : null;
 
 export interface EmailWorkflowPayload {
     type: "admin_notification" | "client_confirmation";
@@ -39,7 +37,9 @@ export interface PdfWorkflowPayload {
 export const emailQueue = {
     enqueue: async (payload: EmailWorkflowPayload) => {
         if (!qstash) {
-            console.log("ℹ️ QStash non configuré. Envoi différé simulé en dev.");
+            console.log(
+                "ℹ️ QStash non configuré. Envoi différé simulé en dev."
+            );
             return { messageId: "dev-mock-id" };
         }
 

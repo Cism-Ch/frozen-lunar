@@ -1,7 +1,4 @@
-import {
-    S3Client,
-    PutObjectCommand,
-} from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const S3_BUCKET_NAME = process.env.TIGRIS_BUCKET_NAME || "frozen-lunar-bucket";
@@ -48,7 +45,9 @@ export async function getUploadUrl(
     expiresIn = 300
 ): Promise<string> {
     if (!hasTigrisConfig) {
-        console.log("ℹ️ Tigris non configuré. URL pré-signée simulée pour dev.");
+        console.log(
+            "ℹ️ Tigris non configuré. URL pré-signée simulée pour dev."
+        );
         return `http://localhost:3000/api/mock-upload?key=${encodeURIComponent(key)}`;
     }
 

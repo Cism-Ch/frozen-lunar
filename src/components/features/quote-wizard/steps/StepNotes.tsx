@@ -12,7 +12,10 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useFormContext } from "react-hook-form";
 import { MessageSquare, Paperclip } from "lucide-react";
-import { FileUpload, type UploadedFile } from "@/components/features/FileUpload";
+import {
+    FileUpload,
+    type UploadedFile,
+} from "@/components/features/FileUpload";
 
 export function StepNotes() {
     const { control, getValues, setValue } = useFormContext();
@@ -23,9 +26,13 @@ export function StepNotes() {
         const currentNotes = (getValues("userNotes") as string) || "";
         const attachmentTag = `\n\n[Pièce jointe : ${file.fileName} (${file.publicUrl})]`;
         if (!currentNotes.includes(file.publicUrl)) {
-            setValue("userNotes", (currentNotes.trim() + attachmentTag).trim(), {
-                shouldDirty: true,
-            });
+            setValue(
+                "userNotes",
+                (currentNotes.trim() + attachmentTag).trim(),
+                {
+                    shouldDirty: true,
+                }
+            );
         }
     };
 
@@ -55,7 +62,8 @@ export function StepNotes() {
                 <div>
                     <h3 className="font-medium">Notes & Pièces jointes</h3>
                     <p className="text-muted-foreground text-sm">
-                        Facultatif - précisions utiles pour affiner l&apos;estimation
+                        Facultatif - précisions utiles pour affiner
+                        l&apos;estimation
                     </p>
                 </div>
             </div>
@@ -76,7 +84,8 @@ export function StepNotes() {
                             />
                         </FormControl>
                         <FormDescription>
-                            Décrivez toute contrainte d&apos;accès ou spécificité technique utile.
+                            Décrivez toute contrainte d&apos;accès ou
+                            spécificité technique utile.
                         </FormDescription>
                         <FormMessage />
                     </FormItem>
@@ -86,9 +95,10 @@ export function StepNotes() {
             {/* File Upload for plans, schemas, or cargo photos */}
             <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                    <Paperclip className="h-4 w-4 text-primary" />
+                    <Paperclip className="text-primary h-4 w-4" />
                     <span className="text-sm font-medium">
-                        Ajouter un document (plan de chargement, fiche technique, photo)
+                        Ajouter un document (plan de chargement, fiche
+                        technique, photo)
                     </span>
                 </div>
                 <FileUpload
@@ -102,7 +112,9 @@ export function StepNotes() {
 
             <div className="bg-primary/5 border-primary/20 rounded-lg border p-4">
                 <p className="text-muted-foreground text-sm">
-                    💡 <strong>Conseil :</strong> Plus vous fournissez de détails (plans de masse, photos d&apos;accès, dimensions exactes), plus notre cotation sera précise et rapide.
+                    💡 <strong>Conseil :</strong> Plus vous fournissez de
+                    détails (plans de masse, photos d&apos;accès, dimensions
+                    exactes), plus notre cotation sera précise et rapide.
                 </p>
             </div>
         </div>

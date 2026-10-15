@@ -16,11 +16,11 @@
 
 ## Avancement des Phases
 
-| Phase | Nom                 | Statut      | Progression | Notes                                                            |
-| ----- | ------------------- | ----------- | ----------- | ---------------------------------------------------------------- |
-| 1     | UI Implementation   | ✅ Terminé  | 100%        | Landing page, admin, wizard devis, support chat, thèmes          |
-| 2     | Backend Integration | ✅ Terminé  | 100%        | Auth ✅, Quotes CRUD ✅, QStash/Email/S3/Realtime/Pino/RLS ✅     |
-| 3     | Production Ready    | 🔄 En cours | ~35%        | Tests Vitest ✅, CI/CD GitHub Actions ✅, Security ✅           |
+| Phase | Nom                 | Statut      | Progression | Notes                                                         |
+| ----- | ------------------- | ----------- | ----------- | ------------------------------------------------------------- |
+| 1     | UI Implementation   | ✅ Terminé  | 100%        | Landing page, admin, wizard devis, support chat, thèmes       |
+| 2     | Backend Integration | ✅ Terminé  | 100%        | Auth ✅, Quotes CRUD ✅, QStash/Email/S3/Realtime/Pino/RLS ✅ |
+| 3     | Production Ready    | 🔄 En cours | ~35%        | Tests Vitest ✅, CI/CD GitHub Actions ✅, Security ✅         |
 
 ---
 
@@ -245,11 +245,11 @@
 
 ## Dettes Techniques
 
-| ID     | Description                                                                        | Fichier                                  | Statut                           |
-| ------ | ---------------------------------------------------------------------------------- | ---------------------------------------- | -------------------------------- |
-| DT-001 | Nettoyage final du fallback `quote-storage.ts` vers 100% Prisma Server Actions    | `src/lib/quote-storage.ts`               | ⏳ Optionnel / Obsolète         |
-| DT-002 | Erreurs Prisma résolues avec `instanceof`                                          | `src/app/actions/`                       | ✅ Résolu (TASK-002)             |
-| DT-003 | Rate limiting configurable via `process.env`                                       | `middleware.ts`                          | ✅ Résolu (TASK-009)             |
-| DT-004 | Suite de 32 tests automatisés Vitest                                               | `tests/`                                 | ✅ Résolu (TASK-001)             |
-| DT-005 | Logging structuré Pino & Monitoring centralisé                                     | `src/lib/logger.ts`                      | ✅ Résolu (TASK-010)             |
-| DT-006 | README.md & Documentation à jour                                                   | `README.md`, `CHANGELOG.md`              | ✅ Résolu (V1 Release)           |
+| ID     | Description                                                                    | Fichier                     | Statut                  |
+| ------ | ------------------------------------------------------------------------------ | --------------------------- | ----------------------- |
+| DT-001 | Nettoyage final du fallback `quote-storage.ts` vers 100% Prisma Server Actions | `src/lib/quote-storage.ts`  | ⏳ Optionnel / Obsolète |
+| DT-002 | Erreurs Prisma résolues avec `instanceof`                                      | `src/app/actions/`          | ✅ Résolu (TASK-002)    |
+| DT-003 | Rate limiting configurable via `process.env`                                   | `middleware.ts`             | ✅ Résolu (TASK-009)    |
+| DT-004 | Suite de 32 tests automatisés Vitest                                           | `tests/`                    | ✅ Résolu (TASK-001)    |
+| DT-005 | Logging structuré Pino & Monitoring centralisé                                 | `src/lib/logger.ts`         | ✅ Résolu (TASK-010)    |
+| DT-006 | README.md & Documentation à jour                                               | `README.md`, `CHANGELOG.md` | ✅ Résolu (V1 Release)  |

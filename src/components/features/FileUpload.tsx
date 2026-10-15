@@ -38,7 +38,9 @@ export function FileUpload({
 
         // Size check
         if (file.size > maxSizeMb * 1024 * 1024) {
-            toast.error(`La taille du fichier dépasse la limite de ${maxSizeMb} Mo`);
+            toast.error(
+                `La taille du fichier dépasse la limite de ${maxSizeMb} Mo`
+            );
             return;
         }
 
@@ -55,7 +57,10 @@ export function FileUpload({
             });
 
             if (!presignedResult.success || !presignedResult.uploadUrl) {
-                throw new Error(presignedResult.error || "Impossible d'obtenir l'URL d'upload");
+                throw new Error(
+                    presignedResult.error ||
+                        "Impossible d'obtenir l'URL d'upload"
+                );
             }
 
             setProgress(50);
@@ -74,7 +79,9 @@ export function FileUpload({
                 });
 
                 if (!uploadResponse.ok) {
-                    throw new Error("Échec du téléversement du fichier sur le serveur S3");
+                    throw new Error(
+                        "Échec du téléversement du fichier sur le serveur S3"
+                    );
                 }
             }
 
@@ -92,7 +99,10 @@ export function FileUpload({
             onUploadSuccess?.(fileData);
         } catch (error: unknown) {
             console.error("Upload Error:", error);
-            const msg = error instanceof Error ? error.message : "Erreur lors du téléversement";
+            const msg =
+                error instanceof Error
+                    ? error.message
+                    : "Erreur lors du téléversement";
             toast.error(msg);
         } finally {
             setIsUploading(false);
@@ -147,31 +157,36 @@ export function FileUpload({
                     }}
                     onDragLeave={() => setIsDragging(false)}
                     onDrop={handleDrop}
-                    onClick={() => !isUploading && fileInputRef.current?.click()}
+                    onClick={() =>
+                        !isUploading && fileInputRef.current?.click()
+                    }
                     onKeyDown={(e) => {
-                        if (!isUploading && (e.key === "Enter" || e.key === " ")) {
+                        if (
+                            !isUploading &&
+                            (e.key === "Enter" || e.key === " ")
+                        ) {
                             e.preventDefault();
                             fileInputRef.current?.click();
                         }
                     }}
-                    className={`relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                    className={`focus-visible:ring-primary relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 transition-all duration-200 outline-none focus-visible:ring-2 ${
                         isUploading
-                            ? "cursor-not-allowed border-muted bg-muted/20 opacity-70"
+                            ? "border-muted bg-muted/20 cursor-not-allowed opacity-70"
                             : isDragging
                               ? "border-primary bg-primary/10 scale-[1.01]"
-                              : "border-border hover:border-primary/50 hover:bg-accent/40 cursor-pointer bg-card"
+                              : "border-border hover:border-primary/50 hover:bg-accent/40 bg-card cursor-pointer"
                     }`}
                 >
                     {isUploading ? (
                         <div className="flex flex-col items-center gap-3 py-2 text-center">
-                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                            <Loader2 className="text-primary h-8 w-8 animate-spin" />
                             <div className="space-y-1">
-                                <p className="text-sm font-medium text-foreground">
+                                <p className="text-foreground text-sm font-medium">
                                     Téléversement en cours ({progress}%)...
                                 </p>
-                                <div className="h-1.5 w-48 overflow-hidden rounded-full bg-muted">
+                                <div className="bg-muted h-1.5 w-48 overflow-hidden rounded-full">
                                     <div
-                                        className="h-full bg-primary transition-all duration-300"
+                                        className="bg-primary h-full transition-all duration-300"
                                         style={{ width: `${progress}%` }}
                                     />
                                 </div>
@@ -179,30 +194,33 @@ export function FileUpload({
                         </div>
                     ) : (
                         <div className="flex flex-col items-center gap-2 text-center">
-                            <div className="rounded-full bg-primary/10 p-3 text-primary">
+                            <div className="bg-primary/10 text-primary rounded-full p-3">
                                 <Upload className="h-6 w-6" />
                             </div>
-                            <p className="text-sm font-medium text-foreground">{label}</p>
-                            <p className="text-xs text-muted-foreground">
-                                Formats acceptés : PDF, PNG, JPG, WEBP (Max {maxSizeMb} Mo)
+                            <p className="text-foreground text-sm font-medium">
+                                {label}
+                            </p>
+                            <p className="text-muted-foreground text-xs">
+                                Formats acceptés : PDF, PNG, JPG, WEBP (Max{" "}
+                                {maxSizeMb} Mo)
                             </p>
                         </div>
                     )}
                 </div>
             ) : (
-                <div className="flex items-center justify-between rounded-xl border border-border bg-card p-4 shadow-sm">
+                <div className="border-border bg-card flex items-center justify-between rounded-xl border p-4 shadow-sm">
                     <div className="flex items-center gap-3">
-                        <div className="rounded-lg bg-primary/10 p-2.5 text-primary">
+                        <div className="bg-primary/10 text-primary rounded-lg p-2.5">
                             <FileText className="h-5 w-5" />
                         </div>
                         <div className="flex flex-col">
                             <div className="flex items-center gap-1.5">
-                                <span className="text-sm font-medium text-foreground max-w-[220px] truncate sm:max-w-xs">
+                                <span className="text-foreground max-w-[220px] truncate text-sm font-medium sm:max-w-xs">
                                     {uploadedFile.fileName}
                                 </span>
-                                <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
                             </div>
-                            <span className="text-xs text-muted-foreground">
+                            <span className="text-muted-foreground text-xs">
                                 {formatFileSize(uploadedFile.fileSize)}
                             </span>
                         </div>
@@ -210,7 +228,7 @@ export function FileUpload({
                     <button
                         type="button"
                         onClick={handleRemove}
-                        className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                        className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded-lg p-2 transition-colors"
                         title="Supprimer le fichier"
                         aria-label="Supprimer le fichier"
                     >

@@ -116,7 +116,7 @@ export const LocationPicker = React.forwardRef<
                             Sélectionnez l&apos;adresse exacte sur la carte.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="bg-muted/30 relative flex aspect-video items-center justify-center overflow-hidden rounded-xl border border-border/60">
+                    <div className="bg-muted/30 border-border/60 relative flex aspect-video items-center justify-center overflow-hidden rounded-xl border">
                         {/* Stylized vector map grid background */}
                         <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] opacity-70 dark:bg-[radial-gradient(#1f2937_1px,transparent_1px)]" />
                         <svg

@@ -196,7 +196,7 @@ export default function AboutPage() {
                 </SectionContainer>
 
                 {/* Stats Section */}
-                <SectionContainer className="bg-secondary text-secondary-foreground border-y border-border/20">
+                <SectionContainer className="bg-secondary text-secondary-foreground border-border/20 border-y">
                     <StaggerContainer
                         className="grid gap-8 text-center md:grid-cols-3"
                         staggerSpeed="fast"

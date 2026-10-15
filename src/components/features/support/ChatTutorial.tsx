@@ -87,7 +87,7 @@ export function ChatTutorial({ tutorial, className }: ChatTutorialProps) {
                         className="space-y-2"
                     >
                         <div className="flex items-center gap-2">
-                            <span className="bg-primary text-zinc-950 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold shadow-xs">
+                            <span className="bg-primary flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-zinc-950 shadow-xs">
                                 {currentStep + 1}
                             </span>
                             <h4 className="text-sm font-medium">

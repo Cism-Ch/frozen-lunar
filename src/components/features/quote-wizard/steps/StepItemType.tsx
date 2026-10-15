@@ -103,7 +103,7 @@ export function StepItemType() {
                         </FormItem>
 
                         <div>
-                            <p className="text-muted-foreground mb-3 text-xs font-medium uppercase tracking-wider">
+                            <p className="text-muted-foreground mb-3 text-xs font-medium tracking-wider uppercase">
                                 Ou sélection rapide
                             </p>
                             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -120,9 +120,9 @@ export function StepItemType() {
                                             }
                                             aria-pressed={isSelected}
                                             className={cn(
-                                                "relative flex flex-col items-center justify-center gap-2 rounded-xl border p-4 text-center transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                                                "focus-visible:ring-primary relative flex flex-col items-center justify-center gap-2 rounded-xl border p-4 text-center transition-all duration-200 outline-none focus-visible:ring-2",
                                                 isSelected
-                                                    ? "border-primary bg-primary/10 text-primary shadow-sm font-semibold ring-1 ring-primary/30"
+                                                    ? "border-primary bg-primary/10 text-primary ring-primary/30 font-semibold shadow-sm ring-1"
                                                     : "border-border/60 bg-card/60 text-muted-foreground hover:border-primary/40 hover:bg-muted/40 hover:text-foreground"
                                             )}
                                         >
@@ -131,7 +131,13 @@ export function StepItemType() {
                                                     <Check className="h-3 w-3 stroke-[3]" />
                                                 </div>
                                             )}
-                                            <Icon className={cn("h-6 w-6 transition-transform", isSelected && "scale-110 text-primary")} />
+                                            <Icon
+                                                className={cn(
+                                                    "h-6 w-6 transition-transform",
+                                                    isSelected &&
+                                                        "text-primary scale-110"
+                                                )}
+                                            />
                                             <span className="text-xs sm:text-sm">
                                                 {opt.shortLabel}
                                             </span>

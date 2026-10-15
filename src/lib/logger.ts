@@ -21,7 +21,11 @@ export const logger = {
     warn: (message: string, meta?: Record<string, unknown>) => {
         pinoLogger.warn(meta || {}, message);
     },
-    error: (message: string, error?: unknown, meta?: Record<string, unknown>) => {
+    error: (
+        message: string,
+        error?: unknown,
+        meta?: Record<string, unknown>
+    ) => {
         const errorMeta =
             error instanceof Error
                 ? {

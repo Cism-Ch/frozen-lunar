@@ -163,7 +163,9 @@ export function Header() {
                                 className="hover:bg-primary/10 md:hidden"
                             >
                                 <Menu className="h-6 w-6" />
-                                <span className="sr-only">Ouvrir le menu de navigation</span>
+                                <span className="sr-only">
+                                    Ouvrir le menu de navigation
+                                </span>
                             </Button>
                         </SheetTrigger>
 

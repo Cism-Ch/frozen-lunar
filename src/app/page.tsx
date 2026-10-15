@@ -119,7 +119,9 @@ export default function Home() {
                                             className="h-14 w-full px-8 text-lg font-semibold sm:w-auto"
                                             asChild
                                         >
-                                            <Link href="#services">Nos Services</Link>
+                                            <Link href="#services">
+                                                Nos Services
+                                            </Link>
                                         </Button>
                                     </motion.div>
                                 </div>
@@ -291,7 +293,7 @@ export default function Home() {
                             <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl md:text-5xl">
                                 Prêt à simplifier votre logistique ?
                             </h2>
-                            <p className="text-slate-200 text-lg leading-relaxed md:text-xl">
+                            <p className="text-lg leading-relaxed text-slate-200 md:text-xl">
                                 Obtenez votre devis gratuit en quelques secondes
                                 ou contactez-nous pour une solution sur mesure.
                             </p>
@@ -307,10 +309,12 @@ export default function Home() {
                                 >
                                     <Button
                                         size="lg"
-                                        className="bg-primary hover:bg-primary/90 text-primary-foreground h-14 px-8 text-lg font-semibold shadow-lg shadow-primary/25"
+                                        className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-primary/25 h-14 px-8 text-lg font-semibold shadow-lg"
                                         asChild
                                     >
-                                        <Link href="/devis">Demander un devis</Link>
+                                        <Link href="/devis">
+                                            Demander un devis
+                                        </Link>
                                     </Button>
                                 </motion.div>
                                 <motion.div
@@ -325,10 +329,12 @@ export default function Home() {
                                     <Button
                                         size="lg"
                                         variant="outline"
-                                        className="border-white/30 text-white hover:bg-white/10 hover:text-white h-14 border-2 bg-transparent px-8 text-lg font-semibold"
+                                        className="h-14 border-2 border-white/30 bg-transparent px-8 text-lg font-semibold text-white hover:bg-white/10 hover:text-white"
                                         asChild
                                     >
-                                        <Link href="/contact">Contactez-nous</Link>
+                                        <Link href="/contact">
+                                            Contactez-nous
+                                        </Link>
                                     </Button>
                                 </motion.div>
                             </div>

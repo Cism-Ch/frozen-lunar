@@ -63,7 +63,7 @@ export function StatsSection() {
                 {stats.map((stat) => (
                     <StaggerItem key={stat.label}>
                         <AnimatedCard hoverEffect="subtle">
-                            <Card className="bg-card border-border/80 hover:border-primary/50 group shadow-sm hover:shadow-md transition-all duration-300">
+                            <Card className="bg-card border-border/80 hover:border-primary/50 group shadow-sm transition-all duration-300 hover:shadow-md">
                                 <CardContent className="space-y-4 p-8 text-center">
                                     {/* Icon */}
                                     <IconFloat>

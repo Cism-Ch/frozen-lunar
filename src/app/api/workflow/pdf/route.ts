@@ -42,13 +42,17 @@ async function handler(req: NextRequest) {
     } catch (err: unknown) {
         console.error("PDF Worker Error:", err);
         return NextResponse.json(
-            { error: err instanceof Error ? err.message : "Internal Server Error" },
+            {
+                error:
+                    err instanceof Error
+                        ? err.message
+                        : "Internal Server Error",
+            },
             { status: 500 }
         );
     }
 }
 
-export const POST =
-    process.env.QSTASH_CURRENT_SIGNING_KEY
-        ? verifySignatureAppRouter(handler)
-        : handler;
+export const POST = process.env.QSTASH_CURRENT_SIGNING_KEY
+    ? verifySignatureAppRouter(handler)
+    : handler;

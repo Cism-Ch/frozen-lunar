@@ -1,7 +1,8 @@
 import React from "react";
 
 export function JsonLd() {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://hbc-logistique.fr";
+    const baseUrl =
+        process.env.NEXT_PUBLIC_APP_URL || "https://hbc-logistique.fr";
 
     const schemaData = {
         "@context": "https://schema.org",

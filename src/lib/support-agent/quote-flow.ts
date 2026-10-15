@@ -562,11 +562,15 @@ export function processFlowAnswer(
                 };
 
                 if (currentQ.type === "boolean") {
-                    (supplementaryInfo as Record<string, unknown>)[currentQ.field] =
+                    (supplementaryInfo as Record<string, unknown>)[
+                        currentQ.field
+                    ] =
                         answer.toLowerCase().includes("oui") ||
                         answer.toLowerCase() === "true";
                 } else {
-                    (supplementaryInfo as Record<string, unknown>)[currentQ.field] = answer;
+                    (supplementaryInfo as Record<string, unknown>)[
+                        currentQ.field
+                    ] = answer;
                 }
 
                 newState.data.supplementaryInfo = supplementaryInfo;

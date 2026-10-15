@@ -16,7 +16,8 @@ const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://hbc-logistique.fr";
 export const metadata: Metadata = {
     metadataBase: new URL(baseUrl),
     title: {
-        default: "HBC SERVICE CASH LOGISTIQUE IMMOBILIÈRE — Votre sécurité, Notre priorité",
+        default:
+            "HBC SERVICE CASH LOGISTIQUE IMMOBILIÈRE — Votre sécurité, Notre priorité",
         template: "%s | HBC Logistique",
     },
     description:

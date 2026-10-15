@@ -33,15 +33,22 @@ export function BusinessAnalytics({ quotes }: BusinessAnalyticsProps) {
 
         // 1. Répartition par statut
         const validated = quotes.filter(
-            (q) => String(q.status).toUpperCase() === "VALIDATED" || q.status === "Validé"
+            (q) =>
+                String(q.status).toUpperCase() === "VALIDATED" ||
+                q.status === "Validé"
         ).length;
         const pending = quotes.filter(
-            (q) => String(q.status).toUpperCase() === "PENDING" || q.status === "En attente"
+            (q) =>
+                String(q.status).toUpperCase() === "PENDING" ||
+                q.status === "En attente"
         ).length;
         const rejected = quotes.filter(
-            (q) => String(q.status).toUpperCase() === "REJECTED" || q.status === "Refusé"
+            (q) =>
+                String(q.status).toUpperCase() === "REJECTED" ||
+                q.status === "Refusé"
         ).length;
-        const conversionRate = total > 0 ? Math.round((validated / total) * 100) : 0;
+        const conversionRate =
+            total > 0 ? Math.round((validated / total) * 100) : 0;
 
         // 2. Répartition par canal (FORM vs CHAT)
         const chatSource = quotes.filter(
@@ -79,7 +86,10 @@ export function BusinessAnalytics({ quotes }: BusinessAnalyticsProps) {
             }
         });
 
-        const averageDealSize = validAmountCount > 0 ? Math.round(totalRevenue / validAmountCount) : 0;
+        const averageDealSize =
+            validAmountCount > 0
+                ? Math.round(totalRevenue / validAmountCount)
+                : 0;
 
         // 5. Top Villes Origine & Destination (pickup & dropoff)
         const locationCounts: Record<string, number> = {};
@@ -123,10 +133,14 @@ export function BusinessAnalytics({ quotes }: BusinessAnalyticsProps) {
                         Analytics Métier & Business Intelligence
                     </h2>
                     <p className="text-muted-foreground text-sm">
-                        Indicateurs de performance en temps réel calculés directement depuis votre base de données.
+                        Indicateurs de performance en temps réel calculés
+                        directement depuis votre base de données.
                     </p>
                 </div>
-                <Badge variant="outline" className="border-primary/30 text-primary px-3 py-1 font-mono text-xs">
+                <Badge
+                    variant="outline"
+                    className="border-primary/30 text-primary px-3 py-1 font-mono text-xs"
+                >
                     <TrendingUp className="mr-1 h-3 w-3" />
                     Données Souveraines RGPD
                 </Badge>
@@ -148,7 +162,13 @@ export function BusinessAnalytics({ quotes }: BusinessAnalyticsProps) {
                             {analytics.totalRevenue.toLocaleString("fr-FR")} €
                         </div>
                         <p className="text-muted-foreground mt-1 text-xs">
-                            Panier moyen : <span className="text-foreground font-semibold">{analytics.averageDealSize.toLocaleString("fr-FR")} €</span>
+                            Panier moyen :{" "}
+                            <span className="text-foreground font-semibold">
+                                {analytics.averageDealSize.toLocaleString(
+                                    "fr-FR"
+                                )}{" "}
+                                €
+                            </span>
                         </p>
                     </CardContent>
                 </Card>
@@ -168,7 +188,8 @@ export function BusinessAnalytics({ quotes }: BusinessAnalyticsProps) {
                             {analytics.conversionRate} %
                         </div>
                         <p className="text-muted-foreground mt-1 text-xs">
-                            {analytics.validated} validés sur {analytics.total} devis reçus
+                            {analytics.validated} validés sur {analytics.total}{" "}
+                            devis reçus
                         </p>
                     </CardContent>
                 </Card>
@@ -186,10 +207,12 @@ export function BusinessAnalytics({ quotes }: BusinessAnalyticsProps) {
                     <CardContent className="space-y-1">
                         <div className="flex justify-between text-xs">
                             <span className="flex items-center gap-1 font-medium">
-                                <Globe className="h-3 w-3 text-blue-500" /> Formulaire Web ({analytics.formSource})
+                                <Globe className="h-3 w-3 text-blue-500" />{" "}
+                                Formulaire Web ({analytics.formSource})
                             </span>
                             <span className="flex items-center gap-1 font-medium">
-                                <Bot className="h-3 w-3 text-purple-500" /> Chat IA ({analytics.chatSource})
+                                <Bot className="h-3 w-3 text-purple-500" /> Chat
+                                IA ({analytics.chatSource})
                             </span>
                         </div>
                         <div className="bg-muted flex h-2.5 overflow-hidden rounded-full">
@@ -222,10 +245,16 @@ export function BusinessAnalytics({ quotes }: BusinessAnalyticsProps) {
                     <CardContent>
                         <div className="flex flex-wrap gap-1">
                             {analytics.topLocations.length === 0 ? (
-                                <span className="text-muted-foreground text-xs">Aucune ville enregistrée</span>
+                                <span className="text-muted-foreground text-xs">
+                                    Aucune ville enregistrée
+                                </span>
                             ) : (
                                 analytics.topLocations.map((loc) => (
-                                    <Badge key={loc.city} variant="secondary" className="text-[11px]">
+                                    <Badge
+                                        key={loc.city}
+                                        variant="secondary"
+                                        className="text-[11px]"
+                                    >
                                         {loc.city} ({loc.count})
                                     </Badge>
                                 ))
@@ -240,10 +269,13 @@ export function BusinessAnalytics({ quotes }: BusinessAnalyticsProps) {
                 <CardHeader className="pb-3">
                     <div className="flex items-center gap-2">
                         <Layers className="text-primary h-5 w-5" />
-                        <CardTitle className="text-lg font-bold">Répartition par Type de Marchandise & Fret</CardTitle>
+                        <CardTitle className="text-lg font-bold">
+                            Répartition par Type de Marchandise & Fret
+                        </CardTitle>
                     </div>
                     <CardDescription>
-                        Analyse comparative des catégories de transports sollicités par les clients BTP et industriels.
+                        Analyse comparative des catégories de transports
+                        sollicités par les clients BTP et industriels.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -256,17 +288,26 @@ export function BusinessAnalytics({ quotes }: BusinessAnalyticsProps) {
                             {analytics.topItemTypes.map((item, index) => (
                                 <div key={item.type} className="space-y-1.5">
                                     <div className="flex justify-between text-xs font-medium">
-                                        <span className="text-foreground">{item.type}</span>
+                                        <span className="text-foreground">
+                                            {item.type}
+                                        </span>
                                         <span className="text-muted-foreground font-mono">
-                                            {item.count} demande{item.count > 1 ? "s" : ""} ({item.percentage}%)
+                                            {item.count} demande
+                                            {item.count > 1 ? "s" : ""} (
+                                            {item.percentage}%)
                                         </span>
                                     </div>
                                     <div className="bg-muted h-3 overflow-hidden rounded-full">
                                         <motion.div
                                             className="bg-primary h-full rounded-full"
                                             initial={{ width: 0 }}
-                                            animate={{ width: `${item.percentage}%` }}
-                                            transition={{ delay: index * 0.1, duration: 0.8 }}
+                                            animate={{
+                                                width: `${item.percentage}%`,
+                                            }}
+                                            transition={{
+                                                delay: index * 0.1,
+                                                duration: 0.8,
+                                            }}
                                         />
                                     </div>
                                 </div>

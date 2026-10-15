@@ -58,7 +58,9 @@ describe("Quote Management Server Actions", () => {
             vi.mocked(prisma.quote.create).mockResolvedValue(
                 mockQuoteFromDb as unknown as Quote
             );
-            vi.mocked(prisma.quoteHistory.create).mockResolvedValue({} as unknown as QuoteHistory);
+            vi.mocked(prisma.quoteHistory.create).mockResolvedValue(
+                {} as unknown as QuoteHistory
+            );
 
             const input = {
                 clientName: "HBC Client",
@@ -101,7 +103,11 @@ describe("Quote Management Server Actions", () => {
                 transportDate: "2026-08-01",
             };
 
-            const result = await createQuoteAction(invalidInput as unknown as Parameters<typeof createQuoteAction>[0]);
+            const result = await createQuoteAction(
+                invalidInput as unknown as Parameters<
+                    typeof createQuoteAction
+                >[0]
+            );
 
             expect(result.success).toBe(false);
             if (!result.success) {

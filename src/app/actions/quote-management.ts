@@ -3,7 +3,13 @@
 import { revalidatePath } from "next/cache";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
-import { QuoteStatus, QuoteSource, Prisma, Quote, QuoteHistory } from "@prisma/client";
+import {
+    QuoteStatus,
+    QuoteSource,
+    Prisma,
+    Quote,
+    QuoteHistory,
+} from "@prisma/client";
 import { handleError } from "@/lib/error-handler";
 import { emailQueue, pdfQueue } from "@/lib/qstash";
 
@@ -194,7 +200,10 @@ export async function createQuoteAction(
                 date: quote.date.toISOString(),
             });
         } catch (enqueueError: unknown) {
-            console.warn("⚠️ Warning: QStash enqueue non-blocking error:", enqueueError);
+            console.warn(
+                "⚠️ Warning: QStash enqueue non-blocking error:",
+                enqueueError
+            );
         }
 
         revalidatePath("/admin/quotes");

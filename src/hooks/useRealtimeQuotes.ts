@@ -12,9 +12,7 @@ const supabaseKey =
 
 // Dynamic singleton initialization with fallback guard
 const supabase =
-    supabaseUrl && supabaseKey
-        ? createClient(supabaseUrl, supabaseKey)
-        : null;
+    supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
 interface RealtimeOptions {
     onQuoteInserted?: (newQuote: unknown) => void;
@@ -38,7 +36,11 @@ export function useRealtimeQuotes(options?: RealtimeOptions) {
 
     const handleRealtimeEvent = useCallback(
         (payload: { eventType: string; new: unknown; old: unknown }) => {
-            console.log("⚡ Supabase Realtime Event:", payload.eventType, payload);
+            console.log(
+                "⚡ Supabase Realtime Event:",
+                payload.eventType,
+                payload
+            );
 
             if (payload.eventType === "INSERT") {
                 if (enableToast) {
@@ -83,7 +85,11 @@ export function useRealtimeQuotes(options?: RealtimeOptions) {
                 },
                 (payload) => {
                     handleRealtimeEvent(
-                        payload as unknown as { eventType: string; new: unknown; old: unknown }
+                        payload as unknown as {
+                            eventType: string;
+                            new: unknown;
+                            old: unknown;
+                        }
                     );
                 }
             )

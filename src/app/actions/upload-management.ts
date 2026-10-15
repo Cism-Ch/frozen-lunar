@@ -17,11 +17,18 @@ const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 Mo
 
 const presignedUrlSchema = z.object({
     fileName: z.string().min(1, "Nom du fichier requis"),
-    fileType: z.string().refine(
-        (type) => ALLOWED_MIME_TYPES.includes(type),
-        "Format de fichier non autorisé. Formats acceptés : PDF, JPG, PNG, WEBP"
-    ),
-    fileSize: z.number().max(MAX_FILE_SIZE_BYTES, "La taille du fichier ne doit pas dépasser 10 Mo"),
+    fileType: z
+        .string()
+        .refine(
+            (type) => ALLOWED_MIME_TYPES.includes(type),
+            "Format de fichier non autorisé. Formats acceptés : PDF, JPG, PNG, WEBP"
+        ),
+    fileSize: z
+        .number()
+        .max(
+            MAX_FILE_SIZE_BYTES,
+            "La taille du fichier ne doit pas dépasser 10 Mo"
+        ),
     folder: z.string().optional().default("attachments"),
 });
 
@@ -33,10 +40,17 @@ export async function getPresignedUploadUrlAction(input: unknown) {
         const validated = presignedUrlSchema.parse(input);
 
         // Sanitiniser le nom du fichier et générer une clé S3 unique
-        const sanitizedName = validated.fileName.replace(/[^a-zA-Z0-9.-]/g, "_");
+        const sanitizedName = validated.fileName.replace(
+            /[^a-zA-Z0-9.-]/g,
+            "_"
+        );
         const uniqueKey = `${validated.folder}/${Date.now()}_${sanitizedName}`;
 
-        const uploadUrl = await getUploadUrl(uniqueKey, validated.fileType, 300);
+        const uploadUrl = await getUploadUrl(
+            uniqueKey,
+            validated.fileType,
+            300
+        );
         const publicUrl = getPublicUrl(uniqueKey);
 
         return {

@@ -8,7 +8,13 @@ import {
     useTransform,
     animate,
 } from "framer-motion";
-import { useRef, useEffect, useState, useSyncExternalStore, ReactNode } from "react";
+import {
+    useRef,
+    useEffect,
+    useState,
+    useSyncExternalStore,
+    ReactNode,
+} from "react";
 import { cn } from "@/lib/utils";
 import * as animations from "@/lib/animations";
 

@@ -29,43 +29,67 @@ export const QuoteConfirmationEmail = ({
     date,
     quoteId,
 }: QuoteConfirmationEmailProps) => {
-    const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://hbc-logistique.fr";
+    const siteUrl =
+        process.env.NEXT_PUBLIC_APP_URL || "https://hbc-logistique.fr";
 
     return (
         <Html>
             <Head />
-            <Preview>Confirmation de votre demande de devis #{quoteId} - HBC Logistique</Preview>
+            <Preview>
+                Confirmation de votre demande de devis #{quoteId} - HBC
+                Logistique
+            </Preview>
             <Body style={main}>
                 <Container style={container}>
                     {/* Header Banner */}
                     <Section style={headerBanner}>
                         <Heading style={heading}>HBC LOGISTIQUE</Heading>
-                        <Text style={tagline}>Votre sécurité, Notre priorité</Text>
+                        <Text style={tagline}>
+                            Votre sécurité, Notre priorité
+                        </Text>
                     </Section>
 
                     <Section style={contentSection}>
                         <Text style={paragraph}>Bonjour {clientName},</Text>
                         <Text style={paragraph}>
-                            Nous avons bien reçu votre demande de devis et nous vous en remercions. 
-                            Notre équipe spécialisée étudie actuellement votre besoin de transport et reviendra vers vous sous 24h ouvrées avec une proposition sur mesure.
+                            Nous avons bien reçu votre demande de devis et nous
+                            vous en remercions. Notre équipe spécialisée étudie
+                            actuellement votre besoin de transport et reviendra
+                            vers vous sous 24h ouvrées avec une proposition sur
+                            mesure.
                         </Text>
 
                         {/* Order Summary Box */}
                         <Section style={summaryCard}>
-                            <Text style={cardTitle}>Récapitulatif de votre demande (#{quoteId})</Text>
+                            <Text style={cardTitle}>
+                                Récapitulatif de votre demande (#{quoteId})
+                            </Text>
                             <Hr style={cardHr} />
-                            <Text style={itemText}><strong>Prestation :</strong> {itemType}</Text>
-                            <Text style={itemText}><strong>Lieu de départ :</strong> {pickup}</Text>
-                            <Text style={itemText}><strong>Lieu d&apos;arrivée :</strong> {dropoff}</Text>
-                            <Text style={itemText}><strong>Date souhaitée :</strong> {date}</Text>
+                            <Text style={itemText}>
+                                <strong>Prestation :</strong> {itemType}
+                            </Text>
+                            <Text style={itemText}>
+                                <strong>Lieu de départ :</strong> {pickup}
+                            </Text>
+                            <Text style={itemText}>
+                                <strong>Lieu d&apos;arrivée :</strong> {dropoff}
+                            </Text>
+                            <Text style={itemText}>
+                                <strong>Date souhaitée :</strong> {date}
+                            </Text>
                         </Section>
 
                         <Text style={paragraph}>
-                            Vous pouvez suivre l&apos;avancement de votre dossier ou contacter directement nos équipes pour toute précision.
+                            Vous pouvez suivre l&apos;avancement de votre
+                            dossier ou contacter directement nos équipes pour
+                            toute précision.
                         </Text>
 
                         <Section style={buttonContainer}>
-                            <Button style={ctaButton} href={`${siteUrl}/contact`}>
+                            <Button
+                                style={ctaButton}
+                                href={`${siteUrl}/contact`}
+                            >
                                 Contacter un conseiller
                             </Button>
                         </Section>
@@ -73,9 +97,13 @@ export const QuoteConfirmationEmail = ({
                         <Hr style={hr} />
 
                         <Text style={footerText}>
-                            HBC SERVICE CASH LOGISTIQUE IMMOBILIÈRE<br />
-                            Transport de matériaux, containers, charpentes et machines industrielles.<br />
-                            Email : contact@hbc-logistique.fr | Tél : +33 1 00 00 00 00
+                            HBC SERVICE CASH LOGISTIQUE IMMOBILIÈRE
+                            <br />
+                            Transport de matériaux, containers, charpentes et
+                            machines industrielles.
+                            <br />
+                            Email : contact@hbc-logistique.fr | Tél : +33 1 00
+                            00 00 00
                         </Text>
                     </Section>
                 </Container>

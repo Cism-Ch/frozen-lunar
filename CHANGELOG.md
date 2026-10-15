@@ -8,6 +8,7 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 ## [Unreleased]
 
 ### Planned
+
 - Intégration de Sentry pour la télémétrie de production.
 
 ---
@@ -15,6 +16,7 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 ## [1.1.0] — 2026-10-15 — Version 1.1.0 (UI/UX Compliance & Feature Release)
 
 ### Added
+
 - **Remédiation Complète de Conformité UI/UX & Accessibilité WCAG** (`TASK-019`) :
     - **Accessibilité & Contraste WCAG 2.1 AA/AAA** :
         - Éradication des défauts de contraste texte blanc sur orange (`#ff6600`) : migration vers `bg-secondary` (Bleu profond, contraste >12:1) et fonds neutres dans `ProfessionalsCTA.tsx`, `StatsSection.tsx`, `src/app/page.tsx` et `src/app/about/page.tsx`.

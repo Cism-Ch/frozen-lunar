@@ -16,7 +16,8 @@ import { Redis } from "@upstash/redis";
 
 // Configuration du rate limiting (Configurable via variables d'environnement)
 const RATE_LIMIT_REQUESTS = Number(process.env.RATE_LIMIT_MAX_REQUESTS) || 20;
-const RATE_LIMIT_WINDOW_SECONDS = Number(process.env.RATE_LIMIT_WINDOW_SECONDS) || 10;
+const RATE_LIMIT_WINDOW_SECONDS =
+    Number(process.env.RATE_LIMIT_WINDOW_SECONDS) || 10;
 const RATE_LIMIT_WINDOW = `${RATE_LIMIT_WINDOW_SECONDS} s` as const;
 
 // Initialisation du Redis pour le Rate Limiting (Edge compatible)

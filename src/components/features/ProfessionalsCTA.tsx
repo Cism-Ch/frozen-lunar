@@ -31,10 +31,10 @@ export function ProfessionalsCTA() {
                     className="space-y-6 text-center lg:text-left"
                 >
                     <div className="space-y-4">
-                        <h2 className="text-3xl font-bold tracking-tight text-white text-balance sm:text-4xl md:text-5xl">
+                        <h2 className="text-3xl font-bold tracking-tight text-balance text-white sm:text-4xl md:text-5xl">
                             Vous êtes transporteur ?
                         </h2>
-                        <p className="text-slate-200 max-w-[90%] text-lg leading-relaxed md:text-xl">
+                        <p className="max-w-[90%] text-lg leading-relaxed text-slate-200 md:text-xl">
                             Rejoignez notre réseau et développez votre
                             clientèle. Inscription gratuite et sans engagement.
                         </p>
@@ -57,11 +57,11 @@ export function ProfessionalsCTA() {
                                                 stiffness: 400,
                                             }}
                                         >
-                                            <div className="bg-primary/20 flex h-6 w-6 items-center justify-center rounded-full text-primary">
+                                            <div className="bg-primary/20 text-primary flex h-6 w-6 items-center justify-center rounded-full">
                                                 <Check className="h-4 w-4" />
                                             </div>
                                         </motion.div>
-                                        <span className="text-slate-100 font-medium leading-relaxed">
+                                        <span className="leading-relaxed font-medium text-slate-100">
                                             {benefit}
                                         </span>
                                     </li>
@@ -78,7 +78,7 @@ export function ProfessionalsCTA() {
                     >
                         <Button
                             size="lg"
-                            className="bg-primary hover:bg-primary/90 text-primary-foreground group h-14 w-full px-8 text-lg font-semibold shadow-lg shadow-primary/25 sm:w-auto"
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground group shadow-primary/25 h-14 w-full px-8 text-lg font-semibold shadow-lg sm:w-auto"
                             asChild
                         >
                             <Link href="/contact">
@@ -92,18 +92,18 @@ export function ProfessionalsCTA() {
                 {/* Right Content - Stats Card */}
                 <ScrollReveal direction="right">
                     <AnimatedCard hoverEffect="subtle">
-                        <Card className="bg-white/5 border-white/10 text-white backdrop-blur-md shadow-2xl">
+                        <Card className="border-white/10 bg-white/5 text-white shadow-2xl backdrop-blur-md">
                             <CardContent className="p-8 md:p-10">
                                 <div className="space-y-8">
                                     <div className="space-y-2 text-center">
-                                        <div className="text-white text-5xl font-bold md:text-6xl">
+                                        <div className="text-5xl font-bold text-white md:text-6xl">
                                             <CountUp
                                                 to={500}
                                                 suffix="+"
                                                 duration={2.5}
                                             />
                                         </div>
-                                        <p className="text-slate-200 text-lg">
+                                        <p className="text-lg text-slate-200">
                                             Transporteurs partenaires
                                         </p>
                                     </div>
@@ -117,7 +117,7 @@ export function ProfessionalsCTA() {
                                                     duration={2}
                                                 />
                                             </div>
-                                            <p className="text-slate-300 text-sm">
+                                            <p className="text-sm text-slate-300">
                                                 Satisfaction client
                                             </p>
                                         </div>
@@ -125,13 +125,13 @@ export function ProfessionalsCTA() {
                                             <div className="text-primary text-3xl font-bold md:text-4xl">
                                                 24/7
                                             </div>
-                                            <p className="text-slate-300 text-sm">
+                                            <p className="text-sm text-slate-300">
                                                 Support disponible
                                             </p>
                                         </div>
                                     </div>
 
-                                    <p className="text-slate-300 border-white/10 border-t pt-4 text-center text-sm italic">
+                                    <p className="border-t border-white/10 pt-4 text-center text-sm text-slate-300 italic">
                                         La plateforme de confiance pour tous vos
                                         services de transport
                                     </p>

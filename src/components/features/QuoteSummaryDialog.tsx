@@ -9,12 +9,7 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import {
-    CheckCircle,
-    Calendar,
-    Package,
-    Truck,
-} from "lucide-react";
+import { CheckCircle, Calendar, Package, Truck } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
