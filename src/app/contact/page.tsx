@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { SectionContainer } from "@/components/layout/SectionContainer";
@@ -8,7 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { Mail, Phone, MapPin, Send } from "lucide-react";
+import { Mail, Phone, MapPin, Send, Loader2, CheckCircle2 } from "lucide-react";
+import { toast } from "sonner";
+import { sendContactMessageAction } from "@/app/actions/contact";
 import {
     FadeIn,
     ScrollReveal,
@@ -20,6 +23,15 @@ import {
 } from "@/components/ui/motion";
 
 export default function ContactPage() {
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isSubmitted, setIsSubmitted] = useState(false);
+    const [formData, setFormData] = useState({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        message: "",
+    });
     const contactInfo = [
         {
             icon: MapPin,
@@ -166,116 +178,226 @@ export default function ContactPage() {
                                             </p>
                                         </div>
 
-                                        <form className="space-y-4">
-                                            <motion.div
-                                                className="grid grid-cols-2 gap-4"
-                                                initial={{ opacity: 0, y: 10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{ delay: 0.2 }}
-                                            >
-                                                <div className="space-y-2">
-                                                    <label
-                                                        htmlFor="first-name"
-                                                        className="text-sm font-medium"
-                                                    >
-                                                        Prénom
-                                                    </label>
-                                                    <Input
-                                                        id="first-name"
-                                                        placeholder="Jean"
-                                                        className="h-12"
-                                                    />
+                                        {isSubmitted ? (
+                                            <div className="space-y-4 py-8 text-center animate-in fade-in-50 duration-500">
+                                                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
+                                                    <CheckCircle2 className="h-8 w-8" />
                                                 </div>
                                                 <div className="space-y-2">
-                                                    <label
-                                                        htmlFor="last-name"
-                                                        className="text-sm font-medium"
-                                                    >
-                                                        Nom
-                                                    </label>
-                                                    <Input
-                                                        id="last-name"
-                                                        placeholder="Dupont"
-                                                        className="h-12"
-                                                    />
+                                                    <h4 className="text-xl font-bold">Message envoyé avec succès !</h4>
+                                                    <p className="text-muted-foreground text-sm max-w-sm mx-auto">
+                                                        Merci pour votre prise de contact. Notre équipe étudie votre demande et vous répondra sous 24h ouvrées.
+                                                    </p>
                                                 </div>
-                                            </motion.div>
-
-                                            <motion.div
-                                                className="space-y-2"
-                                                initial={{ opacity: 0, y: 10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{ delay: 0.3 }}
-                                            >
-                                                <label
-                                                    htmlFor="email"
-                                                    className="text-sm font-medium"
-                                                >
-                                                    Email
-                                                </label>
-                                                <Input
-                                                    id="email"
-                                                    type="email"
-                                                    placeholder="jean.dupont@example.com"
-                                                    className="h-12"
-                                                />
-                                            </motion.div>
-
-                                            <motion.div
-                                                className="space-y-2"
-                                                initial={{ opacity: 0, y: 10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{ delay: 0.4 }}
-                                            >
-                                                <label
-                                                    htmlFor="phone"
-                                                    className="text-sm font-medium"
-                                                >
-                                                    Téléphone
-                                                </label>
-                                                <Input
-                                                    id="phone"
-                                                    type="tel"
-                                                    placeholder="+33 6 12 34 56 78"
-                                                    className="h-12"
-                                                />
-                                            </motion.div>
-
-                                            <motion.div
-                                                className="space-y-2"
-                                                initial={{ opacity: 0, y: 10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{ delay: 0.5 }}
-                                            >
-                                                <label
-                                                    htmlFor="message"
-                                                    className="text-sm font-medium"
-                                                >
-                                                    Message
-                                                </label>
-                                                <Textarea
-                                                    id="message"
-                                                    placeholder="Décrivez votre projet ou votre demande..."
-                                                    className="min-h-[150px] resize-none"
-                                                />
-                                            </motion.div>
-
-                                            <motion.div
-                                                initial={{ opacity: 0, y: 10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{ delay: 0.6 }}
-                                                whileHover={{ scale: 1.02 }}
-                                                whileTap={{ scale: 0.98 }}
-                                            >
                                                 <Button
-                                                    size="lg"
-                                                    className="group h-14 w-full text-lg font-semibold"
+                                                    variant="outline"
+                                                    onClick={() => {
+                                                        setIsSubmitted(false);
+                                                        setFormData({
+                                                            firstName: "",
+                                                            lastName: "",
+                                                            email: "",
+                                                            phone: "",
+                                                            message: "",
+                                                        });
+                                                    }}
+                                                    className="mt-4"
                                                 >
-                                                    Envoyer le message
-                                                    <Send className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                                                    Envoyer un autre message
                                                 </Button>
-                                            </motion.div>
-                                        </form>
+                                            </div>
+                                        ) : (
+                                            <form
+                                                onSubmit={async (e) => {
+                                                    e.preventDefault();
+                                                    setIsSubmitting(true);
+                                                    try {
+                                                        const result = await sendContactMessageAction(formData);
+                                                        if (result.error) {
+                                                            toast.error(result.error);
+                                                        } else {
+                                                            toast.success(result.data?.message || "Message envoyé avec succès");
+                                                            setIsSubmitted(true);
+                                                        }
+                                                    } catch (err: unknown) {
+                                                        console.error("Contact submit error:", err);
+                                                        toast.error("Une erreur est survenue lors de l'envoi");
+                                                    } finally {
+                                                        setIsSubmitting(false);
+                                                    }
+                                                }}
+                                                className="space-y-4"
+                                            >
+                                                <motion.div
+                                                    className="grid grid-cols-2 gap-4"
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ delay: 0.2 }}
+                                                >
+                                                    <div className="space-y-2">
+                                                        <label
+                                                            htmlFor="first-name"
+                                                            className="text-sm font-medium"
+                                                        >
+                                                            Prénom
+                                                        </label>
+                                                        <Input
+                                                            id="first-name"
+                                                            placeholder="Jean"
+                                                            className="h-12"
+                                                            required
+                                                            autoComplete="given-name"
+                                                            value={formData.firstName}
+                                                            onChange={(e) =>
+                                                                setFormData((prev) => ({
+                                                                    ...prev,
+                                                                    firstName: e.target.value,
+                                                                }))
+                                                            }
+                                                            disabled={isSubmitting}
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <label
+                                                            htmlFor="last-name"
+                                                            className="text-sm font-medium"
+                                                        >
+                                                            Nom
+                                                        </label>
+                                                        <Input
+                                                            id="last-name"
+                                                            placeholder="Dupont"
+                                                            className="h-12"
+                                                            required
+                                                            autoComplete="family-name"
+                                                            value={formData.lastName}
+                                                            onChange={(e) =>
+                                                                setFormData((prev) => ({
+                                                                    ...prev,
+                                                                    lastName: e.target.value,
+                                                                }))
+                                                            }
+                                                            disabled={isSubmitting}
+                                                        />
+                                                    </div>
+                                                </motion.div>
+
+                                                <motion.div
+                                                    className="space-y-2"
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ delay: 0.3 }}
+                                                >
+                                                    <label
+                                                        htmlFor="email"
+                                                        className="text-sm font-medium"
+                                                    >
+                                                        Email
+                                                    </label>
+                                                    <Input
+                                                        id="email"
+                                                        type="email"
+                                                        placeholder="jean.dupont@example.com"
+                                                        className="h-12"
+                                                        required
+                                                        autoComplete="email"
+                                                        value={formData.email}
+                                                        onChange={(e) =>
+                                                            setFormData((prev) => ({
+                                                                ...prev,
+                                                                email: e.target.value,
+                                                            }))
+                                                        }
+                                                        disabled={isSubmitting}
+                                                    />
+                                                </motion.div>
+
+                                                <motion.div
+                                                    className="space-y-2"
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ delay: 0.4 }}
+                                                >
+                                                    <label
+                                                        htmlFor="phone"
+                                                        className="text-sm font-medium"
+                                                    >
+                                                        Téléphone
+                                                    </label>
+                                                    <Input
+                                                        id="phone"
+                                                        type="tel"
+                                                        placeholder="+33 6 12 34 56 78"
+                                                        className="h-12"
+                                                        required
+                                                        autoComplete="tel"
+                                                        value={formData.phone}
+                                                        onChange={(e) =>
+                                                            setFormData((prev) => ({
+                                                                ...prev,
+                                                                phone: e.target.value,
+                                                            }))
+                                                        }
+                                                        disabled={isSubmitting}
+                                                    />
+                                                </motion.div>
+
+                                                <motion.div
+                                                    className="space-y-2"
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ delay: 0.5 }}
+                                                >
+                                                    <label
+                                                        htmlFor="message"
+                                                        className="text-sm font-medium"
+                                                    >
+                                                        Message
+                                                    </label>
+                                                    <Textarea
+                                                        id="message"
+                                                        placeholder="Décrivez votre projet ou votre demande..."
+                                                        className="min-h-[150px] resize-none"
+                                                        required
+                                                        value={formData.message}
+                                                        onChange={(e) =>
+                                                            setFormData((prev) => ({
+                                                                ...prev,
+                                                                message: e.target.value,
+                                                            }))
+                                                        }
+                                                        disabled={isSubmitting}
+                                                    />
+                                                </motion.div>
+
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ delay: 0.6 }}
+                                                    whileHover={{ scale: 1.02 }}
+                                                    whileTap={{ scale: 0.98 }}
+                                                >
+                                                    <Button
+                                                        type="submit"
+                                                        size="lg"
+                                                        disabled={isSubmitting}
+                                                        className="group h-14 w-full text-lg font-semibold"
+                                                    >
+                                                        {isSubmitting ? (
+                                                            <>
+                                                                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                                                Envoi en cours...
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                Envoyer le message
+                                                                <Send className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                                                            </>
+                                                        )}
+                                                    </Button>
+                                                </motion.div>
+                                            </form>
+                                        )}
                                     </CardContent>
                                 </Card>
                             </AnimatedCard>

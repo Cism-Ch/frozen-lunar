@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SectionContainer } from "@/components/layout/SectionContainer";
@@ -22,7 +23,7 @@ const benefits = [
 
 export function ProfessionalsCTA() {
     return (
-        <SectionContainer className="bg-primary text-primary-foreground">
+        <SectionContainer className="bg-secondary text-secondary-foreground relative overflow-hidden py-20 md:py-28">
             <div className="grid items-center gap-12 lg:grid-cols-2">
                 {/* Left Content */}
                 <ScrollReveal
@@ -30,10 +31,10 @@ export function ProfessionalsCTA() {
                     className="space-y-6 text-center lg:text-left"
                 >
                     <div className="space-y-4">
-                        <h2 className="text-3xl font-bold tracking-tight text-balance sm:text-4xl md:text-5xl">
+                        <h2 className="text-3xl font-bold tracking-tight text-white text-balance sm:text-4xl md:text-5xl">
                             Vous êtes transporteur ?
                         </h2>
-                        <p className="text-primary-foreground/90 max-w-[90%] text-lg leading-relaxed md:text-xl">
+                        <p className="text-slate-200 max-w-[90%] text-lg leading-relaxed md:text-xl">
                             Rejoignez notre réseau et développez votre
                             clientèle. Inscription gratuite et sans engagement.
                         </p>
@@ -56,11 +57,11 @@ export function ProfessionalsCTA() {
                                                 stiffness: 400,
                                             }}
                                         >
-                                            <div className="bg-primary-foreground/20 flex h-6 w-6 items-center justify-center rounded-full">
+                                            <div className="bg-primary/20 flex h-6 w-6 items-center justify-center rounded-full text-primary">
                                                 <Check className="h-4 w-4" />
                                             </div>
                                         </motion.div>
-                                        <span className="text-primary-foreground/90 leading-relaxed">
+                                        <span className="text-slate-100 font-medium leading-relaxed">
                                             {benefit}
                                         </span>
                                     </li>
@@ -77,14 +78,13 @@ export function ProfessionalsCTA() {
                     >
                         <Button
                             size="lg"
-                            variant="secondary"
-                            className="group h-14 w-full px-8 text-lg font-semibold sm:w-auto"
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground group h-14 w-full px-8 text-lg font-semibold shadow-lg shadow-primary/25 sm:w-auto"
                             asChild
                         >
-                            <a href="/contact">
+                            <Link href="/contact">
                                 Rejoindre le réseau
                                 <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-                            </a>
+                            </Link>
                         </Button>
                     </motion.div>
                 </ScrollReveal>
@@ -92,46 +92,46 @@ export function ProfessionalsCTA() {
                 {/* Right Content - Stats Card */}
                 <ScrollReveal direction="right">
                     <AnimatedCard hoverEffect="subtle">
-                        <Card className="bg-primary-foreground/10 border-primary-foreground/20 backdrop-blur">
+                        <Card className="bg-white/5 border-white/10 text-white backdrop-blur-md shadow-2xl">
                             <CardContent className="p-8 md:p-10">
                                 <div className="space-y-8">
                                     <div className="space-y-2 text-center">
-                                        <div className="text-5xl font-bold md:text-6xl">
+                                        <div className="text-white text-5xl font-bold md:text-6xl">
                                             <CountUp
                                                 to={500}
                                                 suffix="+"
                                                 duration={2.5}
                                             />
                                         </div>
-                                        <p className="text-primary-foreground/80 text-lg">
+                                        <p className="text-slate-200 text-lg">
                                             Transporteurs partenaires
                                         </p>
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-6">
                                         <div className="space-y-1 text-center">
-                                            <div className="text-3xl font-bold md:text-4xl">
+                                            <div className="text-primary text-3xl font-bold md:text-4xl">
                                                 <CountUp
                                                     to={98}
                                                     suffix="%"
                                                     duration={2}
                                                 />
                                             </div>
-                                            <p className="text-primary-foreground/70 text-sm">
+                                            <p className="text-slate-300 text-sm">
                                                 Satisfaction client
                                             </p>
                                         </div>
                                         <div className="space-y-1 text-center">
-                                            <div className="text-3xl font-bold md:text-4xl">
+                                            <div className="text-primary text-3xl font-bold md:text-4xl">
                                                 24/7
                                             </div>
-                                            <p className="text-primary-foreground/70 text-sm">
+                                            <p className="text-slate-300 text-sm">
                                                 Support disponible
                                             </p>
                                         </div>
                                     </div>
 
-                                    <p className="text-primary-foreground/70 border-primary-foreground/20 border-t pt-4 text-center text-sm italic">
+                                    <p className="text-slate-300 border-white/10 border-t pt-4 text-center text-sm italic">
                                         La plateforme de confiance pour tous vos
                                         services de transport
                                     </p>

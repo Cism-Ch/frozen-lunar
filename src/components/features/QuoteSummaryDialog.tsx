@@ -45,8 +45,8 @@ export function QuoteSummaryDialog({
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[600px]">
                 <DialogHeader className="text-center">
-                    <div className="mx-auto mb-4 w-fit rounded-full bg-green-100 p-3">
-                        <CheckCircle className="h-8 w-8 text-green-600" />
+                    <div className="mx-auto mb-4 w-fit rounded-full bg-emerald-100 p-3 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
+                        <CheckCircle className="h-8 w-8" />
                     </div>
                     <DialogTitle className="text-center text-2xl">
                         Demande envoyée avec succès !
@@ -129,7 +129,7 @@ export function QuoteSummaryDialog({
                         size="lg"
                         className="w-full sm:w-auto"
                     >
-                        Retour à l&apos;accueil
+                        Nouvelle demande
                     </Button>
                 </DialogFooter>
             </DialogContent>

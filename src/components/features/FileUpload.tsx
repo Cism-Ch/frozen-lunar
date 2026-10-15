@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { Upload, FileText, CheckCircle2, AlertCircle, X, Loader2 } from "lucide-react";
+import { Upload, FileText, CheckCircle2, X, Loader2 } from "lucide-react";
 import { getPresignedUploadUrlAction } from "@/app/actions/upload-management";
 import { toast } from "sonner";
 
@@ -138,6 +138,9 @@ export function FileUpload({
 
             {!uploadedFile ? (
                 <div
+                    role="button"
+                    tabIndex={0}
+                    aria-label={label}
                     onDragOver={(e) => {
                         e.preventDefault();
                         setIsDragging(true);
@@ -145,7 +148,13 @@ export function FileUpload({
                     onDragLeave={() => setIsDragging(false)}
                     onDrop={handleDrop}
                     onClick={() => !isUploading && fileInputRef.current?.click()}
-                    className={`relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 transition-all duration-200 ${
+                    onKeyDown={(e) => {
+                        if (!isUploading && (e.key === "Enter" || e.key === " ")) {
+                            e.preventDefault();
+                            fileInputRef.current?.click();
+                        }
+                    }}
+                    className={`relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                         isUploading
                             ? "cursor-not-allowed border-muted bg-muted/20 opacity-70"
                             : isDragging
@@ -203,6 +212,7 @@ export function FileUpload({
                         onClick={handleRemove}
                         className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                         title="Supprimer le fichier"
+                        aria-label="Supprimer le fichier"
                     >
                         <X className="h-4 w-4" />
                     </button>

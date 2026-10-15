@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { ServiceCard } from "@/components/features/ServiceCard";
@@ -97,10 +98,10 @@ export default function Home() {
                                             className="group h-14 w-full px-8 text-lg font-semibold sm:w-auto"
                                             asChild
                                         >
-                                            <a href="/devis">
+                                            <Link href="/devis">
                                                 Demander un devis
                                                 <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-                                            </a>
+                                            </Link>
                                         </Button>
                                     </motion.div>
                                     <motion.div
@@ -118,7 +119,7 @@ export default function Home() {
                                             className="h-14 w-full px-8 text-lg font-semibold sm:w-auto"
                                             asChild
                                         >
-                                            <a href="#services">Nos Services</a>
+                                            <Link href="#services">Nos Services</Link>
                                         </Button>
                                     </motion.div>
                                 </div>
@@ -284,13 +285,13 @@ export default function Home() {
                 <FAQSection />
 
                 {/* CTA Section */}
-                <SectionContainer className="from-primary via-primary to-primary/90 text-primary-foreground bg-linear-to-br py-24 md:py-32">
+                <SectionContainer className="bg-secondary text-secondary-foreground relative overflow-hidden py-24 md:py-32">
                     <ScrollReveal>
                         <div className="mx-auto max-w-3xl space-y-8 text-center">
-                            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
+                            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl md:text-5xl">
                                 Prêt à simplifier votre logistique ?
                             </h2>
-                            <p className="text-primary-foreground/90 text-lg leading-relaxed md:text-xl">
+                            <p className="text-slate-200 text-lg leading-relaxed md:text-xl">
                                 Obtenez votre devis gratuit en quelques secondes
                                 ou contactez-nous pour une solution sur mesure.
                             </p>
@@ -306,11 +307,10 @@ export default function Home() {
                                 >
                                     <Button
                                         size="lg"
-                                        variant="secondary"
-                                        className="h-14 px-8 text-lg font-semibold"
+                                        className="bg-primary hover:bg-primary/90 text-primary-foreground h-14 px-8 text-lg font-semibold shadow-lg shadow-primary/25"
                                         asChild
                                     >
-                                        <a href="/devis">Demander un devis</a>
+                                        <Link href="/devis">Demander un devis</Link>
                                     </Button>
                                 </motion.div>
                                 <motion.div
@@ -325,10 +325,10 @@ export default function Home() {
                                     <Button
                                         size="lg"
                                         variant="outline"
-                                        className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary h-14 border-2 bg-transparent px-8 text-lg font-semibold"
+                                        className="border-white/30 text-white hover:bg-white/10 hover:text-white h-14 border-2 bg-transparent px-8 text-lg font-semibold"
                                         asChild
                                     >
-                                        <a href="/contact">Contactez-nous</a>
+                                        <Link href="/contact">Contactez-nous</Link>
                                     </Button>
                                 </motion.div>
                             </div>

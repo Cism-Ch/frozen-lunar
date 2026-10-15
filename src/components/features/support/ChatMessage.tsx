@@ -50,7 +50,7 @@ export function ChatMessage({ message, className }: ChatMessageProps) {
                         "rounded-2xl px-3.5 py-2.5",
                         "text-sm leading-relaxed",
                         isUser
-                            ? "bg-primary text-primary-foreground rounded-br-md"
+                            ? "bg-primary text-zinc-950 font-medium rounded-br-md shadow-xs"
                             : "bg-muted text-foreground rounded-bl-md",
                         isTyping && "min-w-[60px]"
                     )}

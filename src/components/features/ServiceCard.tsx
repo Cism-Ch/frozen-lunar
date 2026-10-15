@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LucideIcon, ArrowRight } from "lucide-react";
 import { AnimatedCard, IconFloat, motion } from "@/components/ui/motion";
+import Link from "next/link";
 
 interface ServiceCardProps {
     title: string;
@@ -60,7 +61,7 @@ export function ServiceCard({
                         className="group/btn text-primary hover:text-primary h-auto p-0 font-semibold hover:bg-transparent"
                         asChild
                     >
-                        <a
+                        <Link
                             href={href}
                             className="inline-flex items-center gap-2"
                         >
@@ -76,7 +77,7 @@ export function ServiceCard({
                             >
                                 <ArrowRight className="h-4 w-4" />
                             </motion.span>
-                        </a>
+                        </Link>
                     </Button>
                 </CardContent>
             </Card>

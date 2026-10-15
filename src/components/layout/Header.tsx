@@ -159,10 +159,11 @@ export function Header() {
                             <Button
                                 variant="ghost"
                                 size="icon"
+                                aria-label="Ouvrir le menu de navigation"
                                 className="hover:bg-primary/10 md:hidden"
                             >
                                 <Menu className="h-6 w-6" />
-                                <span className="sr-only">Toggle menu</span>
+                                <span className="sr-only">Ouvrir le menu de navigation</span>
                             </Button>
                         </SheetTrigger>
 

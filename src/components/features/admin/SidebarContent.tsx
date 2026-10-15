@@ -152,7 +152,7 @@ export function SidebarContent({
                 >
                     <Button
                         variant="ghost"
-                        className="w-full justify-start gap-3 text-red-500 hover:bg-red-50 hover:text-red-600"
+                        className="w-full justify-start gap-3 text-destructive hover:bg-destructive/10 hover:text-destructive"
                         onClick={onLogout}
                         disabled={isLoggingOut}
                     >

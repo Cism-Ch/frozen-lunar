@@ -45,12 +45,12 @@ const stats = [
 
 export function StatsSection() {
     return (
-        <SectionContainer className="from-primary via-primary to-primary/90 text-primary-foreground bg-gradient-to-br">
+        <SectionContainer className="bg-muted/40 dark:bg-card/40 border-y py-20 md:py-28">
             <ScrollReveal className="mb-16 space-y-4 text-center">
-                <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
+                <h2 className="text-foreground text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
                     Des chiffres qui parlent
                 </h2>
-                <p className="text-primary-foreground/90 mx-auto max-w-[700px] text-lg md:text-xl">
+                <p className="text-muted-foreground mx-auto max-w-[700px] text-lg md:text-xl">
                     Notre expérience et notre engagement se reflètent dans nos
                     résultats
                 </p>
@@ -63,17 +63,17 @@ export function StatsSection() {
                 {stats.map((stat) => (
                     <StaggerItem key={stat.label}>
                         <AnimatedCard hoverEffect="subtle">
-                            <Card className="bg-primary-foreground/10 border-primary-foreground/20 hover:bg-primary-foreground/15 group backdrop-blur transition-all duration-300">
+                            <Card className="bg-card border-border/80 hover:border-primary/50 group shadow-sm hover:shadow-md transition-all duration-300">
                                 <CardContent className="space-y-4 p-8 text-center">
                                     {/* Icon */}
                                     <IconFloat>
-                                        <div className="bg-primary-foreground/20 group-hover:bg-primary-foreground/30 inline-flex rounded-2xl p-4 transition-colors">
-                                            <stat.icon className="text-primary-foreground h-8 w-8" />
+                                        <div className="bg-primary/10 group-hover:bg-primary/20 text-primary inline-flex rounded-2xl p-4 transition-colors">
+                                            <stat.icon className="h-8 w-8" />
                                         </div>
                                     </IconFloat>
 
                                     {/* Value - Animated Counter */}
-                                    <div className="text-5xl font-bold md:text-6xl">
+                                    <div className="text-foreground text-5xl font-bold md:text-6xl">
                                         <CountUp
                                             to={stat.value}
                                             suffix={stat.suffix}
@@ -83,10 +83,10 @@ export function StatsSection() {
 
                                     {/* Label */}
                                     <div className="space-y-1">
-                                        <div className="text-lg font-semibold">
+                                        <div className="text-foreground text-lg font-semibold">
                                             {stat.label}
                                         </div>
-                                        <div className="text-primary-foreground/70 text-sm">
+                                        <div className="text-muted-foreground text-sm">
                                             {stat.description}
                                         </div>
                                     </div>

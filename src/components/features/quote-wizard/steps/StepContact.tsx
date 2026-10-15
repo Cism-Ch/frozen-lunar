@@ -27,6 +27,7 @@ export function StepContact() {
                             <FormControl>
                                 <Input
                                     placeholder="Votre nom"
+                                    autoComplete="name"
                                     className="bg-muted/20 h-12"
                                     {...field}
                                 />
@@ -44,6 +45,8 @@ export function StepContact() {
                             <FormControl>
                                 <Input
                                     type="email"
+                                    autoComplete="email"
+                                    inputMode="email"
                                     placeholder="votre@email.com"
                                     className="bg-muted/20 h-12"
                                     {...field}
@@ -63,6 +66,9 @@ export function StepContact() {
                             </FormLabel>
                             <FormControl>
                                 <Input
+                                    type="tel"
+                                    autoComplete="tel"
+                                    inputMode="tel"
                                     placeholder="06 12 34 56 78"
                                     className="bg-muted/20 h-12"
                                     {...field}

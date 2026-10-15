@@ -1,8 +1,8 @@
 # 📋 Frozen Lunar — État du Projet
 
-> **Dernière mise à jour** : 2026-07-26
+> **Dernière mise à jour** : 2026-10-15
 > **Mis à jour par** : mission-control
-> **Version** : 1.0.0 (V1 Production Release)
+> **Version** : 1.1.0 (UI/UX Compliance & Feature Release)
 
 ---
 
@@ -209,6 +209,9 @@
 - [x] **TASK-012** : Mettre en place CI/CD avec GitHub Actions
     - Fichiers : `.github/workflows/ci.yml`
     - Statut : ✅ Terminé (Pipeline d'intégration continue testant l'installation, Prisma generate, ESLint, TypeScript `tsc`, Vitest et le build Next.js)
+- [x] **TASK-019** : Remédiation globale de conformité UI/UX & Accessibilité WCAG 2.1 AA/AAA
+    - Fichiers : `src/components/features/ProfessionalsCTA.tsx`, `src/components/features/StatsSection.tsx`, `src/app/page.tsx`, `src/app/about/page.tsx`, `src/app/services/page.tsx`, `src/components/features/quote-wizard/`, `src/app/actions/contact.ts`, `src/app/contact/page.tsx`
+    - Statut : ✅ Terminé (Correction complète des contrastes défaillants sur orange, formulaire de contact Server Action réactif, routage SPA 100% via Next.js Link, tuiles interactives et upload dans le wizard devis, sémantique ARIA et zero avertissement ESLint/TypeScript)
 
 ### P3 — Futur (backlog)
 

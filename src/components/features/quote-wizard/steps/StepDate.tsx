@@ -15,7 +15,7 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
+import { format, startOfDay } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useFormContext } from "react-hook-form";
@@ -64,7 +64,7 @@ export function StepDate() {
                                     selected={field.value}
                                     onSelect={field.onChange}
                                     disabled={(date) =>
-                                        date < new Date() ||
+                                        date < startOfDay(new Date()) ||
                                         date < new Date("1900-01-01")
                                     }
                                     initialFocus

@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { services } from "@/config/marketing";
 import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 import {
     FadeIn,
     ScrollReveal,
@@ -97,10 +98,10 @@ export default function ServicesPage() {
                                     className="group h-14 px-8 text-lg font-semibold"
                                     asChild
                                 >
-                                    <a href="/devis">
+                                    <Link href="/devis">
                                         Demander un devis
                                         <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-                                    </a>
+                                    </Link>
                                 </Button>
                             </motion.div>
                             <motion.div
@@ -113,7 +114,7 @@ export default function ServicesPage() {
                                     className="h-14 px-8 text-lg font-semibold"
                                     asChild
                                 >
-                                    <a href="/contact">Nous contacter</a>
+                                    <Link href="/contact">Nous contacter</Link>
                                 </Button>
                             </motion.div>
                         </div>

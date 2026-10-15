@@ -7,7 +7,36 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
 ## [Unreleased]
 
+### Planned
+- Intégration de Sentry pour la télémétrie de production.
+
+---
+
+## [1.1.0] — 2026-10-15 — Version 1.1.0 (UI/UX Compliance & Feature Release)
+
 ### Added
+- **Remédiation Complète de Conformité UI/UX & Accessibilité WCAG** (`TASK-019`) :
+    - **Accessibilité & Contraste WCAG 2.1 AA/AAA** :
+        - Éradication des défauts de contraste texte blanc sur orange (`#ff6600`) : migration vers `bg-secondary` (Bleu profond, contraste >12:1) et fonds neutres dans `ProfessionalsCTA.tsx`, `StatsSection.tsx`, `src/app/page.tsx` et `src/app/about/page.tsx`.
+        - Renforcement du contraste des bulles de chat utilisateur (`text-zinc-950` sur `bg-primary`, 7.2:1) dans `ChatMessage.tsx` et des badges d'étapes dans `ChatTutorial.tsx`.
+        - Correction du contraste en mode sombre sur le bouton de déconnexion (`SidebarContent.tsx`) et badges émeraude (`QuoteSummaryDialog.tsx`).
+    - **Formulaire de Contact Connecté & Interactif** :
+        - Création de la Server Action `submitContactAction` dans `src/app/actions/contact.ts` avec schéma Zod et pattern canonique `{ data, error }`.
+        - Migration de `src/app/contact/page.tsx` en composant client réactif avec validation, feedback visuel instantané par Sonner toast et écran de succès dédié.
+    - **Routage SPA & Performance Next.js** :
+        - Remplacement systématique de l'ensemble des balises `<a href>` de la navigation par le composant Next.js `<Link>` (`src/app/page.tsx`, `src/app/about/page.tsx`, `src/app/services/page.tsx`, `ServiceCard.tsx`, `ProfessionalsCTA.tsx`) éliminant les rechargements complets de page.
+    - **Optimisations Ergonomiques du Quote Wizard** :
+        - Étape 1 (`StepItemType.tsx`) : transformation des tuiles indicatives en boutons interactifs de sélection rapide avec icônes métier et synchronisation bidirectionnelle.
+        - Étape 4 (`StepDate.tsx`) : correction du filtre calendrier avec `startOfDay` autorisant la réservation pour le jour même (urgences).
+        - Étape 5 (`StepContact.tsx`) : ajout d'`autoComplete`, `type="tel"` et `inputMode="tel"` pour l'autocomplétion sur smartphone.
+        - Étape 6 (`StepNotes.tsx`) : intégration du composant `FileUpload` pour l'envoi de plans et documents techniques liés au devis.
+        - Barre de progression (`WizardHeader.tsx`) : ajout des attributs ARIA complets (`role="progressbar"`, `aria-valuenow`, `aria-valuemin`, `aria-valuemax`).
+    - **Micro-Interactions & Polissage d'Accessibilité** :
+        - `LocationPicker.tsx` : ajout des attributs `aria-label` et remplacement du placeholder d'image externe par une carte vectorielle SVG stylisée.
+        - Ajout de `cursor-pointer` dans `buttonVariants` (`button.tsx`).
+        - Francisation des textes d'accessibilité `sr-only` ("Changer de thème", "Ouvrir le menu de navigation").
+        - Élimination des erreurs et avertissements ESLint et TypeScript (`tsc --noEmit` & `eslint .` 100% propres).
+
 - **Politique de mot de passe renforcée (OWASP)** (`TASK-013`) :
     - Application de la politique stricte de mot de passe OWASP sur `adminInitSchema` et `createUserSchema` dans `src/lib/validation.ts` (12 caractères minimum, majuscule, minuscule, chiffre et caractère spécial requis).
     - Ajout des tests unitaires de validation dans `tests/unit/validation.test.ts`.
@@ -22,9 +51,6 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
     - Création du jeu de données démo réelles `prisma/demo-data.json` simulant 8 demandes de devis réelles d'entreprises majeures du BTP (Vinci, Eiffage, Bouygues, SNCF, Nexity).
     - Server Actions `injectDemoDataAction` et `clearDemoDataAction` dans `src/app/actions/demo-actions.ts` pour peupler et purger directement la base PostgreSQL.
     - Composant UI `DemoModeControl.tsx` intégré en haut du tableau de bord admin (`/admin/dashboard`) pour activer la démonstration en 1-clic avec notifications sonner et synchronisation Supabase Realtime.
-
-### Planned
-- Intégration de Sentry pour la télémétrie de production.
 
 ---
 

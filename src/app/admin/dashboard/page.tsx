@@ -48,7 +48,8 @@ export default function DashboardPage() {
     };
 
     useEffect(() => {
-        loadQuotes();
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        void loadQuotes();
     }, []);
 
     // Souscription Supabase Realtime avec rafraîchissement automatique
@@ -279,7 +280,6 @@ export default function DashboardPage() {
                                                 transition={{
                                                     delay: index * 0.1,
                                                 }}
-                                                whileHover={{ x: 4 }}
                                             >
                                                 <TableCell className="font-medium">
                                                     <div className="flex flex-col">

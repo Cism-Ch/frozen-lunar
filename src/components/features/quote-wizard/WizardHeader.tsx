@@ -69,7 +69,14 @@ export function WizardHeader({ step, totalSteps }: WizardHeaderProps) {
             </div>
 
             {/* Progress Bar */}
-            <div className="bg-muted relative h-2 overflow-hidden rounded-full">
+            <div
+                role="progressbar"
+                aria-valuenow={step}
+                aria-valuemin={1}
+                aria-valuemax={totalSteps}
+                aria-label={`Progression du devis : étape ${step} sur ${totalSteps}`}
+                className="bg-muted relative h-2 overflow-hidden rounded-full"
+            >
                 <div
                     className="bg-primary absolute top-0 left-0 h-full transition-all duration-500 ease-out"
                     style={{ width: `${(step / totalSteps) * 100}%` }}

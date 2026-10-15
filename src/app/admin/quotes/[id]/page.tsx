@@ -311,7 +311,7 @@ export default function QuoteModerationPage() {
                         <Button
                             onClick={handleSaveChanges}
                             size="sm"
-                            className="bg-primary text-primary-foreground gap-2 shadow-lg"
+                            className="gap-2 shadow-md"
                         >
                             <Save className="h-4 w-4" />
                             <span className="hidden sm:inline">

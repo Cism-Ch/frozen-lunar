@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { features } from "@/config/marketing";
 import { Truck, Target, Users, Award, ArrowRight } from "lucide-react";
+import Link from "next/link";
 import {
     ScrollReveal,
     StaggerContainer,
@@ -90,10 +91,10 @@ export default function AboutPage() {
                                     className="group h-14 w-full px-8 text-lg font-semibold sm:w-auto"
                                     asChild
                                 >
-                                    <a href="/devis">
+                                    <Link href="/devis">
                                         Demander un devis
                                         <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-                                    </a>
+                                    </Link>
                                 </Button>
                             </motion.div>
                         </ScrollReveal>
@@ -195,41 +196,41 @@ export default function AboutPage() {
                 </SectionContainer>
 
                 {/* Stats Section */}
-                <SectionContainer className="bg-primary text-primary-foreground">
+                <SectionContainer className="bg-secondary text-secondary-foreground border-y border-border/20">
                     <StaggerContainer
                         className="grid gap-8 text-center md:grid-cols-3"
                         staggerSpeed="fast"
                     >
                         <StaggerItem>
                             <div className="space-y-2">
-                                <div className="text-5xl font-bold md:text-6xl">
+                                <div className="text-primary text-5xl font-bold md:text-6xl">
                                     <CountUp to={15} suffix="+" duration={2} />
                                 </div>
-                                <p className="text-primary-foreground/90 text-lg">
+                                <p className="text-secondary-foreground/80 text-lg">
                                     Années d&apos;expérience
                                 </p>
                             </div>
                         </StaggerItem>
                         <StaggerItem>
                             <div className="space-y-2">
-                                <div className="text-5xl font-bold md:text-6xl">
+                                <div className="text-primary text-5xl font-bold md:text-6xl">
                                     <CountUp
                                         to={500}
                                         suffix="+"
                                         duration={2.5}
                                     />
                                 </div>
-                                <p className="text-primary-foreground/90 text-lg">
+                                <p className="text-secondary-foreground/80 text-lg">
                                     Clients satisfaits
                                 </p>
                             </div>
                         </StaggerItem>
                         <StaggerItem>
                             <div className="space-y-2">
-                                <div className="text-5xl font-bold md:text-6xl">
+                                <div className="text-primary text-5xl font-bold md:text-6xl">
                                     <CountUp to={98} suffix="%" duration={2} />
                                 </div>
-                                <p className="text-primary-foreground/90 text-lg">
+                                <p className="text-secondary-foreground/80 text-lg">
                                     Taux de satisfaction
                                 </p>
                             </div>

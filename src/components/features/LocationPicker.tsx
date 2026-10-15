@@ -84,6 +84,7 @@ export const LocationPicker = React.forwardRef<
                 type="button"
                 variant="outline"
                 size="icon"
+                aria-label="Utiliser ma position actuelle"
                 className="border-muted-foreground/20 bg-muted/20 hover:bg-muted/30 h-14 w-14 shrink-0"
                 onClick={handleGeolocation}
                 title="Utiliser ma position"
@@ -101,6 +102,7 @@ export const LocationPicker = React.forwardRef<
                         type="button"
                         variant="outline"
                         size="icon"
+                        aria-label="Choisir une adresse sur la carte"
                         className="border-muted-foreground/20 bg-muted/20 hover:bg-muted/30 h-14 w-14 shrink-0"
                         title="Choisir sur la carte"
                     >
@@ -114,21 +116,40 @@ export const LocationPicker = React.forwardRef<
                             Sélectionnez l&apos;adresse exacte sur la carte.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="bg-muted group relative flex aspect-video items-center justify-center overflow-hidden rounded-md">
-                        {/* Placeholder for Google Maps */}
-                        <div className="absolute inset-0 bg-[url('https://maps.googleapis.com/maps/api/staticmap?center=48.8566,2.3522&zoom=13&size=600x300&key=YOUR_API_KEY')] bg-cover bg-center opacity-50 grayscale transition-all group-hover:grayscale-0" />
+                    <div className="bg-muted/30 relative flex aspect-video items-center justify-center overflow-hidden rounded-xl border border-border/60">
+                        {/* Stylized vector map grid background */}
+                        <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] opacity-70 dark:bg-[radial-gradient(#1f2937_1px,transparent_1px)]" />
+                        <svg
+                            className="text-border/80 absolute inset-0 h-full w-full stroke-current"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                        >
+                            <path
+                                d="M0 60 Q 150 90, 300 40 T 600 80"
+                                strokeWidth="3"
+                                strokeDasharray="6 4"
+                            />
+                            <path
+                                d="M100 0 Q 120 150, 180 300"
+                                strokeWidth="2"
+                            />
+                            <path
+                                d="M450 0 Q 420 120, 500 300"
+                                strokeWidth="2"
+                            />
+                            <path
+                                d="M0 180 C 200 210, 400 150, 600 200"
+                                strokeWidth="4"
+                                className="text-primary/30"
+                            />
+                        </svg>
 
                         {/* Simulated Pin on Map */}
-                        <MapPin className="absolute top-1/2 left-1/2 z-0 h-10 w-10 -translate-x-1/2 -translate-y-full animate-bounce text-red-500 drop-shadow-lg" />
-
-                        <div className="bg-background/80 z-10 rounded-lg p-4 text-center shadow-lg backdrop-blur">
-                            <MapIcon className="text-muted-foreground mx-auto mb-2 h-8 w-8" />
-                            <p className="font-medium">
-                                Google Maps Integration
-                            </p>
-                            <p className="text-muted-foreground mt-1 text-xs">
-                                Nécessite une clé API Google Maps valide.
-                            </p>
+                        <div className="relative z-10 flex flex-col items-center gap-1">
+                            <MapPin className="text-primary h-10 w-10 animate-bounce drop-shadow-md" />
+                            <div className="bg-background/90 rounded-full border px-3 py-1 text-xs font-semibold shadow-md backdrop-blur">
+                                Position sélectionnée
+                            </div>
                         </div>
                     </div>
                     <div className="flex justify-end gap-2">
