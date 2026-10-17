@@ -49,6 +49,11 @@ jobs:
             - name: 🗄️ Generate Prisma Client
               run: pnpm exec prisma generate
 
+            - name: 🩺 Check Database Health
+              env:
+                  DATABASE_URL: ${{ secrets.DATABASE_URL || env.DATABASE_URL }}
+              run: node scripts/check-db-health.mjs
+
             - name: ✨ Check Code Formatting (Prettier)
               run: pnpm format:check
 

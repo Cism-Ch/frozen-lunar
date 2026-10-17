@@ -13,6 +13,7 @@
         "type-check": "tsc --noEmit",
         "test": "vitest run",
         "test:watch": "vitest",
+        "check:db": "node scripts/check-db-health.mjs",
         "postinstall": "prisma generate"
     },
     "dependencies": {
