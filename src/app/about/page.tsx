@@ -150,10 +150,13 @@ export default function AboutPage() {
                         staggerSpeed="normal"
                     >
                         {values.map((value) => (
-                            <StaggerItem key={value.title}>
-                                <AnimatedCard hoverEffect="lift">
-                                    <Card className="hover:border-primary/50 border-2 transition-all duration-300 hover:shadow-lg">
-                                        <CardContent className="space-y-4 p-8 text-center">
+                            <StaggerItem key={value.title} className="h-full">
+                                <AnimatedCard
+                                    hoverEffect="lift"
+                                    className="h-full"
+                                >
+                                    <Card className="hover:border-primary/50 flex h-full flex-col border-2 transition-all duration-300 hover:shadow-lg">
+                                        <CardContent className="flex flex-1 flex-col space-y-4 p-8 text-center">
                                             <IconFloat>
                                                 <div className="from-primary/10 to-primary/20 inline-flex rounded-2xl bg-gradient-to-br p-4">
                                                     <value.icon className="text-primary h-10 w-10" />
@@ -162,7 +165,7 @@ export default function AboutPage() {
                                             <h3 className="text-2xl font-bold">
                                                 {value.title}
                                             </h3>
-                                            <p className="text-muted-foreground leading-relaxed">
+                                            <p className="text-muted-foreground flex-1 leading-relaxed">
                                                 {value.description}
                                             </p>
                                         </CardContent>
@@ -188,7 +191,7 @@ export default function AboutPage() {
                         staggerSpeed="fast"
                     >
                         {features.map((feature) => (
-                            <StaggerItem key={feature.title}>
+                            <StaggerItem key={feature.title} className="h-full">
                                 <FeatureCard {...feature} />
                             </StaggerItem>
                         ))}

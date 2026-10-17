@@ -17,8 +17,8 @@ export function FeatureCard({
 }: FeatureCardProps) {
     return (
         <AnimatedCard hoverEffect="lift" className={cn("h-full", className)}>
-            <Card className="group hover:border-primary/50 h-full overflow-hidden border-2 transition-colors duration-300">
-                <CardContent className="flex flex-col items-center gap-4 p-6 text-center md:p-8">
+            <Card className="group hover:border-primary/50 flex h-full flex-col overflow-hidden border-2 transition-colors duration-300">
+                <CardContent className="flex flex-1 flex-col items-center gap-4 p-6 text-center md:p-8">
                     {/* Icon with gradient background */}
                     <div className="relative">
                         <motion.div
@@ -40,7 +40,7 @@ export function FeatureCard({
                     </h3>
 
                     {/* Description */}
-                    <p className="text-muted-foreground leading-relaxed">
+                    <p className="text-muted-foreground flex-1 leading-relaxed">
                         {description}
                     </p>
                 </CardContent>
