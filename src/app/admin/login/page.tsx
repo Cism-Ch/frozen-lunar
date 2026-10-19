@@ -154,9 +154,8 @@ function LoginForm() {
                                             Mot de passe
                                         </Label>
                                         <Link
-                                            href="#"
+                                            href="/auth/forgot-password?context=admin"
                                             className="text-primary text-sm font-medium hover:underline"
-                                            onClick={(e) => e.preventDefault()}
                                         >
                                             Mot de passe oublié ?
                                         </Link>

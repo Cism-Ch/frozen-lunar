@@ -7,6 +7,34 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
 ## [Unreleased]
 
+---
+
+## [1.3.0] — 2026-10-19 — Version 1.3.0 (Universal Password Reset, Support Chat & Resilience Release)
+
+### Added
+
+- **Système Universel de Réinitialisation de Mot de Passe par Email (Admin & Utilisateur)** :
+    - **Architecture Universelle & Rôles Détectés** :
+        - Détection automatique et contextuelle du profil cible (`role: "admin"` vs `role: "user"` pour les futurs comptes clients).
+        - Personnalisation dynamique de l'email, des avertissements de sécurité (minimum 12 caractères pour les admins vs 8 pour les utilisateurs), des badges et des redirections après succès (`/admin/login` ou `/`).
+    - **Template React Email Branded HBC Logistique** (`src/components/emails/PasswordResetEmail.tsx`) :
+        - Respect scrupuleux de la charte visuelle (marine `#0F172A`, cyan `#38BDF8`, boutons d'action stylisés, fallback textuel).
+        - Badges distinctifs (`🛡️ Espace Administration • Accès Sécurisé` vs `👤 Espace Compte Client / Utilisateur`).
+        - Mention de la durée de validité du jeton (60 minutes) et avertissement anti-phishing.
+    - **Server Actions Sécurisées & Pattern `{ data, error }`** (`src/app/actions/auth-actions.ts`) :
+        - `requestPasswordResetAction` : validation Zod, protection anti-énumération et timing attack, génération de jetons cryptographiques de 32 octets (64 hex), expédition via Resend et fallback local sans interruption.
+        - `verifyResetTokenAction` : validation cryptographique du jeton, contrôle d'expiration, masquage de l'adresse email pour affichage sécurisé (`c***h@domain.com`).
+        - `resetPasswordWithTokenAction` : consommation unique du jeton, hachage via l'algorithme officiel Better-Auth (`better-auth/crypto`), mise à jour en base et révocation immédiate de toutes les sessions actives pour neutraliser les accès compromis.
+    - **Composants d'Interface Réactifs & État "Modification autorisée"** :
+        - `ForgotPasswordForm.tsx` : formulaire universel de demande avec badge contextuel, gestion d'erreurs et confirmation visuelle.
+        - `ResetPasswordForm.tsx` : vérification dynamique à l'ouverture du lien, transition automatique vers le badge vert **« Statut : Modification autorisée »**, indicateur de force de mot de passe en temps réel et compte à rebours de redirection.
+    - **Routes & Pages** :
+        - `/auth/forgot-password` & `/auth/reset-password` (routes universelles).
+        - `/admin/forgot-password` & `/admin/reset-password` (alias dédiés espace administration).
+        - Connexion du lien "Mot de passe oublié ?" dans `src/app/admin/login/page.tsx`.
+    - **Tests Automatisés Vitest** (`tests/unit/password-reset-validation.test.ts`) :
+        - 10 nouveaux tests unitaires validant les schémas Zod, l'anti-régression et le rendu HTML des templates d'emails selon le rôle (Total projet : 67 tests réussis).
+
 ### Fixed & Improved
 
 - **Module Support Chat & Agent Conversationnel** :

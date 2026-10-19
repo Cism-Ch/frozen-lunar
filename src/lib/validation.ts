@@ -140,3 +140,48 @@ export function validateData<T>(
         return { success: false, error: "Erreur de validation inconnue" };
     }
 }
+
+/**
+ * Schéma de demande de réinitialisation de mot de passe
+ */
+export const requestPasswordResetSchema = z.object({
+    email: emailSchema,
+    context: z.enum(["admin", "user", "auto"]).default("auto"),
+});
+
+/**
+ * Schéma de vérification de jeton de réinitialisation
+ */
+export const verifyResetTokenSchema = z.object({
+    token: z
+        .string({ message: "Le jeton est requis" })
+        .min(1, "Le jeton ne peut pas être vide"),
+});
+
+/**
+ * Schéma de réinitialisation du mot de passe avec confirmation
+ */
+export const resetPasswordWithTokenSchema = z
+    .object({
+        token: z
+            .string({ message: "Le jeton est requis" })
+            .min(1, "Le jeton ne peut pas être vide"),
+        password: simplePasswordSchema,
+        confirmPassword: z
+            .string({
+                message: "La confirmation du mot de passe est requise",
+            })
+            .min(1, "Veuillez confirmer le mot de passe"),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+        message: "Les deux mots de passe ne correspondent pas",
+        path: ["confirmPassword"],
+    });
+
+export type RequestPasswordResetInput = z.infer<
+    typeof requestPasswordResetSchema
+>;
+export type VerifyResetTokenInput = z.infer<typeof verifyResetTokenSchema>;
+export type ResetPasswordWithTokenInput = z.infer<
+    typeof resetPasswordWithTokenSchema
+>;
