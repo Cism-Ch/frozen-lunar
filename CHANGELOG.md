@@ -7,7 +7,16 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
 ## [Unreleased]
 
+---
+
+## [1.2.0] — 2026-10-19 — Version 1.2.0 (Resilience, WhatsApp Automation & Security Release)
+
 ### Added
+
+- **Organisation & Gouvernance Documentaire** :
+    - Déplacement et classification du rapport d'audit [`docs/SECURITY_AUDIT.md`](file:///docs/SECURITY_AUDIT.md) dans le répertoire dédié `docs/`.
+    - Harmonisation complète du [`README.md`](file:///README.md) reflétant l'architecture Next.js 16/React 19, l'ensemble des intégrations backend et la suite de tests automatisés.
+    - Synchronisation de la source de vérité [`PROJECT_STATUS.md`](file:///PROJECT_STATUS.md).
 
 - **Automatisation WhatsApp 1-Clic 100% Gratuite & IA Hugging Face (Option B)** :
     - **Intégration Open Source Hugging Face Inference** (`src/lib/huggingface.ts`) :

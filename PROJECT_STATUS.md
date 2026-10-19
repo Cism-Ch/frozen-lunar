@@ -2,7 +2,7 @@
 
 > **Dernière mise à jour** : 2026-10-19
 > **Mis à jour par** : mission-control
-> **Version** : 1.1.0 (UI/UX Compliance & Feature Release)
+> **Version** : 1.2.0 (Resilience, WhatsApp Automation & Security Release)
 
 ---
 
@@ -16,11 +16,11 @@
 
 ## Avancement des Phases
 
-| Phase | Nom                 | Statut      | Progression | Notes                                                         |
-| ----- | ------------------- | ----------- | ----------- | ------------------------------------------------------------- |
-| 1     | UI Implementation   | ✅ Terminé  | 100%        | Landing page, admin, wizard devis, support chat, thèmes       |
-| 2     | Backend Integration | ✅ Terminé  | 100%        | Auth ✅, Quotes CRUD ✅, QStash/Email/S3/Realtime/Pino/RLS ✅ |
-| 3     | Production Ready    | 🔄 En cours | ~35%        | Tests Vitest ✅, CI/CD GitHub Actions ✅, Security ✅         |
+| Phase | Nom                 | Statut      | Progression | Notes                                                                                   |
+| ----- | ------------------- | ----------- | ----------- | --------------------------------------------------------------------------------------- |
+| 1     | UI Implementation   | ✅ Terminé  | 100%        | Landing page, admin, wizard devis, support chat, thèmes, accessibilité WCAG AA/AAA      |
+| 2     | Backend Integration | ✅ Terminé  | 100%        | Auth Better-Auth ✅, Quotes CRUD ✅, QStash/Email/S3/Realtime/Pino/RLS ✅               |
+| 3     | Production Ready    | 🔄 En cours | ~75%        | Tests Vitest (52 tests) ✅, CI/CD ✅, Résilience IA ✅, WhatsApp 1-Clic ✅, Sécurité ✅ |
 
 ---
 
@@ -218,11 +218,20 @@
     - Fichiers : `src/components/features/ProfessionalsCTA.tsx`, `src/components/features/StatsSection.tsx`, `src/app/page.tsx`, `src/app/about/page.tsx`, `src/app/services/page.tsx`, `src/components/features/quote-wizard/`, `src/app/actions/contact.ts`, `src/app/contact/page.tsx`
     - Statut : ✅ Terminé (Correction complète des contrastes défaillants sur orange, formulaire de contact Server Action réactif, routage SPA 100% via Next.js Link, tuiles interactives et upload dans le wizard devis, sémantique ARIA et zero avertissement ESLint/TypeScript)
 
-### P3 — Futur (backlog)
+### P3 — Futur (backlog) & Tâches Récentes
 
 - [x] **TASK-013** : Force mot de passe renforcée
     - Fichiers : `src/lib/validation.ts`, `tests/unit/validation.test.ts`
     - Statut : ✅ Terminé (Politique OWASP appliquée sur adminInitSchema & createUserSchema : 12 caractères min, majuscule, minuscule, chiffre et symbole obligatoire)
+- [x] **TASK-020** : Architecture de Résilience IA Multi-Niveaux & Fail-Safe Autonome
+    - Fichiers : `src/lib/gemini.ts`, `src/app/actions/ai-actions.ts`, `tests/unit/ai-resilience.test.ts`, `src/components/features/support/`
+    - Statut : ✅ Terminé (Circuit-breaker Gemini 6s, assainissement automatique des placeholders, moteur heuristique local Tier-2 de calcul kilométrique/devis et badges d'état transparents)
+- [x] **TASK-021** : Automatisation WhatsApp 1-Clic via Hugging Face & Liens Universels `wa.me`
+    - Fichiers : `src/lib/huggingface.ts`, `src/app/actions/whatsapp-actions.ts`, `src/app/admin/quotes/[id]/page.tsx`, `src/app/admin/settings/page.tsx`, `tests/unit/huggingface.test.ts`
+    - Statut : ✅ Terminé (Inférence Mistral-7B, fallback déterministe local, modal 1-clic de relance, journal d'audit QuoteHistory et recherche croisée des devis par téléphone)
+- [x] **TASK-022** : Audit Global de Sécurité OWASP & Organisation Documentaire
+    - Fichiers : `docs/SECURITY_AUDIT.md`, `next.config.ts`, `middleware.ts`
+    - Statut : ✅ Terminé (Rapport d'audit complet classé dans docs/, vérification de l'étanchéité des secrets, RLS Supabase et headers HTTP)
 - [ ] **TASK-014** : Documentation OpenAPI/Swagger
 - [ ] **TASK-015** : Intégration payment gateway
 - [x] **TASK-018** : Analytics Métier & Mode Démo (Données JSON & Injection BDD)
@@ -236,25 +245,26 @@
 
 ## Intégrations & Services
 
-| Service             | Statut       | Config                       | Client               | Notes                                   |
-| ------------------- | ------------ | ---------------------------- | -------------------- | --------------------------------------- |
-| Supabase PostgreSQL | ✅ Configuré | `DATABASE_URL`, `DIRECT_URL` | `src/lib/prisma.ts`  | Singleton Prisma, RLS actif             |
-| Better-Auth         | ✅ Configuré | `BETTER_AUTH_*`              | `src/lib/auth.ts`    | Email/Password, rôles (admin/user)      |
-| Upstash Redis       | ✅ Configuré | `UPSTASH_*`                  | `src/lib/redis.ts`   | Rate limiting configurable              |
-| Upstash QStash      | ✅ Configuré | `QSTASH_TOKEN`               | `src/lib/qstash.ts`  | Queues async Email & PDF + Workers      |
-| Tigris S3           | ✅ Configuré | `TIGRIS_*`                   | `src/lib/storage.ts` | Upload par URLs signées & FileUpload UI |
-| Resend              | ✅ Configuré | `RESEND_KEY`                 | `src/lib/email.ts`   | Templates React Email HTML typés        |
-| Gemini AI           | ✅ Configuré | `GEMINI_API_KEY`             | `src/lib/gemini.ts`  | Support chat, fallback mock             |
+| Service             | Statut       | Config                       | Client                   | Notes                                                           |
+| ------------------- | ------------ | ---------------------------- | ------------------------ | --------------------------------------------------------------- |
+| Supabase PostgreSQL | ✅ Configuré | `DATABASE_URL`, `DIRECT_URL` | `src/lib/prisma.ts`      | Singleton Prisma, RLS actif                                     |
+| Better-Auth         | ✅ Configuré | `BETTER_AUTH_*`              | `src/lib/auth.ts`        | Email/Password, rôles (admin/user)                              |
+| Upstash Redis       | ✅ Configuré | `UPSTASH_*`                  | `src/lib/redis.ts`       | Rate limiting configurable                                      |
+| Upstash QStash      | ✅ Configuré | `QSTASH_TOKEN`               | `src/lib/qstash.ts`      | Queues async Email & PDF + Workers                              |
+| Tigris S3           | ✅ Configuré | `TIGRIS_*`                   | `src/lib/storage.ts`     | Upload par URLs signées & FileUpload UI                         |
+| Resend              | ✅ Configuré | `RESEND_KEY`                 | `src/lib/email.ts`       | Templates React Email HTML typés                                |
+| Gemini AI           | ✅ Configuré | `GEMINI_API_KEY`             | `src/lib/gemini.ts`      | Support chat, fail-safe résilient local                         |
+| Hugging Face        | ✅ Configuré | `HUGGINGFACE_API_KEY`        | `src/lib/huggingface.ts` | Inférence LLM Open Source (Mistral-7B) & Click-to-Chat WhatsApp |
 
 ---
 
 ## Dettes Techniques
 
-| ID     | Description                                                                    | Fichier                     | Statut                  |
-| ------ | ------------------------------------------------------------------------------ | --------------------------- | ----------------------- |
-| DT-001 | Nettoyage final du fallback `quote-storage.ts` vers 100% Prisma Server Actions | `src/lib/quote-storage.ts`  | ⏳ Optionnel / Obsolète |
-| DT-002 | Erreurs Prisma résolues avec `instanceof`                                      | `src/app/actions/`          | ✅ Résolu (TASK-002)    |
-| DT-003 | Rate limiting configurable via `process.env`                                   | `middleware.ts`             | ✅ Résolu (TASK-009)    |
-| DT-004 | Suite de 32 tests automatisés Vitest                                           | `tests/`                    | ✅ Résolu (TASK-001)    |
-| DT-005 | Logging structuré Pino & Monitoring centralisé                                 | `src/lib/logger.ts`         | ✅ Résolu (TASK-010)    |
-| DT-006 | README.md & Documentation à jour                                               | `README.md`, `CHANGELOG.md` | ✅ Résolu (V1 Release)  |
+| ID     | Description                                                                    | Fichier                     | Statut                   |
+| ------ | ------------------------------------------------------------------------------ | --------------------------- | ------------------------ |
+| DT-001 | Nettoyage final du fallback `quote-storage.ts` vers 100% Prisma Server Actions | `src/lib/quote-storage.ts`  | ⏳ Optionnel / Obsolète  |
+| DT-002 | Erreurs Prisma résolues avec `instanceof`                                      | `src/app/actions/`          | ✅ Résolu (TASK-002)     |
+| DT-003 | Rate limiting configurable via `process.env`                                   | `middleware.ts`             | ✅ Résolu (TASK-009)     |
+| DT-004 | Suite de 52 tests automatisés Vitest                                           | `tests/`                    | ✅ Résolu (52/52 passés) |
+| DT-005 | Logging structuré Pino & Monitoring centralisé                                 | `src/lib/logger.ts`         | ✅ Résolu (TASK-010)     |
+| DT-006 | README.md & Documentation à jour                                               | `README.md`, `CHANGELOG.md` | ✅ Résolu (V1.2 Release) |
