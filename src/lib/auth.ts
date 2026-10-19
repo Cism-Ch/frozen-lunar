@@ -13,10 +13,22 @@ import prisma from "@/lib/prisma";
  *
  * Voir: https://better-auth.com pour la documentation complète
  */
+// Validation stricte du secret d'authentification
+const authSecret = process.env.BETTER_AUTH_SECRET;
+
+if (!authSecret) {
+    if (process.env.NODE_ENV === "production") {
+        throw new Error(
+            "❌ [FATAL SECURITY] BETTER_AUTH_SECRET est manquant en production. Impossible d'initialiser Better-Auth sans clé secrète robuste."
+        );
+    }
+    console.warn(
+        "⚠️ [SECURITY WARNING] BETTER_AUTH_SECRET n'est pas défini en local. Utilisation d'une clé temporaire réservée au développement."
+    );
+}
+
 export const auth = betterAuth({
-    secret:
-        process.env.BETTER_AUTH_SECRET ||
-        "frozen-lunar-default-secret-change-in-prod-key",
+    secret: authSecret || "dev-only-local-secret-key-frozen-lunar-min-32-chars",
     baseURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
 
     // Configuration de l'adaptateur de base de données

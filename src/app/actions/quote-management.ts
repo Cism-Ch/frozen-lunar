@@ -12,6 +12,7 @@ import {
 } from "@prisma/client";
 import { handleError } from "@/lib/error-handler";
 import { emailQueue, pdfQueue } from "@/lib/qstash";
+import { requireAdmin } from "@/lib/auth-guard";
 
 type QuoteWithHistory = Quote & { history: QuoteHistory[] };
 
@@ -23,6 +24,34 @@ type QuoteWithHistory = Quote & { history: QuoteHistory[] };
 // ============================================
 // VALIDATION SCHEMAS
 // ============================================
+
+const quoteIdSchema = z.string().min(1, "L'identifiant du devis est requis");
+
+const quoteFiltersSchema = z
+    .object({
+        status: z.string().optional(),
+        search: z.string().optional(),
+    })
+    .optional();
+
+const updateQuoteStatusSchema = z.object({
+    id: quoteIdSchema,
+    status: z.string().min(1, "Le statut est requis"),
+});
+
+const updateQuoteDetailsSchema = z.object({
+    amount: z.string().optional(),
+    userNotes: z.string().optional(),
+    supplementaryInfo: z.record(z.string(), z.unknown()).optional(),
+});
+
+const addQuoteNoteSchema = z.object({
+    id: quoteIdSchema,
+    note: z
+        .string()
+        .min(1, "La note ne peut pas être vide")
+        .max(2000, "La note ne peut pas dépasser 2000 caractères"),
+});
 
 const supplementaryInfoSchema = z.object({
     category: z
@@ -243,28 +272,42 @@ export async function createQuoteAction(
 
 /**
  * Get all quotes with optional filters
+ * Nécessite les privilèges administrateur
  */
 export async function getQuotesAction(filters?: {
     status?: string;
     search?: string;
 }) {
     try {
+        await requireAdmin();
+        const validatedFilters = quoteFiltersSchema.parse(filters);
+
         const where: Prisma.QuoteWhereInput = {};
 
-        if (filters?.status && filters.status !== "all") {
-            where.status = statusToEnum(filters.status);
+        if (validatedFilters?.status && validatedFilters.status !== "all") {
+            where.status = statusToEnum(validatedFilters.status);
         }
 
-        if (filters?.search) {
+        if (validatedFilters?.search) {
             where.OR = [
                 {
                     clientName: {
-                        contains: filters.search,
+                        contains: validatedFilters.search,
                         mode: "insensitive",
                     },
                 },
-                { email: { contains: filters.search, mode: "insensitive" } },
-                { id: { contains: filters.search, mode: "insensitive" } },
+                {
+                    email: {
+                        contains: validatedFilters.search,
+                        mode: "insensitive",
+                    },
+                },
+                {
+                    id: {
+                        contains: validatedFilters.search,
+                        mode: "insensitive",
+                    },
+                },
             ];
         }
 
@@ -308,6 +351,13 @@ export async function getQuotesAction(filters?: {
         };
     } catch (error: unknown) {
         console.error("Get Quotes Error:", error);
+        if (error instanceof z.ZodError) {
+            return {
+                success: false,
+                error: error.issues[0].message,
+                quotes: [],
+            };
+        }
         const errorResponse = handleError(error);
         return {
             success: false,
@@ -319,11 +369,15 @@ export async function getQuotesAction(filters?: {
 
 /**
  * Get a single quote by ID
+ * Nécessite les privilèges administrateur
  */
 export async function getQuoteByIdAction(id: string) {
     try {
+        await requireAdmin();
+        const validId = quoteIdSchema.parse(id);
+
         const quote = await prisma.quote.findUnique({
-            where: { id },
+            where: { id: validId },
             include: {
                 history: {
                     orderBy: { timestamp: "desc" },
@@ -365,6 +419,12 @@ export async function getQuoteByIdAction(id: string) {
         };
     } catch (error: unknown) {
         console.error("Get Quote By ID Error:", error);
+        if (error instanceof z.ZodError) {
+            return {
+                success: false,
+                error: error.issues[0].message,
+            };
+        }
         const errorResponse = handleError(error);
         return {
             success: false,
@@ -375,28 +435,31 @@ export async function getQuoteByIdAction(id: string) {
 
 /**
  * Update quote status
+ * Nécessite les privilèges administrateur
  */
 export async function updateQuoteStatusAction(id: string, status: string) {
     try {
-        const enumStatus = statusToEnum(status);
+        await requireAdmin();
+        const validated = updateQuoteStatusSchema.parse({ id, status });
+        const enumStatus = statusToEnum(validated.status);
 
         const quote = await prisma.quote.update({
-            where: { id },
+            where: { id: validated.id },
             data: { status: enumStatus },
         });
 
         // Add history entry
         await prisma.quoteHistory.create({
             data: {
-                quoteId: id,
+                quoteId: validated.id,
                 action: "Changement de statut",
-                description: `Statut changé en : ${status}`,
+                description: `Statut changé en : ${validated.status}`,
                 user: "Admin",
             },
         });
 
         revalidatePath("/admin/quotes");
-        revalidatePath(`/admin/quotes/${id}`);
+        revalidatePath(`/admin/quotes/${validated.id}`);
         revalidatePath("/admin/dashboard");
 
         return {
@@ -408,6 +471,12 @@ export async function updateQuoteStatusAction(id: string, status: string) {
         };
     } catch (error: unknown) {
         console.error("Update Quote Status Error:", error);
+        if (error instanceof z.ZodError) {
+            return {
+                success: false,
+                error: error.issues[0].message,
+            };
+        }
         const errorResponse = handleError(error);
         return {
             success: false,
@@ -418,6 +487,7 @@ export async function updateQuoteStatusAction(id: string, status: string) {
 
 /**
  * Update quote details
+ * Nécessite les privilèges administrateur
  */
 export async function updateQuoteAction(
     id: string,
@@ -428,17 +498,23 @@ export async function updateQuoteAction(
     }>
 ) {
     try {
+        await requireAdmin();
+        const validId = quoteIdSchema.parse(id);
+        const validData = updateQuoteDetailsSchema.parse(data);
+
         const updateData: Prisma.QuoteUpdateInput = {};
 
-        if (data.amount !== undefined) updateData.amount = data.amount;
-        if (data.userNotes !== undefined) updateData.userNotes = data.userNotes;
-        if (data.supplementaryInfo !== undefined) {
+        if (validData.amount !== undefined)
+            updateData.amount = validData.amount;
+        if (validData.userNotes !== undefined)
+            updateData.userNotes = validData.userNotes;
+        if (validData.supplementaryInfo !== undefined) {
             updateData.supplementaryInfo =
-                data.supplementaryInfo as Prisma.InputJsonValue;
+                validData.supplementaryInfo as Prisma.InputJsonValue;
         }
 
         const quote = await prisma.quote.update({
-            where: { id },
+            where: { id: validId },
             data: updateData,
         });
 
@@ -446,7 +522,7 @@ export async function updateQuoteAction(
         const fields = Object.keys(data).join(", ");
         await prisma.quoteHistory.create({
             data: {
-                quoteId: id,
+                quoteId: validId,
                 action: "Mise à jour",
                 description: `Champs mis à jour : ${fields}`,
                 user: "Admin",
@@ -454,11 +530,17 @@ export async function updateQuoteAction(
         });
 
         revalidatePath("/admin/quotes");
-        revalidatePath(`/admin/quotes/${id}`);
+        revalidatePath(`/admin/quotes/${validId}`);
 
         return { success: true, quote };
     } catch (error: unknown) {
         console.error("Update Quote Error:", error);
+        if (error instanceof z.ZodError) {
+            return {
+                success: false,
+                error: error.issues[0].message,
+            };
+        }
         const errorResponse = handleError(error);
         return {
             success: false,
@@ -469,24 +551,31 @@ export async function updateQuoteAction(
 
 /**
  * Add a note to quote history
+ * Nécessite les privilèges administrateur
  */
 export async function addQuoteNoteAction(id: string, note: string) {
     try {
+        await requireAdmin();
+        const validated = addQuoteNoteSchema.parse({ id, note });
+
         await prisma.quoteHistory.create({
             data: {
-                quoteId: id,
+                quoteId: validated.id,
                 action: "Note Interne",
-                description: note,
+                description: validated.note,
                 user: "Admin",
             },
         });
 
         revalidatePath("/admin/quotes");
-        revalidatePath(`/admin/quotes/${id}`);
+        revalidatePath(`/admin/quotes/${validated.id}`);
 
         return { success: true };
     } catch (error: unknown) {
         console.error("Add Quote Note Error:", error);
+        if (error instanceof z.ZodError) {
+            return { success: false, error: error.issues[0].message };
+        }
         const errorResponse = handleError(error);
         return { success: false, error: errorResponse.message };
     }
@@ -494,11 +583,15 @@ export async function addQuoteNoteAction(id: string, note: string) {
 
 /**
  * Delete a quote
+ * Nécessite les privilèges administrateur
  */
 export async function deleteQuoteAction(id: string) {
     try {
+        await requireAdmin();
+        const validId = quoteIdSchema.parse(id);
+
         await prisma.quote.delete({
-            where: { id },
+            where: { id: validId },
         });
 
         revalidatePath("/admin/quotes");
@@ -507,6 +600,12 @@ export async function deleteQuoteAction(id: string) {
         return { success: true };
     } catch (error: unknown) {
         console.error("Delete Quote Error:", error);
+        if (error instanceof z.ZodError) {
+            return {
+                success: false,
+                error: error.issues[0].message,
+            };
+        }
         const errorResponse = handleError(error);
         return {
             success: false,

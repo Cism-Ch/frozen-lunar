@@ -2,7 +2,15 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LogOut, Menu, Truck, Search, Users, Settings } from "lucide-react";
+import {
+    LogOut,
+    Menu,
+    Truck,
+    Search,
+    Users,
+    Settings,
+    Loader2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Sheet,
@@ -28,9 +36,9 @@ import {
     usePrefersReducedMotion,
 } from "@/components/ui/motion";
 import { transitions } from "@/lib/animations";
-import { authClient } from "@/lib/auth-client";
+import { authClient, UserWithRole } from "@/lib/auth-client";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function AdminLayout({
     children,
@@ -41,6 +49,22 @@ export default function AdminLayout({
     const router = useRouter();
     const prefersReducedMotion = usePrefersReducedMotion();
     const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+    const isAuthRoute =
+        pathname === "/admin/login" || pathname === "/admin/init";
+
+    const { data: session, isPending } = authClient.useSession();
+    const userRole = (session?.user as unknown as UserWithRole | undefined)
+        ?.role;
+
+    useEffect(() => {
+        if (!isPending && !isAuthRoute) {
+            if (!session || userRole !== "admin") {
+                const loginUrl = `/admin/login?callbackUrl=${encodeURIComponent(pathname)}`;
+                router.push(loginUrl);
+            }
+        }
+    }, [session, isPending, isAuthRoute, userRole, pathname, router]);
 
     const handleLogout = async () => {
         setIsLoggingOut(true);
@@ -55,6 +79,25 @@ export default function AdminLayout({
             setIsLoggingOut(false);
         }
     };
+
+    // Les routes d'authentification s'affichent sans le layout dashboard
+    if (isAuthRoute) {
+        return <>{children}</>;
+    }
+
+    // Affichage d'un état de chargement sécurisé pendant la validation de la session
+    if (isPending || !session || userRole !== "admin") {
+        return (
+            <div className="bg-background flex min-h-screen items-center justify-center">
+                <div className="flex flex-col items-center gap-3">
+                    <Loader2 className="text-primary h-8 w-8 animate-spin" />
+                    <p className="text-muted-foreground text-sm font-medium">
+                        Vérification des autorisations administrateur...
+                    </p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="bg-muted/10 flex h-screen">

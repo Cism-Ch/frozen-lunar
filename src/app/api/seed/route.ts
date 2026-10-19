@@ -21,50 +21,66 @@ import prisma from "@/lib/prisma";
  * - 500: Erreur lors de la création
  */
 
-// Utilisateurs de test avec mots de passe sécurisés
-const TEST_USERS = [
-    {
-        role: "admin",
-        name: "Super Admin",
-        email: "admin@hbc-logistique.fr",
-        password: "AdminStrongPass2025!",
-    },
-    {
-        role: "developer",
-        name: "Dev One",
-        email: "dev-00@hbc-logistique.fr",
-        password: "Dev00SecurePass!",
-    },
-    {
-        role: "developer",
-        name: "Dev Two",
-        email: "dev-01@hbc-logistique.fr",
-        password: "Dev01SecurePass!",
-    },
-    {
-        role: "moderator",
-        name: "Moderator",
-        email: "mod@hbc-logistique.fr",
-        password: "ModSecurePass!",
-    },
-];
+import crypto from "crypto";
+
+// Utilisateurs de test avec mots de passe générés dynamiquement (aucun secret statique en dur)
+function getTestUsers() {
+    return [
+        {
+            role: "admin",
+            name: "Super Admin",
+            email: "admin@hbc-logistique.fr",
+            password:
+                process.env.SEED_ADMIN_PASSWORD ||
+                `Adm_${crypto.randomBytes(8).toString("hex")}!9A`,
+        },
+        {
+            role: "developer",
+            name: "Dev One",
+            email: "dev-00@hbc-logistique.fr",
+            password:
+                process.env.SEED_DEV_PASSWORD ||
+                `Dev_${crypto.randomBytes(8).toString("hex")}!9A`,
+        },
+        {
+            role: "developer",
+            name: "Dev Two",
+            email: "dev-01@hbc-logistique.fr",
+            password:
+                process.env.SEED_DEV_PASSWORD ||
+                `Dev_${crypto.randomBytes(8).toString("hex")}!9A`,
+        },
+        {
+            role: "moderator",
+            name: "Moderator",
+            email: "mod@hbc-logistique.fr",
+            password:
+                process.env.SEED_MOD_PASSWORD ||
+                `Mod_${crypto.randomBytes(8).toString("hex")}!9A`,
+        },
+    ];
+}
 
 export async function POST() {
-    // Protection: bloquer cette route en production
-    if (process.env.NODE_ENV === "production") {
+    // Protection renforcée: bloquer en production et exiger ENABLE_SEED_ROUTE=true en dev
+    if (
+        process.env.NODE_ENV === "production" ||
+        process.env.ENABLE_SEED_ROUTE !== "true"
+    ) {
         return NextResponse.json(
             {
-                error: "Cette route est désactivée en production pour des raisons de sécurité",
+                error: "Cette route est désactivée pour des raisons de sécurité. Définir ENABLE_SEED_ROUTE=true en environnement de développement pour l'autoriser.",
             },
             { status: 403 }
         );
     }
 
+    const testUsers = getTestUsers();
     const results = [];
 
     try {
         // Créer chaque utilisateur de test
-        for (const user of TEST_USERS) {
+        for (const user of testUsers) {
             try {
                 // Vérifier si l'utilisateur existe déjà
                 const existing = await prisma.user.findUnique({
@@ -121,7 +137,7 @@ export async function POST() {
             message: "Processus de seed terminé",
             summary: results,
             stats: {
-                total: TEST_USERS.length,
+                total: testUsers.length,
                 created: results.filter((r) => r.status === "Créé avec succès")
                     .length,
                 existing: results.filter((r) => r.status === "Existe déjà")

@@ -1,7 +1,7 @@
 "use server";
 
-import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth-guard";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
@@ -16,29 +16,6 @@ import { ERROR_CODES } from "@/lib/error-codes";
 
 // Initialisation du client API Auth server-side
 const authApi = auth.api;
-
-/**
- * Vérifie si l'utilisateur actuel est un administrateur
- * Lance une erreur si l'utilisateur n'est pas authentifié ou n'a pas le rôle admin
- *
- * @returns L'utilisateur admin authentifié
- * @throws Error si l'utilisateur n'est pas admin
- */
-async function requireAdmin() {
-    const session = await auth.api.getSession({
-        headers: await headers(),
-    });
-
-    if (!session) {
-        throw new Error("Non authentifié. Veuillez vous connecter.");
-    }
-
-    if (session.user.role !== "admin") {
-        throw new Error("Accès refusé. Rôle administrateur requis.");
-    }
-
-    return session.user;
-}
 
 /**
  * Crée un nouvel utilisateur avec Better Auth

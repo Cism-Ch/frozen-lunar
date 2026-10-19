@@ -20,14 +20,17 @@ const RATE_LIMIT_WINDOW_SECONDS =
     Number(process.env.RATE_LIMIT_WINDOW_SECONDS) || 10;
 const RATE_LIMIT_WINDOW = `${RATE_LIMIT_WINDOW_SECONDS} s` as const;
 
+const isRedisConfigured = Boolean(
+    process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+);
+
 // Initialisation du Redis pour le Rate Limiting (Edge compatible)
-// Si les variables d'environnement ne sont pas définies, le rate limiting sera désactivé
 const redis = new Redis({
     url: process.env.UPSTASH_REDIS_REST_URL || "",
     token: process.env.UPSTASH_REDIS_REST_TOKEN || "",
 });
 
-// Configuration du Rate Limiter : configurable par IP (défaut : 20 requêtes / 10s)
+// Configuration du Rate Limiter global : configurable par IP (défaut : 20 requêtes / 10s)
 const ratelimit = new Ratelimit({
     redis: redis,
     limiter: Ratelimit.slidingWindow(
@@ -37,6 +40,16 @@ const ratelimit = new Ratelimit({
     analytics: true,
     prefix: "@upstash/ratelimit",
 });
+
+// Limiteur strict anti-brute force pour l'authentification (5 requêtes / 60s)
+const authRatelimit = isRedisConfigured
+    ? new Ratelimit({
+          redis: redis,
+          limiter: Ratelimit.slidingWindow(5, "60 s"),
+          analytics: true,
+          prefix: "@upstash/ratelimit_auth",
+      })
+    : null;
 
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
@@ -80,38 +93,71 @@ export async function middleware(request: NextRequest) {
     }
 
     // =========================================================================
-    // RATE LIMITING SUR LES ROUTES API
+    // RATE LIMITING SUR LES ROUTES API, AUTH & SERVER ACTIONS
     // =========================================================================
-    if (pathname.startsWith("/api")) {
-        // Identifier l'utilisateur par son IP (x-forwarded-for en production)
-        const ip = request.headers.get("x-forwarded-for") ?? "127.0.0.1";
+    const isServerAction =
+        request.method === "POST" && request.headers.has("next-action");
+    const isApiRoute = pathname.startsWith("/api");
+
+    if (isApiRoute || isServerAction) {
+        // En local sans configuration Redis, laisser passer les requêtes
+        if (!isRedisConfigured) {
+            return NextResponse.next();
+        }
+
+        // Extraction sécurisée de l'adresse IP du client
+        const rawIp = request.headers.get("x-forwarded-for");
+        const ip = rawIp ? rawIp.split(",")[0].trim() : "127.0.0.1";
 
         try {
-            // Appliquer le rate limiting
-            const { success, limit, reset, remaining } = await ratelimit.limit(
-                `mw_${ip}`
+            const isAuthEndpoint =
+                pathname.startsWith("/api/auth") && request.method === "POST";
+            const limiter =
+                isAuthEndpoint && authRatelimit ? authRatelimit : ratelimit;
+            const prefix = isAuthEndpoint
+                ? "auth"
+                : isServerAction
+                  ? "action"
+                  : "api";
+
+            const { success, limit, reset, remaining } = await limiter.limit(
+                `${prefix}_${ip}`
             );
 
-            const res = success
-                ? NextResponse.next()
-                : NextResponse.json(
-                      {
-                          error: "Trop de requêtes. Veuillez réessayer plus tard.",
-                          limit: `${RATE_LIMIT_REQUESTS} requêtes par ${RATE_LIMIT_WINDOW}`,
-                          retryAfter: new Date(reset).toISOString(),
-                      },
-                      { status: 429 }
-                  );
+            if (!success) {
+                const retrySeconds = Math.max(
+                    1,
+                    Math.ceil((reset - Date.now()) / 1000)
+                );
+                return NextResponse.json(
+                    {
+                        error: isAuthEndpoint
+                            ? "Trop de tentatives de connexion. Veuillez patienter avant de réessayer."
+                            : "Trop de requêtes. Veuillez réessayer plus tard.",
+                        limit: isAuthEndpoint
+                            ? "5 requêtes par minute"
+                            : `${RATE_LIMIT_REQUESTS} requêtes par ${RATE_LIMIT_WINDOW}`,
+                        retryAfter: new Date(reset).toISOString(),
+                    },
+                    {
+                        status: 429,
+                        headers: {
+                            "X-RateLimit-Limit": limit.toString(),
+                            "X-RateLimit-Remaining": remaining.toString(),
+                            "X-RateLimit-Reset": reset.toString(),
+                            "Retry-After": retrySeconds.toString(),
+                        },
+                    }
+                );
+            }
 
-            // Ajouter les headers de Rate Limit pour informer le client
+            const res = NextResponse.next();
             res.headers.set("X-RateLimit-Limit", limit.toString());
             res.headers.set("X-RateLimit-Remaining", remaining.toString());
             res.headers.set("X-RateLimit-Reset", reset.toString());
-
             return res;
         } catch (error: unknown) {
-            // En cas d'erreur Redis (ex: service indisponible), autoriser la requête
-            // mais logger l'erreur pour investigation
+            // En cas d'indisponibilité temporaire de Redis, autoriser la requête pour ne pas bloquer les utilisateurs
             console.error("❌ Erreur Rate Limiting:", error);
             return NextResponse.next();
         }

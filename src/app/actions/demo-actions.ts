@@ -1,5 +1,6 @@
 "use server";
 
+import { requireAdmin } from "@/lib/auth-guard";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { handleError } from "@/lib/error-handler";
@@ -12,6 +13,7 @@ import { QuoteStatus, QuoteSource } from "@prisma/client";
  */
 export async function injectDemoDataAction() {
     try {
+        await requireAdmin();
         let insertedCount = 0;
 
         for (const item of demoQuotes) {
@@ -80,6 +82,7 @@ export async function injectDemoDataAction() {
  */
 export async function clearDemoDataAction() {
     try {
+        await requireAdmin();
         const demoEmails = demoQuotes.map((q) => q.email);
 
         const deleteResult = await prisma.quote.deleteMany({
