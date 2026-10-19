@@ -10,17 +10,17 @@
 
 **Phase 3 — Production & Deployment** 🔄 En cours
 
-> Les phases 1 (UI) et 2 (Backend & Asynchronous Infrastructure) sont intégralement terminées (100%). L'application dispose d'une suite de 52 tests automatisés (Vitest), d'un moteur de résilience IA multi-niveaux (Gemini 1.5 + Fail-Safe heuristique), d'un système d'automatisation WhatsApp 1-Clic via Hugging Face & click-to-chat `wa.me`, du rate limiting, de QStash workers, d'emails HTML typés, d'upload S3 Tigris, de Supabase Realtime, des headers HTTP de sécurité, du logging structuré Pino, du RLS et du pipeline CI/CD GitHub Actions.
+> Les phases 1 (UI) et 2 (Backend & Asynchronous Infrastructure) sont intégralement terminées (100%). L'application dispose d'une suite de 57 tests automatisés (Vitest), d'un moteur de résilience IA multi-niveaux (Gemini 1.5 + Fail-Safe heuristique), d'un système d'automatisation WhatsApp 1-Clic via Hugging Face & click-to-chat `wa.me`, d'un module de support client réactif et assaini sans émojis bruts, du rate limiting, de QStash workers, d'emails HTML typés, d'upload S3 Tigris, de Supabase Realtime, des headers HTTP de sécurité, du logging structuré Pino, du RLS et du pipeline CI/CD GitHub Actions.
 
 ---
 
 ## Avancement des Phases
 
-| Phase | Nom                 | Statut      | Progression | Notes                                                                                   |
-| ----- | ------------------- | ----------- | ----------- | --------------------------------------------------------------------------------------- |
-| 1     | UI Implementation   | ✅ Terminé  | 100%        | Landing page, admin, wizard devis, support chat, thèmes, accessibilité WCAG AA/AAA      |
-| 2     | Backend Integration | ✅ Terminé  | 100%        | Auth Better-Auth ✅, Quotes CRUD ✅, QStash/Email/S3/Realtime/Pino/RLS ✅               |
-| 3     | Production Ready    | 🔄 En cours | ~75%        | Tests Vitest (52 tests) ✅, CI/CD ✅, Résilience IA ✅, WhatsApp 1-Clic ✅, Sécurité ✅ |
+| Phase | Nom                 | Statut      | Progression | Notes                                                                                                       |
+| ----- | ------------------- | ----------- | ----------- | ----------------------------------------------------------------------------------------------------------- |
+| 1     | UI Implementation   | ✅ Terminé  | 100%        | Landing page, admin, wizard devis, support chat (responsive, 0 émojis), thèmes, accessibilité WCAG AA/AAA   |
+| 2     | Backend Integration | ✅ Terminé  | 100%        | Auth Better-Auth ✅, Quotes CRUD ✅, QStash/Email/S3/Realtime/Pino/RLS ✅                                   |
+| 3     | Production Ready    | 🔄 En cours | ~75%        | Tests Vitest (57 tests) ✅, CI/CD ✅, Résilience IA ✅, WhatsApp 1-Clic ✅, Suivi Transport Support Chat ✅ |
 
 ---
 

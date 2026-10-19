@@ -7,6 +7,26 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed & Improved
+
+- **Module Support Chat & Agent Conversationnel** :
+    - **Résolution du flux de suivi de transport** :
+        - Ajout du flux guidé `tracking-flow` dans `src/lib/support-agent/tutorials.ts` avec déclencheurs complets (`suivre`, `suivi`, `état`, `statut`, `commande`, `expédition`, `livraison`).
+        - Correction de la réponse générique intempestive ("Je suis là pour vous aider ! Que souhaitez-vous savoir...") lors des requêtes "Je veux suivre l'état de mon transport" ou "Je veux suivre mon transport".
+        - Connexion directe au tutoriel pré-enregistré `TUTORIALS["track-transport"]` et fourniture d'options interactives (numéro de dossier disponible, numéro égaré, mise en relation avec le régulateur d'exploitation).
+        - Détection intelligente des références de dossier `HBC-XXXXX` dans les messages avec confirmation de statut immédiate et options d'assistance.
+    - **Assainissement Visuel & Suppression des Émojis Bruts** :
+        - Élimination intégrale des émojis bruts dans les boutons de suggestion en bas de chat (`ChatInput.tsx`, `ChatOptions.tsx`, `ChatMessagesList.tsx`, `quote-flow.ts`, `tutorials.ts`).
+        - Remplacement par des icônes vectorielles SVG Lucide élégantes et adaptées au contexte (`Package`, `FileText`, `Truck`, `Phone`, `AlertCircle`, `Check`, `ChevronRight`).
+        - Implémentation d'une fonction de filtrage regex `stripEmojis` sur tous les labels pour garantir un rendu irréprochable sans émoji non désiré.
+    - **Positionnement & Responsive Design** :
+        - Suppression de l'icône de fermeture en doublon qui chevauchait l'en-tête grâce à `showCloseButton={false}` sur `DialogContent`.
+        - Remplacement du bouton ambigu `Minimize2` par une croix de fermeture `X` explicite et accessible.
+        - Ancrage ergonomique de la modale sur desktop (`sm:bottom-6 sm:left-6`) en harmonie avec le bouton d'appel flottant.
+        - Adaptation plein écran native sur mobile avec prise en compte du clavier virtuel (`100dvh`) et des safe-areas iOS (`env(safe-area-inset-bottom)`).
+    - **Tests Automatisés** :
+        - Ajout de la suite de tests `tests/unit/support-chat-tracking.test.ts` (5 tests validant le routage, l'absence de repli générique, la reconnaissance des numéros HBC et l'absence totale d'émojis).
+
 ---
 
 ## [1.2.0] — 2026-10-19 — Version 1.2.0 (Resilience, WhatsApp Automation & Security Release)

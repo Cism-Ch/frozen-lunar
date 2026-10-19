@@ -18,23 +18,23 @@ export const AGENT_CONFIG = {
     typingDelay: 800, // Simulate typing delay (ms)
     minTypingTime: 500, // Minimum typing indicator time (ms)
 
-    // Quick replies for common questions
+    // Quick replies for common questions (sans emojis bruts, icônes gérées par le composant)
     quickReplies: [
         {
             id: "quote",
-            label: "📋 Demander un devis",
+            label: "Demander un devis",
             text: "Je souhaite demander un devis pour un transport",
             category: "quote" as QueryCategory,
         },
         {
             id: "status",
-            label: "📦 Suivi de transport",
+            label: "Suivi de transport",
             text: "Je veux suivre l'état de mon transport",
             category: "transport" as QueryCategory,
         },
         {
             id: "contact",
-            label: "📞 Contacter un humain",
+            label: "Contacter un conseiller",
             text: "Je voudrais parler à un conseiller",
             category: "general" as QueryCategory,
         },
@@ -54,7 +54,7 @@ Services: transport de matériaux, containers, charpentes, machines industrielle
         id: "welcome",
         role: "assistant" as const,
         content:
-            "Bonjour ! 👋 Je suis l'assistant HBC Logistique. Comment puis-je vous aider aujourd'hui ?",
+            "Bonjour ! Je suis l'assistant HBC Logistique. Comment puis-je vous aider aujourd'hui ?",
         timestamp: new Date(),
     },
 
@@ -68,7 +68,7 @@ Services: transport de matériaux, containers, charpentes, machines industrielle
     },
 };
 
-// Phase 2: Keywords for quick categorization (token-saving approach)
+// Mots-clés pour catégorisation instantanée et routage précis
 export const CATEGORY_KEYWORDS: Record<QueryCategory, string[]> = {
     technical: [
         "technique",
@@ -77,27 +77,56 @@ export const CATEGORY_KEYWORDS: Record<QueryCategory, string[]> = {
         "bug",
         "fonctionne pas",
         "marche pas",
+        "bloqué",
     ],
     billing: [
         "facture",
         "paiement",
-        "prix",
-        "coût",
-        "tarif",
+        "facturation",
         "montant",
         "euros",
+        "règlement",
     ],
-    quote: ["devis", "estimation", "combien", "gratuit", "demande"],
+    quote: [
+        "devis",
+        "estimation",
+        "combien",
+        "gratuit",
+        "demande",
+        "tarif",
+        "prix",
+        "coût",
+        "cout",
+    ],
     transport: [
+        "suivre",
         "suivi",
+        "état",
+        "etat",
         "commande",
         "colis",
         "livraison",
         "où",
+        "ou",
         "statut",
         "expédition",
+        "expedition",
+        "acheminement",
+        "trajet",
+        "chauffeur",
+        "transport",
+        "dossier",
     ],
-    general: ["information", "question", "aide", "bonjour", "merci", "contact"],
+    general: [
+        "information",
+        "question",
+        "aide",
+        "bonjour",
+        "merci",
+        "contact",
+        "humain",
+        "conseiller",
+    ],
 };
 
 // Sentiment keywords for quick analysis

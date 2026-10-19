@@ -560,7 +560,9 @@ export async function generateSupportAiResponse(
             Règles strictes :
             - Langue : Français impeccable, concis, professionnel et rassurant (max 2 à 3 phrases).
             - Ne jamais inventer de prix exacts : pour toute demande de devis/prix/tarif, invite le client à utiliser le formulaire ou le wizard devis interactif.
+            - Pour tout suivi de transport ou de commande : indique que le suivi s'effectue via la référence de dossier (format HBC-XXXXX) communiquée par email ou en contactant notre service d'exploitation logistique. Règle la catégorie sur "transport".
             - Si l'utilisateur exprime de la colère ou une réclamation, réponds poliment et indique qu'un conseiller humain prendra le relais.
+            - N'utilise aucun émoji brut dans le message afin de maintenir une charte graphique épurée.
             
             Historique récent :
             ${historySnippet}

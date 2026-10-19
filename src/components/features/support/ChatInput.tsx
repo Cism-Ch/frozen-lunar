@@ -5,7 +5,16 @@ import { AGENT_CONFIG } from "@/lib/support-agent/config";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Loader2 } from "lucide-react";
+import {
+    Send,
+    Loader2,
+    FileText,
+    Package,
+    Truck,
+    Phone,
+    AlertCircle,
+    HelpCircle,
+} from "lucide-react";
 import { useState, useRef, KeyboardEvent } from "react";
 
 interface ChatInputProps {
@@ -15,6 +24,53 @@ interface ChatInputProps {
     onQuickReply?: (reply: QuickReply) => void;
     className?: string;
     placeholder?: string;
+}
+
+/**
+ * Nettoyage préventif des émojis pour garantir une interface professionnelle sans pictographes bruts
+ */
+function stripEmojis(text: string): string {
+    return text
+        .replace(
+            /[\p{Emoji_Presentation}\p{Extended_Pictographic}\u200d\uFE0F]/gu,
+            ""
+        )
+        .replace(/^[^\wÀ-ÿ]+\s*/, "")
+        .trim();
+}
+
+/**
+ * Résolution dynamique d'une icône vectorielle Lucide selon l'action
+ */
+function renderReplyIcon(reply: QuickReply) {
+    const id = reply.id.toLowerCase();
+    const cat = (reply.category || "").toLowerCase();
+
+    if (id.includes("quote") || cat === "quote") {
+        return (
+            <FileText className="text-primary mr-1.5 h-3.5 w-3.5 shrink-0" />
+        );
+    }
+    if (
+        id.includes("track") ||
+        id.includes("status") ||
+        cat === "transport" ||
+        id.includes("number")
+    ) {
+        return <Package className="text-primary mr-1.5 h-3.5 w-3.5 shrink-0" />;
+    }
+    if (id.includes("service") || id.includes("delivery")) {
+        return <Truck className="text-primary mr-1.5 h-3.5 w-3.5 shrink-0" />;
+    }
+    if (id.includes("human") || id.includes("contact") || id.includes("call")) {
+        return <Phone className="text-primary mr-1.5 h-3.5 w-3.5 shrink-0" />;
+    }
+    if (id.includes("urgent")) {
+        return (
+            <AlertCircle className="text-destructive mr-1.5 h-3.5 w-3.5 shrink-0" />
+        );
+    }
+    return <HelpCircle className="text-primary mr-1.5 h-3.5 w-3.5 shrink-0" />;
 }
 
 export function ChatInput({
@@ -57,27 +113,26 @@ export function ChatInput({
 
     return (
         <div className={cn("space-y-3", className)}>
-            {/* Quick Replies */}
+            {/* Quick Replies (Boutons de suggestion épurés avec icônes Lucide) */}
             {quickReplies.length > 0 && (
-                <div className="relative">
-                    <div className="from-background pointer-events-none absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l to-transparent md:hidden" />
-                    <div className="mask-linear-fade -mb-2 flex scrollbar-none gap-2 overflow-x-auto pb-2">
-                        {quickReplies.map((reply) => (
-                            <Button
-                                key={reply.id}
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleQuickReply(reply)}
-                                disabled={isLoading}
-                                className="bg-muted/50 hover:bg-primary/10 hover:text-primary hover:border-primary/30 h-8 rounded-full px-3 text-xs whitespace-nowrap transition-colors"
-                            >
-                                {reply.icon && (
-                                    <span className="mr-1">{reply.icon}</span>
-                                )}
-                                {reply.label}
-                            </Button>
-                        ))}
-                    </div>
+                <div className="flex touch-pan-x scrollbar-none items-center gap-1.5 overflow-x-auto py-1">
+                    {quickReplies.map((reply) => (
+                        <Button
+                            key={reply.id}
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleQuickReply(reply)}
+                            disabled={isLoading}
+                            className={cn(
+                                "h-8 shrink-0 rounded-full px-3 text-xs font-medium whitespace-nowrap transition-all",
+                                "bg-muted/60 hover:bg-primary/10 hover:text-primary hover:border-primary/40",
+                                "border-border/60 shadow-2xs active:scale-95"
+                            )}
+                        >
+                            {renderReplyIcon(reply)}
+                            <span>{stripEmojis(reply.label)}</span>
+                        </Button>
+                    ))}
                 </div>
             )}
 

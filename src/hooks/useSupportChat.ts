@@ -11,6 +11,7 @@ import {
 import {
     FlowOption,
     getTutorial,
+    getContextualQuickReplies,
     Tutorial,
 } from "@/lib/support-agent/tutorials";
 import {
@@ -382,17 +383,21 @@ export function useSupportChat(onClose: () => void) {
                         setCurrentQuickReplies([
                             {
                                 id: "contact_human_urgent",
-                                label: "📞 Parler à un conseiller",
+                                label: "Parler à un conseiller",
                                 text: "Je souhaite contacter un conseiller humain",
                                 category: "general",
                             },
                             {
                                 id: "quote_help",
-                                label: "📋 Demander un devis",
+                                label: "Demander un devis",
                                 text: "Je souhaite obtenir un devis pour mon transport",
                                 category: "quote",
                             },
                         ]);
+                    } else if (aiResult.data.category === "transport") {
+                        setCurrentQuickReplies(
+                            getContextualQuickReplies("afterTrackingHelp")
+                        );
                     }
                 }
             } catch (aiErr: unknown) {
@@ -444,9 +449,13 @@ export function useSupportChat(onClose: () => void) {
                 }
 
                 if (response.showTutorial && response.tutorialContent) {
-                    const tutorialId = response.options?.find(
-                        (o) => o.tutorialId
-                    )?.tutorialId;
+                    const tutorialId =
+                        response.tutorialId ||
+                        response.options?.find((o) => o.tutorialId)
+                            ?.tutorialId ||
+                        (response.category === "transport"
+                            ? "track-transport"
+                            : undefined);
                     if (tutorialId) {
                         const tutorial = getTutorial(tutorialId);
                         if (tutorial) {

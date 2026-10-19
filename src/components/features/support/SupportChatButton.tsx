@@ -31,7 +31,7 @@ export function SupportChatButton() {
                             stiffness: 260,
                             damping: 20,
                         }}
-                        className="fixed bottom-6 left-6 z-50 lg:bottom-8 lg:left-8"
+                        className="fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom,0px))] left-6 z-50 lg:bottom-8 lg:left-8"
                     >
                         <Button
                             onClick={() => setIsOpen(true)}
@@ -69,8 +69,9 @@ export function SupportChatButton() {
                             transition={{ delay: 0.5 }}
                             className="absolute top-1/2 left-full ml-3 hidden -translate-y-1/2 lg:block"
                         >
-                            <div className="bg-popover text-popover-foreground rounded-lg border px-3 py-1.5 text-sm whitespace-nowrap shadow-lg">
-                                💬 Besoin d&apos;aide ?
+                            <div className="bg-popover text-popover-foreground flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium whitespace-nowrap shadow-lg">
+                                <Headset className="text-primary h-3.5 w-3.5" />
+                                <span>Besoin d&apos;aide ?</span>
                             </div>
                         </motion.div>
                     </motion.div>

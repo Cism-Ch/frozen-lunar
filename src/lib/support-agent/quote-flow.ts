@@ -63,11 +63,11 @@ export const CATEGORY_QUESTIONS: Record<ItemCategory, CategoryQuestion[]> = {
             field: "materialType",
             type: "select",
             options: [
-                { label: "🧱 Parpaings/Briques", value: "parpaings" },
-                { label: "🏖️ Sable/Gravier", value: "agregats" },
-                { label: "🪵 Bois", value: "bois" },
-                { label: "🔩 Métal", value: "metal" },
-                { label: "📦 Autre", value: "autre" },
+                { label: "Parpaings / Briques", value: "parpaings" },
+                { label: "Sable / Gravier", value: "agregats" },
+                { label: "Bois de construction", value: "bois" },
+                { label: "Métal / Aciers", value: "metal" },
+                { label: "Autre matériau", value: "autre" },
             ],
         },
         {
@@ -89,10 +89,10 @@ export const CATEGORY_QUESTIONS: Record<ItemCategory, CategoryQuestion[]> = {
             field: "packaging",
             type: "select",
             options: [
-                { label: "📦 Palettes", value: "palettes" },
-                { label: "🎒 Big bags", value: "bigbags" },
-                { label: "🔓 Vrac", value: "vrac" },
-                { label: "📋 Autre", value: "autre" },
+                { label: "Palettes", value: "palettes" },
+                { label: "Big bags", value: "bigbags" },
+                { label: "Vrac", value: "vrac" },
+                { label: "Autre conditionnement", value: "autre" },
             ],
         },
         {
@@ -107,10 +107,10 @@ export const CATEGORY_QUESTIONS: Record<ItemCategory, CategoryQuestion[]> = {
             field: "accessInfo",
             type: "select",
             options: [
-                { label: "✅ Accès facile", value: "facile" },
-                { label: "🚧 Accès restreint", value: "restreint" },
-                { label: "🏗️ Nécessite grue", value: "grue" },
-                { label: "🚜 Chariot élévateur sur place", value: "chariot" },
+                { label: "Accès facile", value: "facile" },
+                { label: "Accès restreint", value: "restreint" },
+                { label: "Nécessite une grue", value: "grue" },
+                { label: "Chariot élévateur disponible", value: "chariot" },
             ],
         },
     ],
@@ -122,10 +122,10 @@ export const CATEGORY_QUESTIONS: Record<ItemCategory, CategoryQuestion[]> = {
             field: "containerSize",
             type: "select",
             options: [
-                { label: "📦 20 pieds (6m)", value: "20ft" },
-                { label: "📦 40 pieds (12m)", value: "40ft" },
-                { label: "📦 40 pieds High Cube", value: "40hc" },
-                { label: "❓ Autre taille", value: "autre" },
+                { label: "20 pieds (6m)", value: "20ft" },
+                { label: "40 pieds (12m)", value: "40ft" },
+                { label: "40 pieds High Cube", value: "40hc" },
+                { label: "Autre taille", value: "autre" },
             ],
         },
         {
@@ -134,10 +134,10 @@ export const CATEGORY_QUESTIONS: Record<ItemCategory, CategoryQuestion[]> = {
             field: "containerType",
             type: "select",
             options: [
-                { label: "📦 Standard (Dry)", value: "dry" },
-                { label: "❄️ Réfrigéré (Reefer)", value: "reefer" },
-                { label: "🔓 Open Top", value: "opentop" },
-                { label: "🚪 Flat Rack", value: "flatrack" },
+                { label: "Standard (Dry)", value: "dry" },
+                { label: "Réfrigéré (Reefer)", value: "reefer" },
+                { label: "Open Top", value: "opentop" },
+                { label: "Flat Rack", value: "flatrack" },
             ],
         },
         {
@@ -152,10 +152,10 @@ export const CATEGORY_QUESTIONS: Record<ItemCategory, CategoryQuestion[]> = {
             field: "loadingType",
             type: "select",
             options: [
-                { label: "🏗️ Grue nécessaire", value: "grue" },
-                { label: "🚜 Chariot élévateur", value: "chariot" },
-                { label: "🚛 Side-loader", value: "sideloader" },
-                { label: "❓ À définir", value: "unknown" },
+                { label: "Grue nécessaire", value: "grue" },
+                { label: "Chariot élévateur", value: "chariot" },
+                { label: "Side-loader", value: "sideloader" },
+                { label: "À définir", value: "unknown" },
             ],
         },
         {
@@ -164,10 +164,10 @@ export const CATEGORY_QUESTIONS: Record<ItemCategory, CategoryQuestion[]> = {
             field: "accessInfo",
             type: "select",
             options: [
-                { label: "✅ Accès camion facile", value: "facile" },
-                { label: "🚧 Rue étroite", value: "etroit" },
-                { label: "⛔ Restrictions horaires", value: "horaires" },
-                { label: "📍 Zone urbaine dense", value: "urbain" },
+                { label: "Accès camion standard", value: "facile" },
+                { label: "Rue étroite", value: "etroit" },
+                { label: "Restrictions horaires", value: "horaires" },
+                { label: "Zone urbaine dense", value: "urbain" },
             ],
         },
     ],
@@ -179,10 +179,10 @@ export const CATEGORY_QUESTIONS: Record<ItemCategory, CategoryQuestion[]> = {
             field: "machineType",
             type: "select",
             options: [
-                { label: "🚜 Engin de chantier", value: "engin" },
-                { label: "⚙️ Machine-outil", value: "machine_outil" },
-                { label: "🏭 Équipement industriel", value: "industriel" },
-                { label: "🔧 Autre équipement", value: "autre" },
+                { label: "Engin de chantier", value: "engin" },
+                { label: "Machine-outil", value: "machine_outil" },
+                { label: "Équipement industriel", value: "industriel" },
+                { label: "Autre équipement", value: "autre" },
             ],
         },
         {
@@ -191,10 +191,10 @@ export const CATEGORY_QUESTIONS: Record<ItemCategory, CategoryQuestion[]> = {
             field: "dimensions",
             type: "select",
             options: [
-                { label: "Petit (<2m)", value: "petit" },
-                { label: "Moyen (2-5m)", value: "moyen" },
-                { label: "Grand (5-10m)", value: "grand" },
-                { label: "Très grand (>10m)", value: "tres_grand" },
+                { label: "Petit (< 2m)", value: "petit" },
+                { label: "Moyen (2 à 5m)", value: "moyen" },
+                { label: "Grand (5 à 10m)", value: "grand" },
+                { label: "Très grand (> 10m)", value: "tres_grand" },
             ],
         },
         {
@@ -221,13 +221,13 @@ export const CATEGORY_QUESTIONS: Record<ItemCategory, CategoryQuestion[]> = {
             field: "specialRequirements",
             type: "select",
             options: [
-                { label: "✅ Aucune", value: "aucune" },
-                { label: "🚨 Convoi exceptionnel", value: "convoi" },
+                { label: "Aucune contrainte spécifique", value: "aucune" },
+                { label: "Convoi exceptionnel", value: "convoi" },
                 {
-                    label: "📋 Autorisation préfectorale",
+                    label: "Autorisation préfectorale",
                     value: "autorisation",
                 },
-                { label: "🔒 Transport sécurisé", value: "securise" },
+                { label: "Transport sécurisé", value: "securise" },
             ],
         },
     ],
@@ -239,10 +239,10 @@ export const CATEGORY_QUESTIONS: Record<ItemCategory, CategoryQuestion[]> = {
             field: "structureType",
             type: "select",
             options: [
-                { label: "🪵 Charpente bois", value: "bois" },
-                { label: "🔩 Charpente métallique", value: "metal" },
-                { label: "🏗️ Poutres/IPN", value: "poutres" },
-                { label: "🏠 Structure préfabriquée", value: "prefab" },
+                { label: "Charpente bois", value: "bois" },
+                { label: "Charpente métallique", value: "metal" },
+                { label: "Poutres / IPN", value: "poutres" },
+                { label: "Structure préfabriquée", value: "prefab" },
             ],
         },
         {
@@ -281,10 +281,10 @@ export const CATEGORY_QUESTIONS: Record<ItemCategory, CategoryQuestion[]> = {
             field: "accessInfo",
             type: "select",
             options: [
-                { label: "✅ Accès facile", value: "facile" },
-                { label: "🚧 Chemin de terre", value: "terre" },
-                { label: "🏔️ Zone difficile", value: "difficile" },
-                { label: "🏙️ Centre-ville", value: "centre_ville" },
+                { label: "Accès facile", value: "facile" },
+                { label: "Chemin de terre", value: "terre" },
+                { label: "Zone difficile d'accès", value: "difficile" },
+                { label: "Centre-ville", value: "centre_ville" },
             ],
         },
     ],
@@ -314,9 +314,9 @@ export const CATEGORY_QUESTIONS: Record<ItemCategory, CategoryQuestion[]> = {
             field: "dimensions",
             type: "select",
             options: [
-                { label: "Petit (<2m)", value: "petit" },
-                { label: "Moyen (2-6m)", value: "moyen" },
-                { label: "Grand (>6m)", value: "grand" },
+                { label: "Petit (< 2m)", value: "petit" },
+                { label: "Moyen (2 à 6m)", value: "moyen" },
+                { label: "Grand (> 6m)", value: "grand" },
             ],
         },
         {
@@ -325,9 +325,9 @@ export const CATEGORY_QUESTIONS: Record<ItemCategory, CategoryQuestion[]> = {
             field: "urgency",
             type: "select",
             options: [
-                { label: "📅 Standard (sous 1 semaine)", value: "standard" },
-                { label: "⚡ Urgent (48-72h)", value: "urgent" },
-                { label: "🚨 Très urgent (<24h)", value: "very_urgent" },
+                { label: "Standard (sous 1 semaine)", value: "standard" },
+                { label: "Urgent (48-72h)", value: "urgent" },
+                { label: "Très urgent (< 24h)", value: "very_urgent" },
             ],
         },
         {
@@ -353,22 +353,19 @@ export const ITEM_TYPE_CATEGORIES: Record<string, ItemCategory> = {
 
 export const ITEM_TYPE_OPTIONS = [
     {
-        label: "🧱 Matériaux de construction",
+        label: "Matériaux de construction",
         value: "Matériaux de construction",
-        icon: "🧱",
     },
-    { label: "📦 Container", value: "Container", icon: "📦" },
+    { label: "Container", value: "Container" },
     {
-        label: "⚙️ Machine industrielle",
+        label: "Machine industrielle",
         value: "Machine industrielle",
-        icon: "⚙️",
     },
     {
-        label: "🏗️ Charpente/Structure",
+        label: "Charpente / Structure",
         value: "Charpente/Structure",
-        icon: "🏗️",
     },
-    { label: "📋 Autre", value: "Autre", icon: "📋" },
+    { label: "Autre chargement", value: "Autre" },
 ];
 
 // ============================================
@@ -417,39 +414,38 @@ export function startQuoteFlow(): QuoteFlowState {
 export function getStepMessage(state: QuoteFlowState): string {
     switch (state.currentStep) {
         case "itemType":
-            return "Parfait ! Commençons votre demande de devis. 📋\n\nQuel type de marchandise souhaitez-vous transporter ?";
+            return "Commençons votre demande de devis.\n\nQuel type de marchandise souhaitez-vous transporter ?";
 
         case "pickup":
-            return "📍 Quelle est l'adresse de **chargement** (départ) ?";
+            return "Quelle est l'adresse ou la ville de **chargement** (départ) ?";
 
         case "dropoff":
-            return "📍 Quelle est l'adresse de **livraison** (arrivée) ?";
+            return "Quelle est l'adresse ou la ville de **livraison** (arrivée) ?";
 
         case "date":
-            return '📅 Quelle est votre **date de transport souhaitée** ?\n\n(Exemple: 25/12/2024 ou "dans 2 semaines")';
+            return 'Quelle est votre **date de transport souhaitée** ?\n\n(Exemple: 25/12/2026 ou "dans 2 semaines")';
 
         case "contact_name":
-            return "👤 Quel est votre **nom complet** ?";
+            return "Quel est votre **nom complet** (ou nom d'entreprise) ?";
 
         case "contact_email":
-            return "📧 Quelle est votre **adresse email** ?";
+            return "Quelle est votre **adresse email** de contact ?";
 
         case "contact_phone":
-            return "📱 Quel est votre **numéro de téléphone** ?";
+            return "Quel est votre **numéro de téléphone** pour le suivi ?";
 
         case "category_questions":
             const question =
                 state.categoryQuestions[state.currentQuestionIndex];
             if (question) {
-                // Determine if this is essentially part of the "notes" or "details" phase
                 const current = state.currentQuestionIndex + 1;
                 const total = state.categoryQuestions.length;
-                return `📝 **Détails de votre chargement** (${current}/${total})\n\n${question.question}`;
+                return `**Détails de votre chargement** (${current}/${total})\n\n${question.question}`;
             }
             return "";
 
         case "notes":
-            return '📝 Avez-vous d\'autres **précisions** ou **notes spéciales** à ajouter ?\n\n(Optionnel - répondez "non" pour passer)';
+            return 'Avez-vous d\'autres **précisions** ou contraintes particulières à ajouter ?\n\n(Optionnel - répondez "non" ou cliquez sur Passer)';
 
         case "confirm":
             return formatQuoteSummary(state.data);
@@ -631,19 +627,19 @@ export function getStepOptions(
             }
             if (question?.type === "boolean") {
                 return [
-                    { label: "✅ Oui", value: "oui" },
-                    { label: "❌ Non", value: "non" },
+                    { label: "Oui", value: "oui" },
+                    { label: "Non", value: "non" },
                 ];
             }
             return null;
 
         case "notes":
-            return [{ label: "⏭️ Passer (pas de notes)", value: "non" }];
+            return [{ label: "Passer (aucune note)", value: "non" }];
 
         case "confirm":
             return [
-                { label: "✅ Confirmer et envoyer", value: "oui" },
-                { label: "✏️ Modifier", value: "modifier" },
+                { label: "Confirmer et envoyer", value: "oui" },
+                { label: "Modifier", value: "modifier" },
             ];
 
         default:

@@ -1,5 +1,11 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { CheckCircle } from "lucide-react";
+import {
+    CheckCircle,
+    Check,
+    Edit3,
+    ChevronRight,
+    FileText,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -105,6 +111,30 @@ export function ChatMessagesList({
     );
 }
 
+function stripEmojis(text: string): string {
+    return text
+        .replace(
+            /[\p{Emoji_Presentation}\p{Extended_Pictographic}\u200d\uFE0F]/gu,
+            ""
+        )
+        .replace(/^[^\wÀ-ÿ]+\s*/, "")
+        .trim();
+}
+
+function renderQuoteOptionIcon(value: string) {
+    const val = value.toLowerCase();
+    if (val === "oui" || val === "confirm") {
+        return <Check className="mr-2 h-4 w-4 shrink-0 text-emerald-500" />;
+    }
+    if (val === "modifier" || val === "edit") {
+        return <Edit3 className="mr-2 h-4 w-4 shrink-0 text-amber-500" />;
+    }
+    if (val.includes("form") || val === "open_form") {
+        return <FileText className="text-primary mr-2 h-4 w-4 shrink-0" />;
+    }
+    return <ChevronRight className="text-primary/70 mr-2 h-4 w-4 shrink-0" />;
+}
+
 // Local Helper Component for Quote Options
 function QuoteOptionsButtons({
     options,
@@ -134,14 +164,15 @@ function QuoteOptionsButtons({
                         disabled={isLoading}
                         className={cn(
                             "h-auto w-full justify-start rounded-xl px-4 py-3 text-left",
-                            "bg-background hover:bg-primary/5 hover:border-primary/30",
-                            "border-input/60 shadow-sm",
+                            "bg-background hover:bg-primary/5 hover:border-primary/40",
+                            "border-input/60 shadow-2xs",
                             "transition-all duration-200 active:scale-[0.98]",
-                            "touch-manipulation" // Better for mobile touch
+                            "group touch-manipulation"
                         )}
                     >
+                        {renderQuoteOptionIcon(option.value)}
                         <span className="text-sm font-medium">
-                            {option.label}
+                            {stripEmojis(option.label)}
                         </span>
                     </Button>
                 </motion.div>

@@ -191,12 +191,11 @@ export const GUIDED_FLOWS: GuidedFlow[] = [
         id: "welcome",
         trigger: ["bonjour", "salut", "hello", "bonsoir", "aide", "help"],
         initialMessage:
-            "Bonjour ! 👋 Je suis là pour vous aider. Que souhaitez-vous faire ?",
+            "Bonjour ! Je suis l'assistant HBC Logistique. Que souhaitez-vous faire ?",
         options: [
             {
                 id: "want-quote",
-                label: "📋 Demander un devis",
-                icon: "📋",
+                label: "Demander un devis",
                 response:
                     "Parfait ! Je vais vous guider pour obtenir votre devis.",
                 tutorialId: "quote-request",
@@ -204,40 +203,37 @@ export const GUIDED_FLOWS: GuidedFlow[] = [
             },
             {
                 id: "track-order",
-                label: "📦 Suivre mon transport",
-                icon: "📦",
+                label: "Suivre mon transport",
                 response:
-                    "Je comprends, vous voulez suivre une livraison en cours.",
+                    "Je comprends, vous souhaitez suivre l'état d'un transport ou d'une livraison.",
                 tutorialId: "track-transport",
                 followUpOptions: [
                     {
                         id: "have-number",
-                        label: "J'ai mon numéro de commande",
+                        label: "J'ai mon numéro de dossier",
                         response:
-                            "Parfait ! Envoyez-moi votre numéro de commande (format HBC-XXXXX) et je vais vous rediriger vers notre équipe logistique.",
+                            "Parfait ! Envoyez-moi votre numéro de commande (format HBC-XXXXX) pour localiser votre convoi.",
                     },
                     {
                         id: "no-number",
                         label: "Je n'ai pas mon numéro",
                         response:
-                            "Pas de souci ! Votre numéro de commande se trouve dans l'email de confirmation. Sinon, je peux vous mettre en contact avec notre équipe.",
+                            "Votre numéro de commande se trouve dans l'email de confirmation. Vous pouvez aussi contacter directement notre service d'exploitation.",
                         action: "contact_human",
                     },
                 ],
             },
             {
                 id: "discover-services",
-                label: "🚚 Découvrir nos services",
-                icon: "🚚",
+                label: "Découvrir nos services",
                 response:
-                    "Excellente idée ! Laissez-moi vous présenter ce que nous faisons.",
+                    "Excellente idée ! Laissez-moi vous présenter nos prestations spécialisées.",
                 tutorialId: "services-overview",
                 action: "show_services",
             },
             {
                 id: "billing-question",
-                label: "💰 Question facturation",
-                icon: "💰",
+                label: "Question facturation",
                 response:
                     "Je vais vous aider avec votre question de facturation.",
                 tutorialId: "billing-help",
@@ -246,43 +242,98 @@ export const GUIDED_FLOWS: GuidedFlow[] = [
                         id: "find-invoice",
                         label: "Retrouver ma facture",
                         response:
-                            "Vos factures sont envoyées par email après chaque prestation. Vérifiez votre boîte de réception et les spams. Le numéro de facture commence par 'FAC-'.",
+                            "Vos factures sont envoyées par email après chaque prestation. Le numéro de facture commence par 'FAC-'.",
                     },
                     {
                         id: "payment-methods",
                         label: "Moyens de paiement",
                         response:
-                            "Nous acceptons : virements bancaires, chèques, et cartes bancaires. Les professionnels peuvent demander un compte avec délai de paiement (30 jours fin de mois).",
+                            "Nous acceptons : virements bancaires, chèques et cartes bancaires. Les professionnels peuvent demander un compte avec délai de paiement.",
                     },
                     {
                         id: "dispute-invoice",
                         label: "Contester un montant",
                         response:
-                            "Pour toute contestation, envoyez un email à notre service comptabilité avec votre numéro de facture. Nous vous répondrons sous 48h.",
+                            "Pour toute contestation, écrivez à notre service comptabilité avec votre numéro de facture. Réponse garantie sous 48h.",
                         action: "contact_human",
                     },
                 ],
             },
             {
                 id: "speak-human",
-                label: "👤 Parler à un conseiller",
-                icon: "👤",
+                label: "Parler à un conseiller",
                 response:
-                    "Bien sûr ! Je vous mets en relation avec notre équipe.",
+                    "Bien sûr ! Je vous mets en relation avec notre équipe d'exploitation.",
+                action: "contact_human",
+            },
+        ],
+    },
+    {
+        id: "tracking-flow",
+        trigger: [
+            "suivre",
+            "suivi",
+            "suivre mon transport",
+            "suivre l'état",
+            "suivre l'etat",
+            "état de mon transport",
+            "etat de mon transport",
+            "statut",
+            "où est",
+            "ou est",
+            "où en est",
+            "ou en est",
+            "commande",
+            "colis",
+            "livraison",
+            "expédition",
+            "expedition",
+            "acheminement",
+        ],
+        initialMessage:
+            "Vous souhaitez suivre l'état de votre transport en cours. Voici la marche à suivre pour retrouver ou localiser votre convoi :",
+        options: [
+            {
+                id: "have-number",
+                label: "J'ai mon numéro de dossier (HBC-XXXXX)",
+                response:
+                    "Parfait ! Indiquez votre numéro de commande ou dossier (format HBC-XXXXX). Notre équipe d'exploitation localisera immédiatement votre chargement.",
+                tutorialId: "track-transport",
+            },
+            {
+                id: "no-number",
+                label: "Je n'ai pas mon numéro de dossier",
+                response:
+                    "Pas d'inquiétude : votre référence figure sur l'email de confirmation. Vous pouvez aussi nous indiquer votre nom ou société pour retrouver votre expédition.",
+                action: "contact_human",
+                tutorialId: "track-transport",
+            },
+            {
+                id: "speak-dispatcher",
+                label: "Contacter le service exploitation",
+                response:
+                    "Notre service d'exploitation et de régulation des transports est joignable pour vous renseigner en direct sur la position du chauffeur et l'heure estimée d'arrivée.",
                 action: "contact_human",
             },
         ],
     },
     {
         id: "quote-details",
-        trigger: ["devis", "prix", "tarif", "combien", "coût", "estimation"],
+        trigger: [
+            "devis",
+            "prix",
+            "tarif",
+            "combien",
+            "coût",
+            "cout",
+            "estimation",
+        ],
         initialMessage:
-            "Pour votre devis, j'ai quelques questions pour vous aider au mieux :",
+            "Pour votre devis, j'ai quelques questions pour vous orienter au mieux :",
         options: [
             {
                 id: "materials",
-                label: "🧱 Matériaux de construction",
-                icon: "🧱",
+                label: "Matériaux de construction",
                 response:
                     "Transport de matériaux (parpaings, sable, gravier, etc.). Avez-vous une idée du poids ou volume approximatif ?",
                 followUpOptions: [
@@ -290,62 +341,59 @@ export const GUIDED_FLOWS: GuidedFlow[] = [
                         id: "small-load",
                         label: "Petite charge (< 5 tonnes)",
                         response:
-                            "Parfait ! Pour ce type de charge, nos tarifs commencent à partir de 150€ HT selon la distance. Je vous invite à remplir le formulaire pour un devis précis.",
+                            "Parfait ! Pour ce type de charge, nos tarifs débutent à partir de 150€ HT selon la distance. Je vous invite à remplir le formulaire pour un devis précis.",
                         action: "quote_form",
                     },
                     {
                         id: "medium-load",
                         label: "Charge moyenne (5-15 tonnes)",
                         response:
-                            "Pour cette charge, nous utilisons des semi-remorques. Les tarifs varient selon la distance et l'accessibilité du site. Demandez votre devis gratuit !",
+                            "Pour cette charge, nous mobilisons des semi-remorques adaptées. Remplissez le formulaire en ligne pour obtenir votre devis personnalisé.",
                         action: "quote_form",
                     },
                     {
                         id: "heavy-load",
                         label: "Charge lourde (> 15 tonnes)",
                         response:
-                            "Pour les charges lourdes, nous proposons des solutions sur mesure avec véhicules adaptés. Un de nos conseillers vous contactera pour étudier votre besoin.",
+                            "Pour les charges lourdes, nous proposons des solutions sur mesure avec véhicules spécialisés. Remplissez le formulaire pour une étude directe.",
                         action: "quote_form",
                     },
                 ],
             },
             {
                 id: "containers",
-                label: "📦 Container",
-                icon: "📦",
+                label: "Container",
                 response:
-                    "Transport de container maritime ou de stockage. Quel type de container ?",
+                    "Transport de container maritime ou de stockage. Quel format de container ?",
                 followUpOptions: [
                     {
                         id: "container-20",
                         label: "Container 20 pieds",
                         response:
-                            "Container 20 pieds - format standard. Transport possible partout en France. Remplissez le formulaire avec vos adresses pour un devis instantané.",
+                            "Container 20 pieds - format standard. Transport possible sur toute la France. Remplissez le formulaire pour un chiffrage rapide.",
                         action: "quote_form",
                     },
                     {
                         id: "container-40",
                         label: "Container 40 pieds",
                         response:
-                            "Container 40 pieds - nous vérifions l'accessibilité du site d'arrivée. Demandez votre devis et nous vous rappelons si besoin.",
+                            "Container 40 pieds - nous vérifions l'accessibilité du site de livraison. Demandez votre devis en ligne.",
                         action: "quote_form",
                     },
                 ],
             },
             {
                 id: "machinery",
-                label: "⚙️ Machine industrielle",
-                icon: "⚙️",
+                label: "Machine industrielle",
                 response:
-                    "Transport de machine industrielle ou engin. Ces transports nécessitent une étude personnalisée.",
+                    "Transport de machines industrielles ou engins de chantier. Ces opérations font l'objet d'un plan d'arrimage dédié.",
                 action: "quote_form",
             },
             {
                 id: "other",
-                label: "❓ Autre chose",
-                icon: "❓",
+                label: "Autre chargement",
                 response:
-                    "Pas de problème ! Décrivez-moi ce que vous souhaitez transporter et je vous orienterai vers la meilleure solution.",
+                    "Pas de problème ! Décrivez-moi ce que vous souhaitez transporter et nous trouverons le véhicule adapté.",
             },
         ],
     },
@@ -353,6 +401,7 @@ export const GUIDED_FLOWS: GuidedFlow[] = [
         id: "problem",
         trigger: [
             "problème",
+            "probleme",
             "souci",
             "erreur",
             "bug",
@@ -360,44 +409,41 @@ export const GUIDED_FLOWS: GuidedFlow[] = [
             "fonctionne pas",
         ],
         initialMessage:
-            "Je suis désolé que vous rencontriez un problème. De quoi s'agit-il ?",
+            "Je suis désolé pour ce désagrément. De quoi s'agit-il ?",
         options: [
             {
                 id: "website-issue",
-                label: "🌐 Problème avec le site",
-                icon: "🌐",
+                label: "Problème avec le site",
                 response:
-                    "Pouvez-vous me décrire le problème ? (page qui ne charge pas, erreur lors du formulaire, etc.)",
+                    "Pouvez-vous préciser l'erreur rencontrée (formulaire, affichage, chargement) ?",
                 followUpOptions: [
                     {
                         id: "form-error",
                         label: "Erreur dans le formulaire",
                         response:
-                            "Essayez de rafraîchir la page (F5) et de réessayer. Si le problème persiste, notre équipe technique sera notifiée.",
+                            "Essayez de rafraîchir la page (F5). Si le problème persiste, notre équipe technique intervient rapidement.",
                     },
                     {
                         id: "page-error",
-                        label: "Page ne s'affiche pas",
+                        label: "Page non affichée",
                         response:
-                            "Essayez de vider le cache de votre navigateur ou d'utiliser un autre navigateur. Si ça persiste, contactez-nous.",
+                            "Essayez de vider le cache de votre navigateur. Si nécessaire, nos conseillers sont à votre disposition.",
                         action: "contact_human",
                     },
                 ],
             },
             {
                 id: "delivery-issue",
-                label: "🚚 Problème de livraison",
-                icon: "🚚",
+                label: "Problème de livraison",
                 response:
-                    "Je comprends votre inquiétude. Je vais immédiatement transférer votre demande à notre équipe logistique qui vous rappellera dans les plus brefs délais.",
+                    "Je comprends votre préoccupation. Je transmets immédiatement votre dossier à l'équipe logistique qui vous contactera en priorité.",
                 action: "contact_human",
             },
             {
                 id: "billing-issue",
-                label: "💳 Problème de facturation",
-                icon: "💳",
+                label: "Problème de facturation",
                 response:
-                    "Nous allons résoudre cela. Un conseiller de notre service comptabilité vous contactera sous 24h.",
+                    "Nous allons vérifier cela avec la comptabilité. Un gestionnaire vous répondra sous 24h ouvrées.",
                 action: "contact_human",
             },
         ],
@@ -412,25 +458,25 @@ export const CONTEXTUAL_QUICK_REPLIES: Record<string, QuickReply[]> = {
     initial: [
         {
             id: "quote",
-            label: "📋 Demander un devis",
+            label: "Demander un devis",
             text: "Je veux demander un devis",
             category: "quote",
         },
         {
             id: "track",
-            label: "📦 Suivre ma commande",
+            label: "Suivre mon transport",
             text: "Je veux suivre mon transport",
             category: "transport",
         },
         {
             id: "services",
-            label: "🚚 Voir les services",
+            label: "Voir les services",
             text: "Quels sont vos services ?",
             category: "general",
         },
         {
             id: "human",
-            label: "👤 Parler à quelqu'un",
+            label: "Parler à un conseiller",
             text: "Je veux parler à un conseiller",
             category: "general",
         },
@@ -438,19 +484,19 @@ export const CONTEXTUAL_QUICK_REPLIES: Record<string, QuickReply[]> = {
     afterQuoteInfo: [
         {
             id: "start-quote",
-            label: "✅ Remplir le formulaire",
+            label: "Remplir le formulaire",
             text: "Je veux remplir le formulaire de devis",
             category: "quote",
         },
         {
             id: "more-info",
-            label: "❓ Plus d'informations",
+            label: "Plus d'informations",
             text: "J'ai d'autres questions avant",
             category: "general",
         },
         {
             id: "call-back",
-            label: "📞 Être rappelé",
+            label: "Être rappelé",
             text: "Je préfère être rappelé",
             category: "general",
         },
@@ -458,59 +504,59 @@ export const CONTEXTUAL_QUICK_REPLIES: Record<string, QuickReply[]> = {
     afterTrackingHelp: [
         {
             id: "enter-number",
-            label: "📝 Donner mon numéro",
+            label: "Renseigner mon numéro",
             text: "Mon numéro de commande est",
             category: "transport",
         },
         {
             id: "no-email",
-            label: "📧 Pas reçu l'email",
+            label: "Email non reçu",
             text: "Je n'ai pas reçu l'email de confirmation",
             category: "transport",
         },
         {
             id: "urgent",
-            label: "🚨 C'est urgent",
-            text: "C'est urgent, j'ai besoin d'aide maintenant",
+            label: "Demande urgente",
+            text: "C'est urgent, j'ai besoin d'une assistance immédiate",
             category: "transport",
         },
     ],
     afterProblem: [
         {
             id: "resolved",
-            label: "✅ C'est résolu",
+            label: "C'est résolu",
             text: "Merci, c'est résolu !",
             category: "general",
         },
         {
             id: "still-issue",
-            label: "❌ Toujours bloqué",
+            label: "Toujours bloqué",
             text: "Non, j'ai toujours le problème",
             category: "technical",
         },
         {
             id: "callback",
-            label: "📞 Demander un rappel",
-            text: "Je veux qu'on me rappelle",
+            label: "Demander un rappel",
+            text: "Je souhaite qu'on me rappelle",
             category: "general",
         },
     ],
     satisfaction: [
         {
             id: "satisfied",
-            label: "😊 Satisfait",
+            label: "Satisfait",
             text: "Oui, merci pour votre aide !",
             category: "general",
         },
         {
             id: "more-help",
-            label: "🤔 Autre question",
+            label: "Autre question",
             text: "J'ai une autre question",
             category: "general",
         },
         {
             id: "feedback",
-            label: "📝 Donner mon avis",
+            label: "Donner mon avis",
             text: "Je veux donner mon avis",
             category: "general",
         },
