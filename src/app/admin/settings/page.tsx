@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
     Card,
@@ -13,7 +15,15 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { Bell, Lock, User, Building, Save } from "lucide-react";
+import {
+    Bell,
+    Lock,
+    User,
+    Building,
+    Save,
+    MessageCircle,
+    Sparkles,
+} from "lucide-react";
 import { toast } from "sonner";
 import { FadeIn, AnimatedCard, motion } from "@/components/ui/motion";
 
@@ -53,6 +63,15 @@ export default function SettingsPage() {
                             <Bell className="h-4 w-4" />{" "}
                             <span className="hidden sm:inline">
                                 Notifications
+                            </span>
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="whatsapp"
+                            className="flex-1 gap-2 sm:flex-none"
+                        >
+                            <MessageCircle className="h-4 w-4" />{" "}
+                            <span className="hidden sm:inline">
+                                WhatsApp & IA
                             </span>
                         </TabsTrigger>
                         <TabsTrigger
@@ -187,6 +206,172 @@ export default function SettingsPage() {
                                         >
                                             <Save className="h-4 w-4" />{" "}
                                             Enregistrer
+                                        </Button>
+                                    </motion.div>
+                                </CardFooter>
+                            </Card>
+                        </AnimatedCard>
+                    </TabsContent>
+
+                    <TabsContent value="whatsapp">
+                        <AnimatedCard hoverEffect="subtle">
+                            <Card>
+                                <CardHeader>
+                                    <div className="flex flex-wrap items-center justify-between gap-2">
+                                        <div>
+                                            <CardTitle className="flex items-center gap-2">
+                                                <MessageCircle className="h-5 w-5 text-emerald-500" />
+                                                WhatsApp & IA Hugging Face
+                                            </CardTitle>
+                                            <CardDescription>
+                                                Configurez l&apos;automatisation
+                                                Click-to-Chat 100% gratuite et
+                                                le modèle d&apos;IA open source.
+                                            </CardDescription>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Badge
+                                                variant="outline"
+                                                className="border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                                            >
+                                                100% Gratuit (wa.me)
+                                            </Badge>
+                                            <Badge
+                                                variant="outline"
+                                                className="border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                                            >
+                                                <Sparkles className="mr-1 h-3 w-3" />{" "}
+                                                Hugging Face
+                                            </Badge>
+                                        </div>
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="space-y-6">
+                                    <motion.div
+                                        className="grid gap-2"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.1 }}
+                                    >
+                                        <Label htmlFor="whatsappNumber">
+                                            Numéro WhatsApp Commercial / Support
+                                        </Label>
+                                        <Input
+                                            id="whatsappNumber"
+                                            defaultValue="+33 1 23 45 67 89"
+                                            placeholder="+33 6 12 34 56 78"
+                                        />
+                                        <p className="text-muted-foreground text-xs">
+                                            Numéro d&apos;entreprise visible par
+                                            les clients pour les échanges
+                                            directs sur smartphone.
+                                        </p>
+                                    </motion.div>
+
+                                    <motion.div
+                                        className="grid gap-2"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.2 }}
+                                    >
+                                        <Label htmlFor="hfModel">
+                                            Modèle IA Open Source (Hugging Face)
+                                        </Label>
+                                        <Input
+                                            id="hfModel"
+                                            defaultValue="mistralai/Mistral-7B-Instruct-v0.3"
+                                            placeholder="mistralai/Mistral-7B-Instruct-v0.3"
+                                        />
+                                        <p className="text-muted-foreground text-xs">
+                                            Modèle utilisé via l&apos;API
+                                            Hugging Face Inference pour générer
+                                            et adapter le message de relance.
+                                        </p>
+                                    </motion.div>
+
+                                    <motion.div
+                                        className="grid gap-2"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.3 }}
+                                    >
+                                        <Label htmlFor="whatsappTemplate">
+                                            Template de message standard
+                                            (Fallback déterministe)
+                                        </Label>
+                                        <Textarea
+                                            id="whatsappTemplate"
+                                            rows={3}
+                                            defaultValue="Bonjour {client}, nous faisons suite à votre demande de transport #{id} ({type}). Votre dossier est pris en charge par notre équipe."
+                                        />
+                                        <p className="text-muted-foreground text-xs">
+                                            Variables dynamiques :{" "}
+                                            <code>&#123;client&#125;</code>,{" "}
+                                            <code>&#123;id&#125;</code>,{" "}
+                                            <code>&#123;type&#125;</code>,{" "}
+                                            <code>&#123;pickup&#125;</code>,{" "}
+                                            <code>&#123;dropoff&#125;</code>.
+                                        </p>
+                                    </motion.div>
+
+                                    <div className="space-y-4 pt-2">
+                                        <h4 className="text-sm font-semibold">
+                                            Options d&apos;automatisation
+                                        </h4>
+                                        {[
+                                            {
+                                                label: "Génération IA 1-Clic via Hugging Face",
+                                                desc: "Prépare automatiquement le message de relance personnalisé selon les spécificités du devis.",
+                                                checked: true,
+                                            },
+                                            {
+                                                label: "Historique automatique des échanges",
+                                                desc: "Consigne une entrée dans le journal d'audit du devis à chaque ouverture de lien WhatsApp.",
+                                                checked: true,
+                                            },
+                                            {
+                                                label: "Recherche croisée par numéro de téléphone",
+                                                desc: "Associe et affiche tous les devis d'un même client lors de la consultation d'un dossier.",
+                                                checked: true,
+                                            },
+                                        ].map((item, index) => (
+                                            <motion.div
+                                                key={item.label}
+                                                className="flex items-center justify-between space-x-2 rounded-lg border p-3"
+                                                initial={{ opacity: 0, x: -10 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                transition={{
+                                                    delay: 0.35 + index * 0.05,
+                                                }}
+                                            >
+                                                <div className="space-y-0.5">
+                                                    <Label className="text-sm font-medium">
+                                                        {item.label}
+                                                    </Label>
+                                                    <p className="text-muted-foreground text-xs">
+                                                        {item.desc}
+                                                    </p>
+                                                </div>
+                                                <Switch
+                                                    defaultChecked={
+                                                        item.checked
+                                                    }
+                                                />
+                                            </motion.div>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                                <CardFooter>
+                                    <motion.div
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                    >
+                                        <Button
+                                            onClick={handleSave}
+                                            className="w-full gap-2 sm:w-auto"
+                                        >
+                                            <Save className="h-4 w-4" />{" "}
+                                            Enregistrer les paramètres WhatsApp
                                         </Button>
                                     </motion.div>
                                 </CardFooter>

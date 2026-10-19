@@ -1,6 +1,6 @@
 # 📋 Frozen Lunar — État du Projet
 
-> **Dernière mise à jour** : 2026-10-15
+> **Dernière mise à jour** : 2026-10-19
 > **Mis à jour par** : mission-control
 > **Version** : 1.1.0 (UI/UX Compliance & Feature Release)
 
@@ -10,7 +10,7 @@
 
 **Phase 3 — Production & Deployment** 🔄 En cours
 
-> Les phases 1 (UI) et 2 (Backend & Asynchronous Infrastructure) sont intégralement terminées (100%). L'application dispose d'une suite de 46 tests automatisés, d'un moteur de résilience IA multi-niveaux (Gemini 1.5 + Fail-Safe heuristique), du rate limiting, de QStash workers, d'emails HTML typés, d'upload S3 Tigris, de Supabase Realtime, des headers HTTP de sécurité, du logging structuré Pino, du RLS et du pipeline CI/CD GitHub Actions.
+> Les phases 1 (UI) et 2 (Backend & Asynchronous Infrastructure) sont intégralement terminées (100%). L'application dispose d'une suite de 52 tests automatisés (Vitest), d'un moteur de résilience IA multi-niveaux (Gemini 1.5 + Fail-Safe heuristique), d'un système d'automatisation WhatsApp 1-Clic via Hugging Face & click-to-chat `wa.me`, du rate limiting, de QStash workers, d'emails HTML typés, d'upload S3 Tigris, de Supabase Realtime, des headers HTTP de sécurité, du logging structuré Pino, du RLS et du pipeline CI/CD GitHub Actions.
 
 ---
 
@@ -59,11 +59,14 @@
 | Email Templates        | ~2     | Templates React Email                                       |
 | Theme/Misc             | 2      | ThemeProvider, ThemeToggle                                  |
 
-### Server Actions (3 fichiers)
+### Server Actions (6 fichiers)
 
 | Fichier                      | Actions                                                                                                                                   |
 | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | `quote-management.ts`        | createQuoteAction, getQuotesAction, getQuoteByIdAction, updateQuoteAction, updateQuoteStatusAction, deleteQuoteAction, addQuoteNoteAction |
+| `whatsapp-actions.ts`        | prepareWhatsAppQuoteMessageAction, logWhatsAppContactAction, getQuotesByPhoneAction                                                       |
+| `ai-actions.ts`              | getAiStatusAction, estimateTransportAction, draftEmailAction, generateSupportAiAction                                                     |
+| `upload-management.ts`       | getPresignedUploadUrlAction, deleteUploadedFileAction, listUploadedFilesAction                                                            |
 | `user-management.ts`         | Gestion des utilisateurs admin                                                                                                            |
 | `notification-management.ts` | Gestion des notifications                                                                                                                 |
 
@@ -77,28 +80,30 @@
 | `/api/seed/`         | POST    | Seeding de la DB              |
 | `/api/workflow/`     | POST    | Webhooks QStash               |
 
-### Libs & Services (18 fichiers)
+### Libs & Services (20 fichiers)
 
-| Fichier            | Rôle                          | Statut                                    |
-| ------------------ | ----------------------------- | ----------------------------------------- |
-| `prisma.ts`        | Singleton Prisma Client       | ✅ Fonctionnel                            |
-| `auth.ts`          | Config Better-Auth serveur    | ✅ Fonctionnel                            |
-| `auth-client.ts`   | Config Better-Auth client     | ✅ Fonctionnel                            |
-| `redis.ts`         | Client Upstash Redis          | ✅ Fonctionnel                            |
-| `qstash.ts`        | Client Upstash QStash         | ⚠️ Initialisé, workers manquants          |
-| `storage.ts`       | Client Tigris S3              | ⚠️ Initialisé, upload manquant            |
-| `email.ts`         | Client Resend                 | ⚠️ Initialisé, templates partiels         |
-| `gemini.ts`        | Client Google Gemini          | ✅ Fonctionnel (fallback mock)            |
-| `validation.ts`    | Schémas Zod partagés          | ✅ Fonctionnel                            |
-| `error-handler.ts` | Gestion d'erreurs centralisée | ✅ Fonctionnel                            |
-| `error-codes.ts`   | Codes d'erreur standardisés   | ✅ Fonctionnel                            |
-| `quote-storage.ts` | localStorage (legacy)         | ⚠️ Utilisé en admin, à migrer vers Prisma |
-| `pdf-generator.ts` | Générateur PDF jsPDF          | ✅ Fonctionnel (client-only)              |
-| `pdf.ts`           | Helpers PDF                   | ✅ Fonctionnel                            |
-| `animations.ts`    | Config Framer Motion          | ✅ Fonctionnel                            |
-| `date-utils.ts`    | Helpers date-fns              | ✅ Fonctionnel                            |
-| `utils.ts`         | Helpers génériques (cn)       | ✅ Fonctionnel                            |
-| `support-agent/`   | Agent de support IA           | ✅ Fonctionnel (mock + Gemini)            |
+| Fichier            | Rôle                                         | Statut                                    |
+| ------------------ | -------------------------------------------- | ----------------------------------------- |
+| `prisma.ts`        | Singleton Prisma Client                      | ✅ Fonctionnel                            |
+| `auth.ts`          | Config Better-Auth serveur                   | ✅ Fonctionnel                            |
+| `auth-client.ts`   | Config Better-Auth client                    | ✅ Fonctionnel                            |
+| `redis.ts`         | Client Upstash Redis                         | ✅ Fonctionnel                            |
+| `qstash.ts`        | Client Upstash QStash                        | ✅ Workers QStash opérationnels           |
+| `storage.ts`       | Client Tigris S3                             | ✅ Fonctionnel (Upload S3 + URLs signées) |
+| `email.ts`         | Client Resend                                | ✅ Fonctionnel (Templates React Email)    |
+| `gemini.ts`        | Client Google Gemini (Fail-Safe résilient)   | ✅ Fonctionnel (Multi-niveaux)            |
+| `huggingface.ts`   | Client Hugging Face & WhatsApp Click-to-Chat | ✅ Fonctionnel (Option B 100% gratuit)    |
+| `validation.ts`    | Schémas Zod partagés                         | ✅ Fonctionnel                            |
+| `error-handler.ts` | Gestion d'erreurs centralisée                | ✅ Fonctionnel                            |
+| `error-codes.ts`   | Codes d'erreur standardisés                  | ✅ Fonctionnel                            |
+| `quote-storage.ts` | localStorage (legacy)                        | ⚠️ Conservé pour rétrocompatibilité       |
+| `pdf-generator.ts` | Générateur PDF jsPDF                         | ✅ Fonctionnel (client-only)              |
+| `pdf.ts`           | Helpers PDF                                  | ✅ Fonctionnel                            |
+| `animations.ts`    | Config Framer Motion                         | ✅ Fonctionnel                            |
+| `date-utils.ts`    | Helpers date-fns                             | ✅ Fonctionnel                            |
+| `logger.ts`        | Logging structuré Pino                       | ✅ Fonctionnel                            |
+| `utils.ts`         | Helpers génériques (cn)                      | ✅ Fonctionnel                            |
+| `support-agent/`   | Agent de support IA                          | ✅ Fonctionnel (hybride)                  |
 
 ### Hooks (2 fichiers)
 

@@ -9,6 +9,21 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
 ### Added
 
+- **Automatisation WhatsApp 1-Clic 100% Gratuite & IA Hugging Face (Option B)** :
+    - **Intégration Open Source Hugging Face Inference** (`src/lib/huggingface.ts`) :
+        - Support du modèle `mistralai/Mistral-7B-Instruct-v0.3` via token Hugging Face (`HUGGINGFACE_API_KEY`), avec détection de disponibilité et fallback instantané sur moteur paramétrique local déterministe.
+        - Normalisation des numéros mobiles et indicatifs internationaux (`normalizePhoneForWhatsApp`) supportant les formats français (06, 07, etc.), préfixes `00`, `+` et indicatifs internationaux.
+        - Génération d'URLs universelles `wa.me/{phone}?text={encoded}` pour ouverture directe de WhatsApp Web ou de l'application mobile sans aucun frais Meta Cloud API.
+    - **Server Actions Dédiées** (`src/app/actions/whatsapp-actions.ts`) :
+        - `prepareWhatsAppQuoteMessageAction` : préparation validée par Zod du message contextualisé selon les caractéristiques du devis.
+        - `logWhatsAppContactAction` : consigne automatique d'un événement `WHATSAPP_CONTACT` dans l'historique d'audit du devis (`QuoteHistory`).
+        - `getQuotesByPhoneAction` : recherche croisée des dossiers liés au même numéro de téléphone pour un suivi unifié du client.
+    - **Interface Modération Devis & Panneau de Paramétrage** :
+        - Modal de contact WhatsApp 1-Clic dans `src/app/admin/quotes/[id]/page.tsx` avec prévisualisation en direct, note personnalisée, badge d'état du fournisseur (`Hugging Face` vs `Template Local`) et historique des devis du même numéro.
+        - Onglet dédié "WhatsApp & IA" dans `src/app/admin/settings/page.tsx` permettant de configurer le numéro commercial, le modèle HF, le template déterministe et les options d'automatisation.
+    - **Suite de Tests Unitaires** (`tests/unit/huggingface.test.ts`) :
+        - 6 tests unitaires validant la normalisation des numéros, la génération de templates locaux et la construction des liens Click-to-Chat.
+
 - **Architecture de Résilience IA & Pattern Fail-Safe Multi-Niveaux** :
     - **Détection & Assainissement Robuste des Clés API Gemini** (`src/lib/gemini.ts`) :
         - Support prioritaire de `GEMINI_API_KEY` (secret d'environnement côté serveur sécurisé) avec rétrocompatibilité `NEXT_PUBLIC_GEMINI_API_KEY`.

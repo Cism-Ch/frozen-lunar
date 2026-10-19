@@ -32,6 +32,7 @@ import {
     Download,
     Sparkles,
     ShieldAlert,
+    MessageCircle,
 } from "lucide-react";
 import { safeFormatDate } from "@/lib/date-utils";
 import { toast } from "sonner";
@@ -39,6 +40,12 @@ import Link from "next/link";
 import { QuoteTimeline } from "./components/QuoteTimeline";
 import { generateQuotePDF } from "@/lib/pdf-generator";
 import { geminiService, EstimationResult } from "@/lib/gemini";
+import {
+    prepareWhatsAppQuoteMessageAction,
+    logWhatsAppContactAction,
+    getQuotesByPhoneAction,
+} from "@/app/actions/whatsapp-actions";
+import { GeneratedWhatsAppMessage } from "@/lib/huggingface";
 import {
     Dialog,
     DialogContent,
@@ -76,6 +83,82 @@ export default function QuoteModerationPage() {
     const [emailOpen, setEmailOpen] = useState(false);
     const [emailDraft, setEmailDraft] = useState({ subject: "", body: "" });
     const [generatingEmail, setGeneratingEmail] = useState(false);
+
+    // WhatsApp Click-to-Chat State
+    const [whatsappOpen, setWhatsappOpen] = useState(false);
+    const [whatsappCustomNote, setWhatsappCustomNote] = useState("");
+    const [whatsappDraft, setWhatsappDraft] =
+        useState<GeneratedWhatsAppMessage | null>(null);
+    const [generatingWhatsApp, setGeneratingWhatsApp] = useState(false);
+    const [relatedQuotesCount, setRelatedQuotesCount] = useState<number | null>(
+        null
+    );
+
+    // Détection des devis liés par numéro de téléphone
+    useEffect(() => {
+        if (quote?.phone) {
+            getQuotesByPhoneAction({ phone: quote.phone })
+                .then((res) => {
+                    if (res.data) {
+                        setRelatedQuotesCount(res.data.length);
+                    }
+                })
+                .catch(() => {});
+        }
+    }, [quote?.phone]);
+
+    const handleOpenWhatsAppDialog = async (customNote?: string) => {
+        if (!quote) return;
+        setWhatsappOpen(true);
+        setGeneratingWhatsApp(true);
+        try {
+            const noteToUse =
+                typeof customNote === "string"
+                    ? customNote
+                    : whatsappCustomNote;
+            const result = await prepareWhatsAppQuoteMessageAction({
+                quoteId: quote.id,
+                customNote: noteToUse,
+            });
+            if (result.data) {
+                setWhatsappDraft(result.data);
+            } else {
+                toast.error(
+                    result.error || "Erreur de préparation du message WhatsApp"
+                );
+            }
+        } catch (err: unknown) {
+            console.error("Erreur génération WhatsApp:", err);
+            toast.error("Erreur inattendue lors de la préparation WhatsApp");
+        } finally {
+            setGeneratingWhatsApp(false);
+        }
+    };
+
+    const handleSendWhatsApp = async () => {
+        if (!whatsappDraft || !quote) return;
+        // Déclenche l'ouverture de WhatsApp Web ou de l'application native
+        window.open(whatsappDraft.url, "_blank", "noopener,noreferrer");
+        toast.success("Lien WhatsApp ouvert avec succès");
+        setWhatsappOpen(false);
+
+        // Consignation de l'action dans l'historique du devis
+        await logWhatsAppContactAction(quote.id);
+        const updated = await getQuoteByIdAction(quote.id);
+        if (updated.success && updated.quote) {
+            setQuote(updated.quote as Quote);
+        }
+    };
+
+    const handleUpdateWhatsAppText = (newText: string) => {
+        if (!whatsappDraft || !quote) return;
+        const cleanDigits = quote.phone.replace(/[^0-9]/g, "");
+        setWhatsappDraft({
+            ...whatsappDraft,
+            text: newText,
+            url: `https://wa.me/${cleanDigits}?text=${encodeURIComponent(newText)}`,
+        });
+    };
 
     const handleEstimate = async () => {
         if (!quote) return;
@@ -435,17 +518,43 @@ export default function QuoteModerationPage() {
                                             {quote.email}
                                         </span>
                                     </a>
-                                    <a
-                                        href={`tel:${quote.phone}`}
-                                        className="hover:bg-muted group flex items-center gap-3 rounded-md p-2 transition-colors"
-                                    >
-                                        <div className="bg-primary/5 group-hover:bg-primary/10 rounded-full p-2">
-                                            <Phone className="text-primary h-4 w-4" />
-                                        </div>
-                                        <span className="text-sm font-medium">
-                                            {quote.phone}
-                                        </span>
-                                    </a>
+                                    <div className="flex items-center gap-2">
+                                        <a
+                                            href={`tel:${quote.phone}`}
+                                            className="hover:bg-muted group flex flex-1 items-center gap-3 rounded-md p-2 transition-colors"
+                                        >
+                                            <div className="bg-primary/5 group-hover:bg-primary/10 rounded-full p-2">
+                                                <Phone className="text-primary h-4 w-4" />
+                                            </div>
+                                            <span className="text-sm font-medium">
+                                                {quote.phone}
+                                            </span>
+                                        </a>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() =>
+                                                handleOpenWhatsAppDialog()
+                                            }
+                                            className="h-9 w-9 shrink-0 rounded-full text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+                                            title="Ouvrir discussion WhatsApp"
+                                        >
+                                            <MessageCircle className="h-5 w-5" />
+                                        </Button>
+                                    </div>
+                                    {relatedQuotesCount !== null &&
+                                        relatedQuotesCount > 1 && (
+                                            <div className="text-muted-foreground flex items-center gap-1.5 pl-2 text-xs">
+                                                <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                                                <span>
+                                                    <strong>
+                                                        {relatedQuotesCount}{" "}
+                                                        dossiers
+                                                    </strong>{" "}
+                                                    associés à ce numéro
+                                                </span>
+                                            </div>
+                                        )}
                                 </div>
                             </div>
                         </CardContent>
@@ -631,6 +740,16 @@ export default function QuoteModerationPage() {
                                     Email Refus
                                 </Button>
                             </div>
+
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                className="w-full justify-center gap-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700/50 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
+                                onClick={() => handleOpenWhatsAppDialog()}
+                            >
+                                <MessageCircle className="h-4 w-4 text-emerald-600" />
+                                <span>Contacter sur WhatsApp (IA 1-Clic)</span>
+                            </Button>
                         </CardContent>
                     </Card>
 
@@ -707,6 +826,110 @@ export default function QuoteModerationPage() {
                             }}
                         >
                             Envoyer
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* WhatsApp Click-to-Chat Dialog (100% Gratuit) */}
+            <Dialog open={whatsappOpen} onOpenChange={setWhatsappOpen}>
+                <DialogContent className="sm:max-w-[625px]">
+                    <DialogHeader>
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                            <DialogTitle className="flex items-center gap-2">
+                                <MessageCircle className="h-5 w-5 text-emerald-600" />
+                                Assistant WhatsApp Devis
+                            </DialogTitle>
+                            {whatsappDraft?.source === "huggingface" ? (
+                                <span className="inline-flex items-center gap-1 rounded-full border border-purple-300/40 bg-purple-100 px-2 py-0.5 text-[10px] font-semibold text-purple-800 dark:bg-purple-950/60 dark:text-purple-300">
+                                    <Sparkles className="h-2.5 w-2.5" /> Hugging
+                                    Face (
+                                    {whatsappDraft.model?.split("/")[1] ||
+                                        "Mistral"}
+                                    )
+                                </span>
+                            ) : (
+                                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-300/40 bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                                    Modèle Local Résilient
+                                </span>
+                            )}
+                        </div>
+                        <DialogDescription>
+                            Générez un message WhatsApp mobile prêt à
+                            l&apos;envoi, vérifiez le contenu et lancez la
+                            discussion en 1 clic.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-4 py-3">
+                        <div className="grid gap-1.5">
+                            <Label htmlFor="custom-wa-note">
+                                Précision personnalisée (optionnel)
+                            </Label>
+                            <div className="flex gap-2">
+                                <Input
+                                    id="custom-wa-note"
+                                    value={whatsappCustomNote}
+                                    onChange={(e) =>
+                                        setWhatsappCustomNote(e.target.value)
+                                    }
+                                    placeholder="Ex: Véhicule disponible dès jeudi matin, confirmation avant 17h..."
+                                    disabled={generatingWhatsApp}
+                                />
+                                <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    onClick={() =>
+                                        handleOpenWhatsAppDialog(
+                                            whatsappCustomNote
+                                        )
+                                    }
+                                    disabled={generatingWhatsApp}
+                                >
+                                    {generatingWhatsApp
+                                        ? "Génération..."
+                                        : "Régénérer"}
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div className="grid gap-1.5">
+                            <Label>Aperçu du message WhatsApp (éditable)</Label>
+                            <Textarea
+                                value={whatsappDraft?.text || ""}
+                                onChange={(e) =>
+                                    handleUpdateWhatsAppText(e.target.value)
+                                }
+                                className="h-[210px] font-mono text-xs leading-relaxed"
+                                disabled={generatingWhatsApp}
+                            />
+                        </div>
+
+                        <div className="text-muted-foreground flex items-center justify-between text-xs">
+                            <span>
+                                Destinataire : <strong>{quote?.client}</strong>{" "}
+                                ({quote?.phone})
+                            </span>
+                            <span className="font-medium text-emerald-600">
+                                Click-to-Chat 100% Gratuit
+                            </span>
+                        </div>
+                    </div>
+
+                    <DialogFooter className="gap-2 sm:gap-0">
+                        <Button
+                            variant="secondary"
+                            onClick={() => setWhatsappOpen(false)}
+                        >
+                            Fermer
+                        </Button>
+                        <Button
+                            onClick={handleSendWhatsApp}
+                            disabled={!whatsappDraft || generatingWhatsApp}
+                            className="gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+                        >
+                            <MessageCircle className="h-4 w-4" />
+                            Lancer sur WhatsApp (1-Clic)
                         </Button>
                     </DialogFooter>
                 </DialogContent>
