@@ -7,12 +7,14 @@ import { motion } from "framer-motion";
 
 interface ChatHeaderProps {
     quoteFlowState: QuoteFlowState;
+    aiMode?: "gemini" | "resilient_local";
     onRestart: () => void;
     onClose: () => void;
 }
 
 export function ChatHeader({
     quoteFlowState,
+    aiMode = "resilient_local",
     onRestart,
     onClose,
 }: ChatHeaderProps) {
@@ -69,15 +71,39 @@ export function ChatHeader({
                             Support HBC
                         </DialogTitle>
                         <div className="mt-0.5 flex items-center gap-1.5">
-                            <span className="relative flex h-2 w-2">
-                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
-                                <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500"></span>
-                            </span>
-                            <span className="text-xs font-medium text-white/80">
-                                {quoteFlowState.isActive
-                                    ? "Création de devis"
-                                    : "En ligne"}
-                            </span>
+                            {quoteFlowState.isActive ? (
+                                <>
+                                    <span className="relative flex h-2 w-2">
+                                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75"></span>
+                                        <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500"></span>
+                                    </span>
+                                    <span className="text-xs font-medium text-amber-200">
+                                        Création de devis
+                                    </span>
+                                </>
+                            ) : aiMode === "gemini" ? (
+                                <>
+                                    <span className="relative flex h-2 w-2">
+                                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                                        <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400"></span>
+                                    </span>
+                                    <span className="text-xs font-medium text-emerald-200">
+                                        IA Gemini 1.5 Active
+                                    </span>
+                                </>
+                            ) : (
+                                <>
+                                    <span className="relative flex h-2 w-2">
+                                        <span className="relative inline-flex h-2 w-2 rounded-full bg-sky-300"></span>
+                                    </span>
+                                    <span
+                                        className="text-xs font-medium text-sky-100"
+                                        title="Moteur déterministe local actif : guidage devis, FAQ transport et assistance 100% disponibles même sans clé cloud"
+                                    >
+                                        Mode Résilient Autonome
+                                    </span>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>

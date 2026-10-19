@@ -18,6 +18,7 @@ export function SupportChatModal({ isOpen, onClose }: SupportChatModalProps) {
     const {
         chatItems,
         isLoading,
+        aiMode,
         currentQuickReplies,
         quoteFlowState,
         messagesEndRef,
@@ -53,6 +54,7 @@ export function SupportChatModal({ isOpen, onClose }: SupportChatModalProps) {
             >
                 <ChatHeader
                     quoteFlowState={quoteFlowState}
+                    aiMode={aiMode}
                     onRestart={restartChat}
                     onClose={onClose}
                 />

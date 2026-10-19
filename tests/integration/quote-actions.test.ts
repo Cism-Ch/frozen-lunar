@@ -11,6 +11,16 @@ vi.mock("next/cache", () => ({
     revalidatePath: vi.fn(),
 }));
 
+// Mock auth-guard
+vi.mock("@/lib/auth-guard", () => ({
+    requireAuth: vi.fn().mockResolvedValue({
+        user: { id: "admin-1", role: "admin", email: "admin@hbc.com" },
+    }),
+    requireAdmin: vi.fn().mockResolvedValue({
+        user: { id: "admin-1", role: "admin", email: "admin@hbc.com" },
+    }),
+}));
+
 // Mock Prisma client
 vi.mock("@/lib/prisma", () => ({
     default: {

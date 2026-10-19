@@ -31,6 +31,7 @@ import {
     FileText,
     Download,
     Sparkles,
+    ShieldAlert,
 } from "lucide-react";
 import { safeFormatDate } from "@/lib/date-utils";
 import { toast } from "sonner";
@@ -86,16 +87,22 @@ export default function QuoteModerationPage() {
                 quote.type
             );
             setAiEstimation(result);
-            toast.success("Estimation générée par IA");
+            if (result.source === "gemini") {
+                toast.success("Estimation générée par Gemini 1.5");
+            } else {
+                toast.info(
+                    "Estimation générée par le moteur résilient de secours"
+                );
+            }
         } catch (error: unknown) {
             if (error instanceof Error) {
                 console.error(
-                    "Error during AI estimation:",
+                    "Error during transport estimation:",
                     error.message,
                     error.stack
                 );
             } else {
-                console.error("Error during AI estimation:", error);
+                console.error("Error during transport estimation:", error);
             }
             toast.error("Erreur lors de l&apos;estimation");
         } finally {
@@ -490,11 +497,29 @@ export default function QuoteModerationPage() {
                                 </div>
                                 {aiEstimation && (
                                     <div className="animate-in fade-in slide-in-from-top-2 mt-4 space-y-2 rounded-lg border border-purple-200/20 bg-purple-500/5 p-3 text-sm">
-                                        <div className="flex flex-col gap-1 font-medium text-purple-700 sm:flex-row sm:justify-between">
-                                            <span>
-                                                Estimation: {aiEstimation.price}
-                                            </span>
-                                            <span>
+                                        <div className="flex flex-col gap-1.5 font-medium text-purple-700 sm:flex-row sm:items-center sm:justify-between">
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <span>
+                                                    Estimation:{" "}
+                                                    {aiEstimation.price}
+                                                </span>
+                                                {aiEstimation.source ===
+                                                "gemini" ? (
+                                                    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-300/40 bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                                                        <Sparkles className="h-2.5 w-2.5" />{" "}
+                                                        Gemini 1.5
+                                                    </span>
+                                                ) : (
+                                                    <span
+                                                        className="inline-flex items-center gap-1 rounded-full border border-amber-300/40 bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
+                                                        title="Calculé sans dépendance externe par l'algorithme heuristique logistique"
+                                                    >
+                                                        <ShieldAlert className="h-2.5 w-2.5" />{" "}
+                                                        Moteur Secours
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <span className="text-muted-foreground text-xs">
                                                 {aiEstimation.distance} /{" "}
                                                 {aiEstimation.duration}
                                             </span>
@@ -502,13 +527,19 @@ export default function QuoteModerationPage() {
                                         <p className="text-muted-foreground text-xs">
                                             {aiEstimation.reasoning}
                                         </p>
-                                        <Button
-                                            variant="link"
-                                            className="h-auto p-0 text-xs text-purple-600"
-                                            onClick={applyEstimation}
-                                        >
-                                            Appliquer ce prix
-                                        </Button>
+                                        <div className="flex items-center justify-between pt-1">
+                                            <span className="text-muted-foreground text-[11px] italic">
+                                                Confiance :{" "}
+                                                {aiEstimation.confidence}
+                                            </span>
+                                            <Button
+                                                variant="link"
+                                                className="h-auto p-0 text-xs font-semibold text-purple-600 hover:underline"
+                                                onClick={applyEstimation}
+                                            >
+                                                Appliquer ce prix
+                                            </Button>
+                                        </div>
                                     </div>
                                 )}
                             </div>

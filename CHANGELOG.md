@@ -7,9 +7,24 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
 ## [Unreleased]
 
-### Planned
+### Added
 
-- Intégration de Sentry pour la télémétrie de production.
+- **Architecture de Résilience IA & Pattern Fail-Safe Multi-Niveaux** :
+    - **Détection & Assainissement Robuste des Clés API Gemini** (`src/lib/gemini.ts`) :
+        - Support prioritaire de `GEMINI_API_KEY` (secret d'environnement côté serveur sécurisé) avec rétrocompatibilité `NEXT_PUBLIC_GEMINI_API_KEY`.
+        - Filtrage automatique et assainissement des clés fictives ou placeholders (`your_gemini_api_key`, `placeholder`, `mock`, chaînes vides) sans jamais lever d'exception non gérée.
+    - **Moteur Déterministe Heuristique de Secours (Tier 2)** :
+        - `calculateHeuristicEstimate` : algorithme logistique déterministe avec calcul kilométrique basé sur les grands nœuds routiers français (formule de Haversine ajustée au facteur routier 1.25x), barème différencié par type de véhicule (camion-grue, plateau, porte-conteneur, convoi exceptionnel, benne), calcul réaliste de durée (vitesse fret 70 km/h + forfait manutention) et marges min/max.
+        - `generateFallbackEmail` : modèles d'emails professionnels en français soigné pour validation, refus courtois et demande de complément technique.
+    - **Server Actions Sécurisées & Circuit Breaker** (`src/app/actions/ai-actions.ts`) :
+        - `getAiStatusAction` : introspection temps réel de l'état du sous-système IA (`gemini` vs `resilient_local`).
+        - `estimateTransportAction` & `draftEmailAction` : endpoints protégés par Zod et `requireAdmin()` avec timeout strict (6000ms via `Promise.race`) évitant tout gel d'interface en cas de panne réseau externe.
+        - `generateSupportAiAction` : endpoint conversationnel supportant l'analyse de sentiment, catégorisation et suggestion d'escalade.
+    - **Support Chat Hybride & Feedback Visuel Transparent** :
+        - Mise à jour de `src/hooks/useSupportChat.ts` et `src/components/features/support/components/ChatHeader.tsx` : affichage en direct du mode d'exécution via badge pulsant (🟢 `IA Gemini 1.5 Active` vs 🛡️ `Mode Résilient Autonome`).
+        - Mise à jour de l'interface modération admin `src/app/admin/quotes/[id]/page.tsx` avec badges explicites (`Gemini 1.5` vs `Moteur Secours`) et conservation de la continuité du devis même en mode hors-ligne.
+    - **Suite de Tests de Résilience Dédiée** (`tests/unit/ai-resilience.test.ts`) :
+        - 10 tests unitaires automatisés validant la détection des clés, la non-régression en l'absence de clé, les calculs de barèmes heuristiques et le comportement zéro-crash de `geminiService`.
 
 ---
 

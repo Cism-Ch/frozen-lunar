@@ -10,7 +10,7 @@
 
 **Phase 3 — Production & Deployment** 🔄 En cours
 
-> Les phases 1 (UI) et 2 (Backend & Asynchronous Infrastructure) sont intégralement terminées (100%). L'application dispose d'une suite de 32 tests automatisés, du rate limiting, de QStash workers, d'emails HTML typés, d'upload S3 Tigris, de Supabase Realtime, des headers HTTP de sécurité, du logging structuré Pino, du RLS et du pipeline CI/CD GitHub Actions.
+> Les phases 1 (UI) et 2 (Backend & Asynchronous Infrastructure) sont intégralement terminées (100%). L'application dispose d'une suite de 46 tests automatisés, d'un moteur de résilience IA multi-niveaux (Gemini 1.5 + Fail-Safe heuristique), du rate limiting, de QStash workers, d'emails HTML typés, d'upload S3 Tigris, de Supabase Realtime, des headers HTTP de sécurité, du logging structuré Pino, du RLS et du pipeline CI/CD GitHub Actions.
 
 ---
 

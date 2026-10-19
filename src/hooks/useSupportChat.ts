@@ -23,6 +23,10 @@ import {
 } from "@/lib/support-agent/quote-flow";
 import { toast } from "sonner";
 import { createQuoteAction } from "@/app/actions/quote-management";
+import {
+    getAiStatusAction,
+    generateSupportAiAction,
+} from "@/app/actions/ai-actions";
 
 export interface ChatItem {
     type:
@@ -45,6 +49,9 @@ export function useSupportChat(onClose: () => void) {
         },
     ]);
     const [isLoading, setIsLoading] = useState(false);
+    const [aiMode, setAiMode] = useState<"gemini" | "resilient_local">(
+        "resilient_local"
+    );
     const [currentQuickReplies, setCurrentQuickReplies] = useState<
         QuickReply[]
     >(AGENT_CONFIG.quickReplies);
@@ -52,6 +59,25 @@ export function useSupportChat(onClose: () => void) {
         createInitialFlowState()
     );
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    // Initialisation dynamique du statut de l'IA (Gemini Cloud vs Moteur Résilient Local)
+    useEffect(() => {
+        let isMounted = true;
+        getAiStatusAction()
+            .then((res) => {
+                if (isMounted && res.data?.isAvailable) {
+                    setAiMode("gemini");
+                } else if (isMounted) {
+                    setAiMode("resilient_local");
+                }
+            })
+            .catch(() => {
+                if (isMounted) setAiMode("resilient_local");
+            });
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     // Auto-scroll logic
     const scrollToBottom = () => {
@@ -297,76 +323,155 @@ export function useSupportChat(onClose: () => void) {
         ]);
 
         try {
-            const response = await generateMockResponse(content);
+            let handledByAi = false;
 
-            setChatItems((prev) =>
-                prev.filter(
-                    (item) =>
-                        !(
+            // Tier 1 : Tentative d'appel de l'action IA Cloud (Gemini 1.5 Flash avec timeout & validation)
+            try {
+                // Construction d'un extrait de l'historique conversationnel
+                const history = chatItems
+                    .filter(
+                        (item): item is ChatItem & { data: Message } =>
                             item.type === "message" &&
-                            (item.data as Message).isTyping
+                            !(item.data as Message).isTyping
+                    )
+                    .map((item) => ({
+                        role:
+                            item.data.role === "assistant"
+                                ? ("assistant" as const)
+                                : ("user" as const),
+                        content: item.data.content,
+                    }));
+
+                const aiResult = await generateSupportAiAction({
+                    message: content,
+                    history,
+                });
+
+                if (aiResult.data) {
+                    handledByAi = true;
+                    setAiMode("gemini");
+
+                    setChatItems((prev) =>
+                        prev.filter(
+                            (item) =>
+                                !(
+                                    item.type === "message" &&
+                                    (item.data as Message).isTyping
+                                )
                         )
-                )
-            );
+                    );
 
-            const assistantMessage = createMessage(
-                response.message,
-                "assistant",
-                response.category,
-                response.sentiment
-            );
-            setChatItems((prev) => [
-                ...prev,
-                {
-                    type: "message",
-                    data: assistantMessage,
-                    id: assistantMessage.id,
-                },
-            ]);
+                    const assistantMessage = createMessage(
+                        aiResult.data.message,
+                        "assistant",
+                        aiResult.data.category,
+                        aiResult.data.sentiment
+                    );
 
-            if (response.options && response.options.length > 0) {
-                setChatItems((prev) => [
-                    ...prev,
-                    {
-                        type: "options",
-                        data: response.options!,
-                        id: `options_${Date.now()}`,
-                    },
-                ]);
-            }
+                    setChatItems((prev) => [
+                        ...prev,
+                        {
+                            type: "message",
+                            data: assistantMessage,
+                            id: assistantMessage.id,
+                        },
+                    ]);
 
-            if (response.showTutorial && response.tutorialContent) {
-                const tutorialId = response.options?.find(
-                    (o) => o.tutorialId
-                )?.tutorialId;
-                if (tutorialId) {
-                    const tutorial = getTutorial(tutorialId);
-                    if (tutorial) {
-                        setChatItems((prev) => [
-                            ...prev,
+                    // Si l'IA détecte un besoin d'escalade, on suggère un contact humain immédiat
+                    if (aiResult.data.shouldEscalate) {
+                        setCurrentQuickReplies([
                             {
-                                type: "tutorial",
-                                data: tutorial,
-                                id: `tutorial_${Date.now()}`,
+                                id: "contact_human_urgent",
+                                label: "📞 Parler à un conseiller",
+                                text: "Je souhaite contacter un conseiller humain",
+                                category: "general",
+                            },
+                            {
+                                id: "quote_help",
+                                label: "📋 Demander un devis",
+                                text: "Je souhaite obtenir un devis pour mon transport",
+                                category: "quote",
                             },
                         ]);
                     }
                 }
+            } catch (aiErr: unknown) {
+                console.warn(
+                    "Échec IA cloud, basculement silencieux vers le moteur résilient local :",
+                    aiErr
+                );
             }
 
-            if (response.quickReplyContext) {
-                setCurrentQuickReplies(getCurrentQuickReplies());
+            // Tier 2 : Repli transparent sur le moteur déterministe local
+            if (!handledByAi) {
+                setAiMode("resilient_local");
+                const response = await generateMockResponse(content);
+
+                setChatItems((prev) =>
+                    prev.filter(
+                        (item) =>
+                            !(
+                                item.type === "message" &&
+                                (item.data as Message).isTyping
+                            )
+                    )
+                );
+
+                const assistantMessage = createMessage(
+                    response.message,
+                    "assistant",
+                    response.category,
+                    response.sentiment
+                );
+                setChatItems((prev) => [
+                    ...prev,
+                    {
+                        type: "message",
+                        data: assistantMessage,
+                        id: assistantMessage.id,
+                    },
+                ]);
+
+                if (response.options && response.options.length > 0) {
+                    setChatItems((prev) => [
+                        ...prev,
+                        {
+                            type: "options",
+                            data: response.options!,
+                            id: `options_${Date.now()}`,
+                        },
+                    ]);
+                }
+
+                if (response.showTutorial && response.tutorialContent) {
+                    const tutorialId = response.options?.find(
+                        (o) => o.tutorialId
+                    )?.tutorialId;
+                    if (tutorialId) {
+                        const tutorial = getTutorial(tutorialId);
+                        if (tutorial) {
+                            setChatItems((prev) => [
+                                ...prev,
+                                {
+                                    type: "tutorial",
+                                    data: tutorial,
+                                    id: `tutorial_${Date.now()}`,
+                                },
+                            ]);
+                        }
+                    }
+                }
+
+                if (response.quickReplyContext) {
+                    setCurrentQuickReplies(getCurrentQuickReplies());
+                }
             }
         } catch (error: unknown) {
-            if (error instanceof Error) {
-                console.error(
-                    "Error getting response:",
-                    error.message,
-                    error.stack
-                );
-            } else {
-                console.error("Error getting response:", error);
-            }
+            // Tier 3 : Filet de sécurité absolu en cas d'exception imprévue
+            console.error(
+                "Erreur critique support chat (Tier 3 de secours activé) :",
+                error
+            );
             setChatItems((prev) => {
                 const filtered = prev.filter(
                     (item) =>
@@ -376,7 +481,7 @@ export function useSupportChat(onClose: () => void) {
                         )
                 );
                 const errorMessage = createMessage(
-                    "Désolé, une erreur s'est produite. Veuillez réessayer.",
+                    "Nos conseillers restent disponibles directement par téléphone ou via notre formulaire de devis en ligne.",
                     "assistant"
                 );
                 return [
@@ -441,6 +546,7 @@ export function useSupportChat(onClose: () => void) {
     return {
         chatItems,
         isLoading,
+        aiMode,
         currentQuickReplies,
         quoteFlowState,
         messagesEndRef,
