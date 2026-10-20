@@ -9,6 +9,41 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
 ---
 
+## [1.4.0] — 2026-10-20 — Version 1.4.0 (Admin Contact Hub, PostgreSQL Inbox & Real Clients Directory Release)
+
+### Added
+
+- **Architecture Complète de Messagerie de Contact & Persistance Supabase PostgreSQL** :
+    - **Nouveau Modèle Prisma & Énumération** (`prisma/schema.prisma`) :
+        - Modèle `ContactMessage` avec identifiant `cuid()`, `firstName`, `lastName`, `email`, `phone`, `message` (`@db.Text`), `status`, `createdAt`, `updatedAt` mappé vers la table SQL `contact_message`.
+        - Enum `ContactStatus` avec les états `UNREAD` (Non lu), `READ` (Lu), `ARCHIVED` (Archivé).
+        - Migration et synchronisation appliquées avec succès sur la base Supabase PostgreSQL.
+    - **Server Actions Sécurisées & Pattern Canonique `{ data, error }`** (`src/app/actions/contact.ts`) :
+        - `sendContactMessageAction` : validation Zod stricte des coordonnées et du message (2 à 2000 caractères), persistance en BDD et revalidation de `/admin/contacts`.
+        - `getContactMessagesAction` : sécurisé côté serveur avec `requireAdmin()`, filtrage dynamique par statut et recherche plein texte (nom, prénom, email, message).
+        - `updateContactMessageStatusAction` : mise à jour instantanée du statut (marquer comme lu, archiver, restaurer).
+        - `deleteContactMessageAction` : suppression définitive sécurisée d'un message avec revalidation de cache.
+        - `getClientsDirectoryAction` : agrégation en temps réel des clients uniques issus des devis réels `prisma.quote`, calculant le volume de devis, la date de dernière activité et le statut du dernier devis.
+    - **Page Admin en React Server Component (RSC)** (`src/app/admin/contacts/page.tsx`) :
+        - Sécurisation stricte côté serveur avec `await requireAdmin()`.
+        - Pré-chargement asynchrone parallèle `Promise.all` des messages et du répertoire client évitant tout effet de scintillement (zero CLS) et éliminant le chargement factice `setTimeout`.
+    - **Composants d'Interface Modernes & Fonctionnels** (`src/app/admin/contacts/components/`) :
+        - `ContactsDashboardView.tsx` : navigation par onglets avec compteurs dynamiques en temps réel (badge des messages non lus) et redirection vers `/admin/users` pour la gestion des collaborateurs.
+        - `ContactMessagesInbox.tsx` : boîte de réception professionnelle avec filtres d'état, barre de recherche, affichage réactif (table desktop & cartes mobiles), modal de consultation détaillée, actions contextuelles et déclenchement d'un email de réponse `mailto:`.
+        - `ClientDirectory.tsx` : annuaire réel des clients HBC Logistique connectés aux données métier avec badges de statut et liens directs vers les devis.
+    - **Tests Automatisés Vitest** (`tests/unit/contact-actions.test.ts`) :
+        - 6 nouveaux tests unitaires couvrant la validation Zod, le rejet des entrées invalides et la persistance BDD (suite globale portée à 73 tests réussis).
+
+### Removed & Refactored
+
+- **Élimination Définitive des Fausses Données & Mocks** :
+    - Suppression de la dépendance à `window.localStorage` (`hbc_quotes`) qui laissait la liste des clients vide pour tout administrateur connecté depuis un nouveau navigateur.
+    - Suppression de `src/app/admin/contacts/components/ClientList.tsx` (ancienne version basée sur `localStorage`).
+    - Suppression des composants obsolètes ou dupliqués : `TeamList.tsx`, `AddTeamMemberDialog.tsx`, `TeamMemberProfile.tsx` (remplacés par `/admin/users` et le nouveau hub).
+    - Remplacement du faux loader `setTimeout(..., 800)` par du véritable rendu serveur RSC.
+
+---
+
 ## [1.3.0] — 2026-10-19 — Version 1.3.0 (Universal Password Reset, Support Chat & Resilience Release)
 
 ### Added

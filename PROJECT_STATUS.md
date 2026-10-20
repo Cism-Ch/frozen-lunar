@@ -1,8 +1,8 @@
 # 📋 Frozen Lunar — État du Projet
 
-> **Dernière mise à jour** : 2026-10-19
-> **Mis à jour par** : mission-control
-> **Version** : 1.3.0 (Universal Password Reset, Support Chat & Resilience Release)
+> **Dernière mise à jour** : 2026-10-20
+> **Mis à jour par** : fullstack-architect
+> **Version** : 1.4.0 (Admin Contact Hub, PostgreSQL Inbox & Real Clients Directory Release)
 
 ---
 
@@ -10,7 +10,7 @@
 
 **Phase 3 — Production & Deployment** 🔄 En cours
 
-> Les phases 1 (UI) et 2 (Backend & Asynchronous Infrastructure) sont intégralement terminées (100%). L'application dispose d'une suite de 67 tests automatisés (Vitest), d'un flux universel de réinitialisation de mot de passe par email (Admin & Utilisateur), d'un moteur de résilience IA multi-niveaux (Gemini 1.5 + Fail-Safe heuristique), d'un système d'automatisation WhatsApp 1-Clic via Hugging Face & click-to-chat `wa.me`, d'un module de support client réactif et assaini sans émojis bruts, du rate limiting, de QStash workers, d'emails HTML typés, d'upload S3 Tigris, de Supabase Realtime, des headers HTTP de sécurité, du logging structuré Pino, du RLS et du pipeline CI/CD GitHub Actions.
+> Les phases 1 (UI) et 2 (Backend & Asynchronous Infrastructure) sont intégralement terminées (100%). L'application dispose d'une suite de 73 tests automatisés (Vitest, 11 suites réussies), d'un hub de contacts admin refondu adossé à PostgreSQL Supabase (`ContactMessage`), d'une boîte de réception avec filtrage d'état et réponse email rapide, d'un répertoire des clients réels agrégé depuis les devis `Quote`, d'un flux universel de réinitialisation de mot de passe par email (Admin & Utilisateur), d'un moteur de résilience IA multi-niveaux (Gemini 1.5 + Fail-Safe heuristique), d'un système d'automatisation WhatsApp 1-Clic via Hugging Face & click-to-chat `wa.me`, d'un module de support client réactif et assaini sans émojis bruts, du rate limiting, de QStash workers, d'emails HTML typés, d'upload S3 Tigris, de Supabase Realtime, des headers HTTP de sécurité, du logging structuré Pino, du RLS et du pipeline CI/CD GitHub Actions.
 
 ---
 
@@ -19,8 +19,8 @@
 | Phase | Nom                 | Statut      | Progression | Notes                                                                                                       |
 | ----- | ------------------- | ----------- | ----------- | ----------------------------------------------------------------------------------------------------------- |
 | 1     | UI Implementation   | ✅ Terminé  | 100%        | Landing page, admin, wizard devis, support chat (responsive, 0 émojis), thèmes, accessibilité WCAG AA/AAA   |
-| 2     | Backend Integration | ✅ Terminé  | 100%        | Auth Better-Auth ✅, Password Reset Universel ✅, Quotes CRUD ✅, QStash/Email/S3/Realtime/Pino/RLS ✅      |
-| 3     | Production Ready    | 🔄 En cours | ~80%        | Tests Vitest (67 tests) ✅, CI/CD ✅, Résilience IA ✅, WhatsApp 1-Clic ✅, Suivi Transport Support Chat ✅ |
+| 2     | Backend Integration | ✅ Terminé  | 100%        | Auth Better-Auth ✅, Hub Contacts & Inbox DB ✅, Password Reset Universel ✅, Quotes CRUD ✅, QStash/Email/S3/Realtime/Pino/RLS ✅ |
+| 3     | Production Ready    | 🔄 En cours | ~85%        | Tests Vitest (73 tests) ✅, CI/CD ✅, Résilience IA ✅, WhatsApp 1-Clic ✅, Suivi Transport Support Chat ✅ |
 
 ---
 
@@ -236,6 +236,9 @@
 - [x] **TASK-022** : Audit Global de Sécurité OWASP & Organisation Documentaire
     - Fichiers : `docs/SECURITY_AUDIT.md`, `next.config.ts`, `middleware.ts`
     - Statut : ✅ Terminé (Rapport d'audit complet classé dans docs/, vérification de l'étanchéité des secrets, RLS Supabase et headers HTTP)
+- [x] **TASK-023** : Refonte Architecturale du Module Contacts Admin & Persistance PostgreSQL Supabase
+    - Fichiers : `prisma/schema.prisma`, `src/app/actions/contact.ts`, `src/app/admin/contacts/page.tsx`, `src/app/admin/contacts/components/`, `src/app/contact/page.tsx`, `tests/unit/contact-actions.test.ts`
+    - Statut : ✅ Terminé (Suppression des données mock statiques et de la dépendance à `window.localStorage`, création du modèle `ContactMessage` et de l'enum `ContactStatus`, Server Actions sécurisées avec pattern `{ data, error }`, conversion de `/admin/contacts` en React Server Component protégé par `requireAdmin()`, boîte de réception avec filtrage Non lu/Lu/Archivé, consultation modale et réponse rapide par email `mailto:`, répertoire des clients réels agrégé depuis les devis `prisma.quote`, 6 nouveaux tests unitaires Vitest, 0 warning ESLint et validation TypeScript stricte)
 - [ ] **TASK-014** : Documentation OpenAPI/Swagger
 - [ ] **TASK-015** : Intégration payment gateway
 - [x] **TASK-018** : Analytics Métier & Mode Démo (Données JSON & Injection BDD)
@@ -266,9 +269,9 @@
 
 | ID     | Description                                                                    | Fichier                     | Statut                   |
 | ------ | ------------------------------------------------------------------------------ | --------------------------- | ------------------------ |
-| DT-001 | Nettoyage final du fallback `quote-storage.ts` vers 100% Prisma Server Actions | `src/lib/quote-storage.ts`  | ⏳ Optionnel / Obsolète  |
+| DT-001 | Élimination de `quote-storage.ts` et du localStorage au profit de 100% Prisma Server Actions | `src/lib/quote-storage.ts`, `src/app/admin/contacts/` | ✅ Résolu (TASK-023, admin contacts 100% Prisma) |
 | DT-002 | Erreurs Prisma résolues avec `instanceof`                                      | `src/app/actions/`          | ✅ Résolu (TASK-002)     |
 | DT-003 | Rate limiting configurable via `process.env`                                   | `middleware.ts`             | ✅ Résolu (TASK-009)     |
-| DT-004 | Suite de 52 tests automatisés Vitest                                           | `tests/`                    | ✅ Résolu (52/52 passés) |
+| DT-004 | Suite de 73 tests automatisés Vitest                                           | `tests/`                    | ✅ Résolu (73/73 passés) |
 | DT-005 | Logging structuré Pino & Monitoring centralisé                                 | `src/lib/logger.ts`         | ✅ Résolu (TASK-010)     |
-| DT-006 | README.md & Documentation à jour                                               | `README.md`, `CHANGELOG.md` | ✅ Résolu (V1.2 Release) |
+| DT-006 | README.md & Documentation à jour                                               | `README.md`, `CHANGELOG.md` | ✅ Résolu (V1.4 Release) |
