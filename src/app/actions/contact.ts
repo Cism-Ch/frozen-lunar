@@ -14,14 +14,6 @@ import {
     type ClientDirectoryItem,
 } from "@/types/contact";
 
-export type {
-    ContactStatus,
-    ContactFormInput,
-    ContactActionResult,
-    ContactMessageItem,
-    ClientDirectoryItem,
-};
-
 /**
  * Server Action publique : Enregistrement d'un message de contact en base de données.
  * Suit strictement la convention de retour { data, error }.
