@@ -15,6 +15,7 @@
         "test:watch": "vitest",
         "check:db": "node scripts/check-db-health.mjs",
         "admin:reset-password": "node scripts/reset-admin-password.mjs",
+        "admin:test-login": "node scripts/test-admin-login.mjs",
         "postinstall": "prisma generate"
     },
     "dependencies": {
