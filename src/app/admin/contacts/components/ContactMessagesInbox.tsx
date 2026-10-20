@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { type ContactMessageItem, ContactStatus } from "@/types/contact";
 import {
-    ContactMessageItem,
-    ContactStatus,
     updateContactMessageStatusAction,
     deleteContactMessageAction,
 } from "@/app/actions/contact";

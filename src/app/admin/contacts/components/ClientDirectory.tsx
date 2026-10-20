@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ClientDirectoryItem } from "@/app/actions/contact";
+import type { ClientDirectoryItem } from "@/types/contact";
 import { QuoteStatus } from "@prisma/client";
 import {
     Card,

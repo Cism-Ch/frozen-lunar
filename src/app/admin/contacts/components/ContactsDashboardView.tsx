@@ -4,10 +4,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ContactMessagesInbox } from "./ContactMessagesInbox";
 import { ClientDirectory } from "./ClientDirectory";
 import {
-    ContactMessageItem,
-    ClientDirectoryItem,
+    type ContactMessageItem,
+    type ClientDirectoryItem,
     ContactStatus,
-} from "@/app/actions/contact";
+} from "@/types/contact";
 import { Inbox, Users, ArrowRight, Shield } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";

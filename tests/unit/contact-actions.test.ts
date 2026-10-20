@@ -1,8 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-    contactFormSchema,
-    sendContactMessageAction,
-} from "@/app/actions/contact";
+import { contactFormSchema } from "@/types/contact";
+import { sendContactMessageAction } from "@/app/actions/contact";
 import prisma from "@/lib/prisma";
 
 // Importation des types générés Prisma
