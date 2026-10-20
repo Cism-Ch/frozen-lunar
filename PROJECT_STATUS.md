@@ -16,11 +16,11 @@
 
 ## Avancement des Phases
 
-| Phase | Nom                 | Statut      | Progression | Notes                                                                                                       |
-| ----- | ------------------- | ----------- | ----------- | ----------------------------------------------------------------------------------------------------------- |
-| 1     | UI Implementation   | ✅ Terminé  | 100%        | Landing page, admin, wizard devis, support chat (responsive, 0 émojis), thèmes, accessibilité WCAG AA/AAA   |
+| Phase | Nom                 | Statut      | Progression | Notes                                                                                                                              |
+| ----- | ------------------- | ----------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| 1     | UI Implementation   | ✅ Terminé  | 100%        | Landing page, admin, wizard devis, support chat (responsive, 0 émojis), thèmes, accessibilité WCAG AA/AAA                          |
 | 2     | Backend Integration | ✅ Terminé  | 100%        | Auth Better-Auth ✅, Hub Contacts & Inbox DB ✅, Password Reset Universel ✅, Quotes CRUD ✅, QStash/Email/S3/Realtime/Pino/RLS ✅ |
-| 3     | Production Ready    | 🔄 En cours | ~85%        | Tests Vitest (73 tests) ✅, CI/CD ✅, Résilience IA ✅, WhatsApp 1-Clic ✅, Suivi Transport Support Chat ✅ |
+| 3     | Production Ready    | 🔄 En cours | ~85%        | Tests Vitest (73 tests) ✅, CI/CD ✅, Résilience IA ✅, WhatsApp 1-Clic ✅, Suivi Transport Support Chat ✅                        |
 
 ---
 
@@ -267,11 +267,11 @@
 
 ## Dettes Techniques
 
-| ID     | Description                                                                    | Fichier                     | Statut                   |
-| ------ | ------------------------------------------------------------------------------ | --------------------------- | ------------------------ |
+| ID     | Description                                                                                  | Fichier                                               | Statut                                           |
+| ------ | -------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------ |
 | DT-001 | Élimination de `quote-storage.ts` et du localStorage au profit de 100% Prisma Server Actions | `src/lib/quote-storage.ts`, `src/app/admin/contacts/` | ✅ Résolu (TASK-023, admin contacts 100% Prisma) |
-| DT-002 | Erreurs Prisma résolues avec `instanceof`                                      | `src/app/actions/`          | ✅ Résolu (TASK-002)     |
-| DT-003 | Rate limiting configurable via `process.env`                                   | `middleware.ts`             | ✅ Résolu (TASK-009)     |
-| DT-004 | Suite de 73 tests automatisés Vitest                                           | `tests/`                    | ✅ Résolu (73/73 passés) |
-| DT-005 | Logging structuré Pino & Monitoring centralisé                                 | `src/lib/logger.ts`         | ✅ Résolu (TASK-010)     |
-| DT-006 | README.md & Documentation à jour                                               | `README.md`, `CHANGELOG.md` | ✅ Résolu (V1.4 Release) |
+| DT-002 | Erreurs Prisma résolues avec `instanceof`                                                    | `src/app/actions/`                                    | ✅ Résolu (TASK-002)                             |
+| DT-003 | Rate limiting configurable via `process.env`                                                 | `middleware.ts`                                       | ✅ Résolu (TASK-009)                             |
+| DT-004 | Suite de 73 tests automatisés Vitest                                                         | `tests/`                                              | ✅ Résolu (73/73 passés)                         |
+| DT-005 | Logging structuré Pino & Monitoring centralisé                                               | `src/lib/logger.ts`                                   | ✅ Résolu (TASK-010)                             |
+| DT-006 | README.md & Documentation à jour                                                             | `README.md`, `CHANGELOG.md`                           | ✅ Résolu (V1.4 Release)                         |

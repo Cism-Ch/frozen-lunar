@@ -5,6 +5,7 @@ import {
 } from "@/app/actions/contact";
 import prisma from "@/lib/prisma";
 
+// Importation des types générés Prisma
 import type { ContactMessage } from "@prisma/client";
 
 // Mock de Prisma Client

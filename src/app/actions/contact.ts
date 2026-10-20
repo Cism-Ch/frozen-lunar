@@ -4,6 +4,7 @@ import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-guard";
 import { revalidatePath } from "next/cache";
+// Importation des types générés Prisma
 import type { ContactMessage, QuoteStatus } from "@prisma/client";
 
 export const ContactStatus = {
