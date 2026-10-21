@@ -9,7 +9,6 @@ import {
     CardDescription,
 } from "@/components/ui/card";
 import { FileText, TrendingUp, Clock, CheckCircle, Euro } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Quote } from "@/lib/quote-storage";
@@ -37,6 +36,7 @@ import { useRealtimeQuotes } from "@/hooks/useRealtimeQuotes";
 import { DemoModeControl } from "@/components/features/admin/DemoModeControl";
 import { BusinessAnalytics } from "@/components/features/admin/BusinessAnalytics";
 import { ActivityChart } from "@/components/features/admin/ActivityChart";
+import { QuoteStatusBadge } from "@/components/features/admin/QuoteStatusBadge";
 
 export default function DashboardPage() {
     const [quotes, setQuotes] = useState<Quote[]>([]);
@@ -338,25 +338,11 @@ export default function DashboardPage() {
                                                         </div>
                                                     </TableCell>
                                                     <TableCell>
-                                                        <Badge
-                                                            variant={
-                                                                quote.status ===
-                                                                "Validé"
-                                                                    ? "default"
-                                                                    : quote.status ===
-                                                                        "Refusé"
-                                                                      ? "destructive"
-                                                                      : "secondary"
+                                                        <QuoteStatusBadge
+                                                            status={
+                                                                quote.status
                                                             }
-                                                            className={
-                                                                quote.status ===
-                                                                "Validé"
-                                                                    ? "bg-green-500 hover:bg-green-600"
-                                                                    : ""
-                                                            }
-                                                        >
-                                                            {quote.status}
-                                                        </Badge>
+                                                        />
                                                     </TableCell>
                                                     <TableCell className="text-muted-foreground text-right text-xs">
                                                         {format(

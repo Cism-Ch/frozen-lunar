@@ -13,7 +13,7 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { QuoteStatusBadge } from "@/components/features/admin/QuoteStatusBadge";
 import { Separator } from "@/components/ui/separator";
 import {
     ArrowLeft,
@@ -356,18 +356,7 @@ export default function QuoteModerationPage() {
                             <h1 className="truncate text-lg font-bold tracking-tight sm:text-2xl">
                                 Dossier {quote.id.slice(0, 8)}...
                             </h1>
-                            <Badge
-                                variant="outline"
-                                className={
-                                    quote.status === "Validé"
-                                        ? "border-green-200/50 bg-green-500/10 text-green-600"
-                                        : quote.status === "Refusé"
-                                          ? "border-red-200/50 bg-red-500/10 text-red-600"
-                                          : "border-orange-200/50 bg-orange-500/10 text-orange-600"
-                                }
-                            >
-                                {quote.status}
-                            </Badge>
+                            <QuoteStatusBadge status={quote.status} />
                         </div>
                         <p className="text-muted-foreground mt-1 text-sm">
                             Créé le {safeFormatDate(quote.date, "dd MMMM yyyy")}

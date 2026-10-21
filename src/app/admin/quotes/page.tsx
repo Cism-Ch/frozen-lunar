@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
     Table,
     TableBody,
@@ -21,6 +21,7 @@ import {
     XCircle,
     Clock,
     FileText,
+    X,
 } from "lucide-react";
 import {
     DropdownMenu,
@@ -39,12 +40,15 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Quote, quoteStorage } from "@/lib/quote-storage";
+import { Quote } from "@/lib/quote-storage";
 import { format, isValid, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { QuoteDetailsSheet } from "@/components/features/QuoteDetailsSheet";
 import { FadeIn, AnimatedCard, motion } from "@/components/ui/motion";
+import { QuoteStatusBadge } from "@/components/features/admin/QuoteStatusBadge";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
     getQuotesAction,
     deleteQuoteAction,
@@ -77,6 +81,7 @@ export default function QuotesPage() {
     const [quotes, setQuotes] = useState<Quote[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
+    const [isLoading, setIsLoading] = useState(true);
 
     const loadQuotes = async () => {
         try {
@@ -94,6 +99,8 @@ export default function QuotesPage() {
         } catch (error: unknown) {
             console.error("Error loading quotes:", error);
             toast.error("Erreur lors du chargement des devis");
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -128,23 +135,76 @@ export default function QuotesPage() {
         }
     };
 
-    const handleDelete = async (id: string) => {
-        if (confirm("Êtes-vous sûr de vouloir supprimer ce devis ?")) {
-            try {
-                const result = await deleteQuoteAction(id);
-                if (result.success) {
-                    await loadQuotes();
-                    toast.success("Devis supprimé");
-                } else {
-                    toast.error(
-                        result.error || "Erreur lors de la suppression"
-                    );
-                }
-            } catch (error: unknown) {
-                console.error("Error deleting quote:", error);
-                toast.error("Erreur lors de la suppression");
+    const [quoteToDelete, setQuoteToDelete] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const confirmDelete = async () => {
+        if (!quoteToDelete) return;
+        setIsDeleting(true);
+        try {
+            const result = await deleteQuoteAction(quoteToDelete);
+            if (result.success) {
+                await loadQuotes();
+                toast.success("Devis supprimé avec succès");
+                setQuoteToDelete(null);
+            } else {
+                toast.error(result.error || "Erreur lors de la suppression");
             }
+        } catch (error: unknown) {
+            console.error("Error deleting quote:", error);
+            toast.error("Erreur lors de la suppression");
+        } finally {
+            setIsDeleting(false);
         }
+    };
+
+    const handleExportCSV = () => {
+        if (filteredQuotes.length === 0) {
+            toast.info("Aucun devis à exporter");
+            return;
+        }
+        const headers = [
+            "Référence",
+            "Client",
+            "Email",
+            "Téléphone",
+            "Type",
+            "Départ",
+            "Arrivée",
+            "Date Transport",
+            "Date Création",
+            "Statut",
+            "Montant",
+            "Source",
+        ];
+        const rows = filteredQuotes.map((q) => [
+            `"${q.id}"`,
+            `"${(q.client || "").replace(/"/g, '""')}"`,
+            `"${(q.email || "").replace(/"/g, '""')}"`,
+            `"${(q.phone || "").replace(/"/g, '""')}"`,
+            `"${(q.type || "").replace(/"/g, '""')}"`,
+            `"${(q.pickup || "").replace(/"/g, '""')}"`,
+            `"${(q.dropoff || "").replace(/"/g, '""')}"`,
+            `"${q.transportDate || ""}"`,
+            `"${q.date || ""}"`,
+            `"${q.status || ""}"`,
+            `"${(q.amount || "").replace(/"/g, '""')}"`,
+            `"${q.source || "form"}"`,
+        ]);
+        const csvContent =
+            "data:text/csv;charset=utf-8,\uFEFF" +
+            [headers.join(";"), ...rows.map((e) => e.join(";"))].join("\n");
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute(
+            "download",
+            `devis_hbc_logistique_${format(new Date(), "yyyy-MM-dd")}.csv`
+        );
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success(`${filteredQuotes.length} devis exportés en CSV`);
     };
 
     // Client-side filtering for search (server-side filtering is also available)
@@ -159,6 +219,28 @@ export default function QuotesPage() {
         return true;
     });
 
+    // Compteurs rapides pour les filtres par statut
+    const statusCounts = useMemo(() => {
+        return {
+            all: quotes.length,
+            pending: quotes.filter(
+                (q) =>
+                    q.status === "En attente" ||
+                    String(q.status).toUpperCase() === "PENDING"
+            ).length,
+            validated: quotes.filter(
+                (q) =>
+                    q.status === "Validé" ||
+                    String(q.status).toUpperCase() === "VALIDATED"
+            ).length,
+            rejected: quotes.filter(
+                (q) =>
+                    q.status === "Refusé" ||
+                    String(q.status).toUpperCase() === "REJECTED"
+            ).length,
+        };
+    }, [quotes]);
+
     const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
     const [detailsOpen, setDetailsOpen] = useState(false);
 
@@ -168,11 +250,11 @@ export default function QuotesPage() {
     };
 
     const refreshQuotes = () => {
-        setQuotes(quoteStorage.getAll());
+        void loadQuotes();
     };
 
     return (
-        <div className="space-y-8">
+        <div className="mx-auto max-w-7xl space-y-8">
             <FadeIn direction="down">
                 <div className="flex flex-col justify-between gap-4 text-center sm:flex-row sm:items-center sm:text-left">
                     <div>
@@ -187,7 +269,11 @@ export default function QuotesPage() {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                     >
-                        <Button variant="outline" className="w-full sm:w-auto">
+                        <Button
+                            variant="outline"
+                            className="w-full sm:w-auto"
+                            onClick={handleExportCSV}
+                        >
                             <Download className="mr-2 h-4 w-4" />
                             Exporter
                         </Button>
@@ -199,19 +285,37 @@ export default function QuotesPage() {
                 <AnimatedCard hoverEffect="subtle">
                     <Card>
                         <CardHeader>
-                            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-                                <CardTitle>Toutes les demandes</CardTitle>
-                                <div className="flex flex-col gap-2 sm:flex-row">
-                                    <div className="relative">
+                            <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+                                <div>
+                                    <CardTitle>Toutes les demandes</CardTitle>
+                                    <p className="text-muted-foreground mt-1 text-xs sm:text-sm">
+                                        Filtrage instantané et vue détaillée des
+                                        cotations logistiques.
+                                    </p>
+                                </div>
+                                <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
+                                    <div className="relative w-full sm:w-[250px]">
                                         <Search className="text-muted-foreground absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2" />
                                         <Input
-                                            placeholder="Rechercher..."
-                                            className="w-full pl-8 sm:w-[250px]"
+                                            placeholder="Rechercher (nom, email, réf)..."
+                                            className="w-full pr-8 pl-8"
                                             value={searchTerm}
                                             onChange={(e) =>
                                                 setSearchTerm(e.target.value)
                                             }
                                         />
+                                        {searchTerm && (
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setSearchTerm("")
+                                                }
+                                                className="text-muted-foreground hover:text-foreground absolute top-1/2 right-2.5 -translate-y-1/2 p-0.5"
+                                                aria-label="Effacer la recherche"
+                                            >
+                                                <X className="h-3.5 w-3.5" />
+                                            </button>
+                                        )}
                                     </div>
                                     <Select
                                         value={statusFilter}
@@ -223,24 +327,114 @@ export default function QuotesPage() {
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="all">
-                                                Tous les statuts
+                                                Tous les statuts (
+                                                {statusCounts.all})
                                             </SelectItem>
                                             <SelectItem value="En attente">
-                                                En attente
+                                                En attente (
+                                                {statusCounts.pending})
                                             </SelectItem>
                                             <SelectItem value="Validé">
-                                                Validé
+                                                Validé ({statusCounts.validated}
+                                                )
                                             </SelectItem>
                                             <SelectItem value="Refusé">
-                                                Refusé
+                                                Refusé ({statusCounts.rejected})
                                             </SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
                             </div>
+
+                            {/* Barre de filtres rapides tactiles (SaaS B2B 2026) */}
+                            <div className="flex flex-wrap items-center gap-2 pt-2">
+                                <Button
+                                    variant={
+                                        statusFilter === "all"
+                                            ? "default"
+                                            : "outline"
+                                    }
+                                    size="sm"
+                                    onClick={() => setStatusFilter("all")}
+                                    className="h-8 text-xs font-medium"
+                                >
+                                    Tous
+                                    <span className="bg-primary-foreground/20 ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold">
+                                        {statusCounts.all}
+                                    </span>
+                                </Button>
+                                <Button
+                                    variant={
+                                        statusFilter === "En attente"
+                                            ? "default"
+                                            : "outline"
+                                    }
+                                    size="sm"
+                                    onClick={() =>
+                                        setStatusFilter("En attente")
+                                    }
+                                    className="h-8 text-xs font-medium"
+                                >
+                                    <span className="mr-1.5 h-2 w-2 rounded-full bg-amber-500" />
+                                    En attente
+                                    <span className="bg-muted text-foreground ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold">
+                                        {statusCounts.pending}
+                                    </span>
+                                </Button>
+                                <Button
+                                    variant={
+                                        statusFilter === "Validé"
+                                            ? "default"
+                                            : "outline"
+                                    }
+                                    size="sm"
+                                    onClick={() => setStatusFilter("Validé")}
+                                    className="h-8 text-xs font-medium"
+                                >
+                                    <span className="mr-1.5 h-2 w-2 rounded-full bg-emerald-500" />
+                                    Validés
+                                    <span className="bg-muted text-foreground ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold">
+                                        {statusCounts.validated}
+                                    </span>
+                                </Button>
+                                <Button
+                                    variant={
+                                        statusFilter === "Refusé"
+                                            ? "default"
+                                            : "outline"
+                                    }
+                                    size="sm"
+                                    onClick={() => setStatusFilter("Refusé")}
+                                    className="h-8 text-xs font-medium"
+                                >
+                                    <span className="mr-1.5 h-2 w-2 rounded-full bg-red-500" />
+                                    Refusés
+                                    <span className="bg-muted text-foreground ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold">
+                                        {statusCounts.rejected}
+                                    </span>
+                                </Button>
+                            </div>
                         </CardHeader>
                         <CardContent>
-                            {filteredQuotes.length === 0 ? (
+                            {isLoading ? (
+                                <div className="space-y-3 py-3">
+                                    {[...Array(5)].map((_, i) => (
+                                        <div
+                                            key={i}
+                                            className="bg-card flex items-center justify-between gap-4 rounded-lg border p-4 shadow-2xs"
+                                        >
+                                            <div className="space-y-2">
+                                                <Skeleton className="h-4 w-28" />
+                                                <Skeleton className="h-3 w-44" />
+                                            </div>
+                                            <Skeleton className="hidden h-4 w-28 md:block" />
+                                            <Skeleton className="hidden h-4 w-32 md:block" />
+                                            <Skeleton className="h-6 w-24 rounded-full" />
+                                            <Skeleton className="h-8 w-8 rounded-md" />
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : filteredQuotes.length === 0 ? (
                                 <motion.div
                                     className="text-muted-foreground py-12 text-center"
                                     initial={{ opacity: 0 }}
@@ -275,40 +469,9 @@ export default function QuotesPage() {
                                                             {quote.email}
                                                         </p>
                                                     </div>
-                                                    <Badge
-                                                        variant={
-                                                            quote.status ===
-                                                            "Validé"
-                                                                ? "default"
-                                                                : quote.status ===
-                                                                    "Refusé"
-                                                                  ? "destructive"
-                                                                  : "secondary"
-                                                        }
-                                                        className={
-                                                            quote.status ===
-                                                            "Validé"
-                                                                ? "bg-green-500"
-                                                                : quote.status ===
-                                                                    "En attente"
-                                                                  ? "bg-orange-500/10 text-orange-600"
-                                                                  : ""
-                                                        }
-                                                    >
-                                                        {quote.status ===
-                                                            "Validé" && (
-                                                            <CheckCircle className="mr-1 h-3 w-3" />
-                                                        )}
-                                                        {quote.status ===
-                                                            "Refusé" && (
-                                                            <XCircle className="mr-1 h-3 w-3" />
-                                                        )}
-                                                        {quote.status ===
-                                                            "En attente" && (
-                                                            <Clock className="mr-1 h-3 w-3" />
-                                                        )}
-                                                        {quote.status}
-                                                    </Badge>
+                                                    <QuoteStatusBadge
+                                                        status={quote.status}
+                                                    />
                                                 </div>
                                                 <div className="mb-2 flex items-center gap-2">
                                                     <Badge variant="outline">
@@ -446,42 +609,11 @@ export default function QuotesPage() {
                                                                 )}
                                                             </TableCell>
                                                             <TableCell>
-                                                                <Badge
-                                                                    variant={
-                                                                        quote.status ===
-                                                                        "Validé"
-                                                                            ? "default"
-                                                                            : quote.status ===
-                                                                                "Refusé"
-                                                                              ? "destructive"
-                                                                              : "secondary"
-                                                                    }
-                                                                    className={
-                                                                        quote.status ===
-                                                                        "Validé"
-                                                                            ? "bg-green-500 hover:bg-green-600"
-                                                                            : quote.status ===
-                                                                                "En attente"
-                                                                              ? "bg-orange-500/10 text-orange-600 hover:bg-orange-500/20"
-                                                                              : ""
-                                                                    }
-                                                                >
-                                                                    {quote.status ===
-                                                                        "Validé" && (
-                                                                        <CheckCircle className="mr-1 h-3 w-3" />
-                                                                    )}
-                                                                    {quote.status ===
-                                                                        "Refusé" && (
-                                                                        <XCircle className="mr-1 h-3 w-3" />
-                                                                    )}
-                                                                    {quote.status ===
-                                                                        "En attente" && (
-                                                                        <Clock className="mr-1 h-3 w-3" />
-                                                                    )}
-                                                                    {
+                                                                <QuoteStatusBadge
+                                                                    status={
                                                                         quote.status
                                                                     }
-                                                                </Badge>
+                                                                />
                                                             </TableCell>
                                                             <TableCell className="text-right">
                                                                 <DropdownMenu>
@@ -554,12 +686,12 @@ export default function QuotesPage() {
                                                                         </DropdownMenuItem>
                                                                         <DropdownMenuSeparator />
                                                                         <DropdownMenuItem
-                                                                            className="text-red-600 focus:text-red-600"
+                                                                            className="cursor-pointer text-red-600 focus:text-red-600"
                                                                             onClick={(
                                                                                 e
                                                                             ) => {
                                                                                 e.stopPropagation();
-                                                                                handleDelete(
+                                                                                setQuoteToDelete(
                                                                                     quote.id
                                                                                 );
                                                                             }}
@@ -588,6 +720,18 @@ export default function QuotesPage() {
                 open={detailsOpen}
                 onOpenChange={setDetailsOpen}
                 onUpdate={refreshQuotes}
+            />
+
+            <ConfirmDialog
+                open={quoteToDelete !== null}
+                onOpenChange={(open) => !open && setQuoteToDelete(null)}
+                title="Supprimer définitivement ce devis ?"
+                description="Cette action est irréversible. Le devis ainsi que l'ensemble de son historique seront supprimés de la base de données."
+                confirmLabel="Supprimer"
+                cancelLabel="Annuler"
+                variant="destructive"
+                isLoading={isDeleting}
+                onConfirm={confirmDelete}
             />
         </div>
     );
