@@ -7,6 +7,30 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
 ## [Unreleased]
 
+---
+
+## [1.5.0] — 2026-10-21 — Version 1.5.0 (Admin Dashboard & Quote Management 2026 UI/UX Overhaul)
+
+### Added & Improved (Quote Management & QuoteDetailsSheet 2026 UI/UX Overhaul)
+
+- **Refonte Intégrale du Panneau Latéral des Devis (`QuoteDetailsSheet`)** :
+    - **Architecture Sticky Frame (Zéro scroll superflu)** : `SheetHeader` sticky au sommet avec `pr-12` anti-collision avec le bouton fermer, corps de défilement indépendant (`flex-1 overflow-y-auto`), et `SheetFooter` sticky en permanence au bas de l'écran pour accéder instantanément aux boutons de décision opérationnelle (_Valider_, _Refuser_).
+    - **Bloc Financier Dédié** : Mise en valeur du montant convenu (`text-2xl font-bold font-mono`) avec badge de confirmation ou alerte ambre « Chiffrage en attente » incitant au chiffrage dans l'espace de travail.
+    - **Barre d'Actions Rapides de Contact (WhatsApp 1-Clic)** : Bouton direct vers `https://wa.me/{phone}?text=...` pré-formaté avec enregistrement automatique de l'échange dans l'historique d'audit via `logWhatsAppContactAction`, et cartes Téléphone / Email avec copie presse-papier 1-clic (`Copy` / `Check`).
+    - **Axe de Transport & Itinéraire Google Maps** : Tracé chronologique vertical contrasté (Enlèvement émeraude $\rightarrow$ Livraison corail) avec bouton de calcul GPS direct sur Google Maps.
+    - **Badges de Contraintes Logistiques Lourdes** : Affichage d'alertes visuelles automatiques pour _Matières dangereuses_, _Grue requise au chargement_ et _Urgence prioritaire_.
+    - **Mini-Timeline d'Audit** : Rendu des 3 dernières activités du dossier pour un suivi opérationnel immédiat.
+    - **Sécurité des Mutations** : État `isUpdating` bloquant les boutons d'action et affichant un spinner `<Loader2 className="animate-spin" />` pour éliminer tout risque de double-soumission en base de données.
+    - **Correction d'Hydratation HTML React** : Remplacement de l'imbrication illégale d'éléments `<div>` / `<button>` dans la balise `<p>` de `<SheetDescription>` par un conteneur `<div>` neutre et une description `sr-only` accessible.
+- **Unification des Badges de Statut (`QuoteStatusBadge`)** :
+    - Nouveau composant centralisé harmonisant les variantes de couleur, icônes et typographie sur l'ensemble de la plateforme (Dashboard, table des devis `/admin/quotes`, vue détaillée `/admin/quotes/[id]`, et panneau latéral `QuoteDetailsSheet`).
+- **Modernisation de la Gestion des Devis (`/admin/quotes`)** :
+    - **Persistance & Synchronisation PostgreSQL** : Correction du rechargement des données (`refreshQuotes`) qui pointait vers le `localStorage` obsolète au lieu de la base PostgreSQL Supabase via `loadQuotes()`.
+    - **Dialogue de Confirmation Accessible (`ConfirmDialog`)** : Remplacement de `window.confirm()` par un composant Radix modal avec focus trap et actions destructives stylisées.
+    - **Export CSV Encodé UTF-8 BOM** : Export client instantané compatible nativement avec Microsoft Excel et les tableurs modernes.
+    - **Pillules de Filtres Rapides avec Compteurs Live** : Boutons de filtrage en un clic (`Tous`, `En attente`, `Validés`, `Refusés`) avec badges de décompte en temps réel.
+    - **État de Chargement Dédié (`Skeleton`)** : Composant de chargement squelette éliminant l'effet de vide (_FOEC_).
+
 ### Added & Improved (Admin Dashboard, Activity Chart & UI/UX Audit)
 
 - **Refonte Ergonomique du Tableau de Bord Admin (`/admin/dashboard`)** :

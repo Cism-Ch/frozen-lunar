@@ -1,8 +1,8 @@
 # 📋 Frozen Lunar — État du Projet
 
-> **Dernière mise à jour** : 2026-10-20
-> **Mis à jour par** : fullstack-architect
-> **Version** : 1.4.0 (Admin Contact Hub, PostgreSQL Inbox & Real Clients Directory Release)
+> **Dernière mise à jour** : 2026-10-21
+> **Mis à jour par** : doc-writer / fullstack-architect
+> **Version** : 1.5.0 (Admin Dashboard & Quote Management 2026 UI/UX Overhaul)
 
 ---
 
@@ -10,7 +10,7 @@
 
 **Phase 3 — Production & Deployment** 🔄 En cours
 
-> Les phases 1 (UI) et 2 (Backend & Asynchronous Infrastructure) sont intégralement terminées (100%). L'application dispose d'une suite de 73 tests automatisés (Vitest, 11 suites réussies), d'un hub de contacts admin refondu adossé à PostgreSQL Supabase (`ContactMessage`), d'une boîte de réception avec filtrage d'état et réponse email rapide, d'un répertoire des clients réels agrégé depuis les devis `Quote`, d'un flux universel de réinitialisation de mot de passe par email (Admin & Utilisateur), d'un moteur de résilience IA multi-niveaux (Gemini 1.5 + Fail-Safe heuristique), d'un système d'automatisation WhatsApp 1-Clic via Hugging Face & click-to-chat `wa.me`, d'un module de support client réactif et assaini sans émojis bruts, du rate limiting, de QStash workers, d'emails HTML typés, d'upload S3 Tigris, de Supabase Realtime, des headers HTTP de sécurité, du logging structuré Pino, du RLS et du pipeline CI/CD GitHub Actions.
+> Les phases 1 (UI) et 2 (Backend & Asynchronous Infrastructure) sont intégralement terminées (100%). L'application dispose d'une suite de 73 tests automatisés (Vitest, 11 suites réussies), d'un hub de contacts admin refondu adossé à PostgreSQL Supabase (`ContactMessage`), d'un tableau de bord moderne avec graphiques dynamiques (`ActivityChart`, `BusinessAnalytics`), d'une gestion des devis unifiée avec badges cohérents (`QuoteStatusBadge`), d'un panneau latéral de consultation rapide (`QuoteDetailsSheet`) révisé aux normes 2026 avec WhatsApp 1-Clic, export CSV Excel UTF-8 BOM, dialogue de confirmation accessible (`ConfirmDialog`), réinitialisation universelle de mot de passe par email, résilience IA multi-niveaux (Gemini 1.5 + Fail-Safe heuristique), rate limiting, QStash workers, emails HTML typés, upload S3 Tigris, Supabase Realtime, logging Pino, RLS et pipeline CI/CD GitHub Actions.
 
 ---
 
@@ -20,7 +20,7 @@
 | ----- | ------------------- | ----------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | 1     | UI Implementation   | ✅ Terminé  | 100%        | Landing page, admin, wizard devis, support chat (responsive, 0 émojis), thèmes, accessibilité WCAG AA/AAA                          |
 | 2     | Backend Integration | ✅ Terminé  | 100%        | Auth Better-Auth ✅, Hub Contacts & Inbox DB ✅, Password Reset Universel ✅, Quotes CRUD ✅, QStash/Email/S3/Realtime/Pino/RLS ✅ |
-| 3     | Production Ready    | 🔄 En cours | ~85%        | Tests Vitest (73 tests) ✅, CI/CD ✅, Résilience IA ✅, WhatsApp 1-Clic ✅, Suivi Transport Support Chat ✅                        |
+| 3     | Production Ready    | 🔄 En cours | ~90%        | Tests Vitest (73 tests) ✅, CI/CD ✅, Résilience IA ✅, WhatsApp 1-Clic ✅, Refonte Devis & Dashboard ✅                           |
 
 ---
 
@@ -50,18 +50,18 @@
 | `/admin/users`            | Admin  | ✅ Gestion des utilisateurs                               |
 | `/admin/settings`         | Admin  | ✅ Paramètres                                             |
 
-### Composants (62 fichiers .tsx)
+### Composants (64 fichiers .tsx)
 
-| Catégorie              | Nombre | Exemples                                                    |
-| ---------------------- | ------ | ----------------------------------------------------------- |
-| UI Primitives (shadcn) | 23     | Button, Card, Dialog, Sheet, Table, Select, Tabs...         |
-| Feature Components     | 13     | QuoteWizard, QuoteDetailsSheet, FAQSection, StatsSection... |
-| Admin Components       | 3      | SidebarContent, UserList, AddUserDialog                     |
-| Layout Components      | ~5     | Header, Footer, SectionContainer                            |
-| Quote Wizard Steps     | ~4     | Steps du formulaire multi-étapes                            |
-| Support Chat           | ~3     | SupportChatModal, SupportChatButton                         |
-| Email Templates        | ~2     | Templates React Email                                       |
-| Theme/Misc             | 2      | ThemeProvider, ThemeToggle                                  |
+| Catégorie              | Nombre | Exemples                                                       |
+| ---------------------- | ------ | -------------------------------------------------------------- |
+| UI Primitives (shadcn) | 25     | Button, Card, Dialog, Sheet, Skeleton, ConfirmDialog, Table... |
+| Feature Components     | 13     | QuoteWizard, QuoteDetailsSheet, FAQSection, StatsSection...    |
+| Admin Components       | 4      | SidebarContent, UserList, AddUserDialog, QuoteStatusBadge      |
+| Layout Components      | ~5     | Header, Footer, SectionContainer                               |
+| Quote Wizard Steps     | ~4     | Steps du formulaire multi-étapes                               |
+| Support Chat           | ~3     | SupportChatModal, SupportChatButton                            |
+| Email Templates        | ~2     | Templates React Email                                          |
+| Theme/Misc             | 2      | ThemeProvider, ThemeToggle                                     |
 
 ### Server Actions (6 fichiers)
 

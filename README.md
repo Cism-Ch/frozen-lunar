@@ -6,7 +6,7 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
 [![Prisma ORM](https://img.shields.io/badge/Prisma-6-2D3748?logo=prisma)](https://www.prisma.io/)
 [![Better-Auth](https://img.shields.io/badge/Better--Auth-1.4-black)](https://better-auth.com/)
-[![Tests Vitest](https://img.shields.io/badge/Vitest-52%20passed-success?logo=vitest)](https://vitest.dev/)
+[![Tests Vitest](https://img.shields.io/badge/Vitest-73%20passed-success?logo=vitest)](https://vitest.dev/)
 [![License](https://img.shields.io/badge/License-Private-red)](<>)
 
 > **"Votre sécurité, Notre priorité"**  
@@ -48,7 +48,7 @@
 | :--------------------------------------- | :-------------------------------------------------------------------------------------------- | :---------: | :--------: |
 | **Phase 1 : UI / UX & Design System**    | Landing page, Wizard devis 4 étapes, Chat support, Dashboard admin, Accessibilité WCAG AA/AAA | ✅ Terminé  |    100%    |
 | **Phase 2 : Backend & Infrastructure**   | Auth Better-Auth, Prisma ORM, Supabase DB, QStash queues, Tigris S3, Resend, Redis Rate Limit | ✅ Terminé  |    100%    |
-| **Phase 3 : Production & Résilience IA** | Tests Vitest (52 tests), Circuit-breaker Gemini, Inférence Hugging Face, WhatsApp 1-Clic, RLS | 🔄 En cours |    ~75%    |
+| **Phase 3 : Production & Résilience IA** | Tests Vitest (73 tests), Circuit-breaker Gemini, Inférence Hugging Face, WhatsApp 1-Clic, RLS | 🔄 En cours |    ~90%    |
 
 ---
 
@@ -65,10 +65,12 @@
 ### 🔐 Espace Administrateur (`/admin`)
 
 - **Authentification & Contrôle d'Accès** basé sur Better-Auth (session sécurisée, RBAC admin).
-- **Dashboard Métier temps réel** avec KPIs financiers, volume de fret et écoute Supabase Realtime.
+- **Dashboard Métier temps réel** avec KPIs financiers, volume de fret, graphique d'activité dynamique (`ActivityChart`) et écoute Supabase Realtime.
 - **Gestion Complète des Devis** :
     - Traitement des dossiers (Acceptation, Planification, Facturation, Rejet).
+    - **Panneau Latéral de Consultation Rapide 2026 (`QuoteDetailsSheet`)** : Architecture _Sticky Frame_, cartouche financier, boutons d'appel/email/WhatsApp direct, tracé GPS Google Maps et alertes visuelles de contraintes (matières dangereuses, grue requise, urgence).
     - Génération et téléchargement instantané de devis officiels au format PDF (`jsPDF`).
+    - **Export CSV Excel encodé UTF-8 BOM** et filtres rapides par statut avec compteurs en temps réel.
     - Journal d'audit complet et historique chronologique de chaque dossier (`QuoteHistory`).
     - **Recherche croisée par numéro de téléphone** pour lier l'historique de tous les devis d'un même client.
 - **Automatisation WhatsApp 1-Clic & IA Hugging Face (100% Gratuit)** :
