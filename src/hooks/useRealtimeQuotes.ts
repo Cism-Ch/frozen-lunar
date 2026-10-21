@@ -1,18 +1,9 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { createClient } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey =
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-// Dynamic singleton initialization with fallback guard
-const supabase =
-    supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
+import { supabase } from "@/lib/supabase";
 
 interface RealtimeOptions {
     onQuoteInserted?: (newQuote: unknown) => void;
@@ -102,7 +93,7 @@ export function useRealtimeQuotes(options?: RealtimeOptions) {
             });
 
         return () => {
-            supabase.removeChannel(channel);
+            supabase?.removeChannel(channel);
         };
     }, [handleRealtimeEvent]);
 

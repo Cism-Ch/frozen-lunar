@@ -37,6 +37,15 @@ declare global {
     var prismaGlobal: undefined | ReturnType<typeof prismaClientSingleton>;
 }
 
+// En développement, réinitialiser le singleton si de nouveaux modèles ont été générés après le démarrage
+if (
+    process.env.NODE_ENV !== "production" &&
+    globalThis.prismaGlobal &&
+    !("systemSettings" in globalThis.prismaGlobal)
+) {
+    globalThis.prismaGlobal = undefined;
+}
+
 // Utiliser le singleton global en développement, créer une nouvelle instance en production
 const prisma = globalThis.prismaGlobal ?? prismaClientSingleton();
 

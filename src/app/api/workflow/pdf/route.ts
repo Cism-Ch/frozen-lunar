@@ -54,9 +54,10 @@ async function handler(req: NextRequest) {
 }
 
 // Sécurisation stricte de la route webhook QStash :
-// En production, verifySignatureAppRouter est TOUJOURS appliqué (aucun contournement possible)
-export const POST =
-    process.env.NODE_ENV === "production" ||
-    process.env.QSTASH_CURRENT_SIGNING_KEY
-        ? verifySignatureAppRouter(handler)
-        : handler;
+// Si les clés de signature sont configurées, verifySignatureAppRouter est systématiquement appliqué
+export const POST = Boolean(
+    process.env.QSTASH_CURRENT_SIGNING_KEY &&
+    process.env.QSTASH_NEXT_SIGNING_KEY
+)
+    ? verifySignatureAppRouter(handler)
+    : handler;

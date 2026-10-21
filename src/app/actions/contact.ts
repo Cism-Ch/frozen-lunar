@@ -8,7 +8,6 @@ import type { ContactMessage } from "@prisma/client";
 import {
     contactFormSchema,
     type ContactStatus,
-    type ContactFormInput,
     type ContactActionResult,
     type ContactMessageItem,
     type ClientDirectoryItem,
@@ -210,6 +209,70 @@ export async function deleteContactMessageAction(
         return {
             data: null,
             error: "Échec de la suppression du message.",
+        };
+    }
+}
+
+/**
+ * Server Action Admin : Mise à jour par lot (bulk) du statut de plusieurs messages
+ */
+export async function bulkUpdateContactMessagesStatusAction(
+    ids: string[],
+    status: ContactStatus
+): Promise<{ data: { count: number } | null; error: string | null }> {
+    try {
+        await requireAdmin();
+
+        if (!ids || ids.length === 0) {
+            return { data: null, error: "Aucun message sélectionné." };
+        }
+
+        const result = await prisma.contactMessage.updateMany({
+            where: { id: { in: ids } },
+            data: { status },
+        });
+
+        revalidatePath("/admin/contacts");
+        return { data: { count: result.count }, error: null };
+    } catch (error: unknown) {
+        console.error("bulkUpdateContactMessagesStatusAction Error:", error);
+        if (error instanceof Error) {
+            return { data: null, error: error.message };
+        }
+        return {
+            data: null,
+            error: "Échec de la mise à jour groupée des statuts.",
+        };
+    }
+}
+
+/**
+ * Server Action Admin : Suppression par lot (bulk) de plusieurs messages
+ */
+export async function bulkDeleteContactMessagesAction(
+    ids: string[]
+): Promise<{ data: { count: number } | null; error: string | null }> {
+    try {
+        await requireAdmin();
+
+        if (!ids || ids.length === 0) {
+            return { data: null, error: "Aucun message sélectionné." };
+        }
+
+        const result = await prisma.contactMessage.deleteMany({
+            where: { id: { in: ids } },
+        });
+
+        revalidatePath("/admin/contacts");
+        return { data: { count: result.count }, error: null };
+    } catch (error: unknown) {
+        console.error("bulkDeleteContactMessagesAction Error:", error);
+        if (error instanceof Error) {
+            return { data: null, error: error.message };
+        }
+        return {
+            data: null,
+            error: "Échec de la suppression groupée des messages.",
         };
     }
 }

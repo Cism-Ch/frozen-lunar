@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type { ClientDirectoryItem } from "@/types/contact";
 import { QuoteStatus } from "@prisma/client";
 import {
@@ -28,6 +28,9 @@ import {
     Phone,
     FileText,
     ExternalLink,
+    X,
+    CheckCircle2,
+    Clock,
 } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -40,26 +43,42 @@ interface ClientDirectoryProps {
 export function ClientDirectory({ initialClients }: ClientDirectoryProps) {
     const [searchTerm, setSearchTerm] = useState("");
 
-    const filteredClients = initialClients.filter((c) => {
+    const filteredClients = useMemo(() => {
         const q = searchTerm.toLowerCase().trim();
-        if (!q) return true;
-        return (
-            c.name.toLowerCase().includes(q) ||
-            c.email.toLowerCase().includes(q) ||
-            c.phone.toLowerCase().includes(q)
+        if (!q) return initialClients;
+        return initialClients.filter(
+            (c) =>
+                c.name.toLowerCase().includes(q) ||
+                c.email.toLowerCase().includes(q) ||
+                c.phone.toLowerCase().includes(q)
         );
-    });
+    }, [initialClients, searchTerm]);
 
-    const totalQuotesCount = initialClients.reduce(
-        (acc, c) => acc + c.totalQuotes,
-        0
+    // Calculs statistiques consolidés (Dispositions optimales des métriques)
+    const totalQuotesCount = useMemo(
+        () => initialClients.reduce((acc, c) => acc + c.totalQuotes, 0),
+        [initialClients]
+    );
+
+    const validatedQuotesCount = useMemo(
+        () =>
+            initialClients.filter((c) => c.lastStatus === QuoteStatus.VALIDATED)
+                .length,
+        [initialClients]
+    );
+
+    const pendingQuotesCount = useMemo(
+        () =>
+            initialClients.filter((c) => c.lastStatus === QuoteStatus.PENDING)
+                .length,
+        [initialClients]
     );
 
     const getQuoteStatusBadge = (status: QuoteStatus) => {
         switch (status) {
             case QuoteStatus.VALIDATED:
                 return (
-                    <Badge className="bg-emerald-600 text-xs text-white hover:bg-emerald-700">
+                    <Badge className="bg-emerald-600/90 text-xs font-medium text-white hover:bg-emerald-600 dark:border-emerald-500/30 dark:bg-emerald-500/20 dark:text-emerald-400">
                         Validé
                     </Badge>
                 );
@@ -84,117 +103,204 @@ export function ClientDirectory({ initialClients }: ClientDirectoryProps) {
 
     return (
         <div className="space-y-6">
-            {/* Statistiques clés du carnet clients */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <Card className="border-border flex items-center gap-4 border p-4 shadow-sm">
-                    <div className="bg-primary/10 text-primary flex h-12 w-12 items-center justify-center rounded-xl">
-                        <Users className="h-6 w-6" />
+            {/* Grille de métriques KPI haute densité (Disposition responsive des chiffres) */}
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+                {/* 1. Clients uniques */}
+                <Card className="border-border p-4 shadow-sm transition-all hover:shadow-md">
+                    <div className="flex items-center justify-between gap-2">
+                        <span className="text-muted-foreground text-xs font-medium">
+                            Clients réels
+                        </span>
+                        <div className="bg-primary/10 text-primary flex h-9 w-9 shrink-0 items-center justify-center rounded-xl">
+                            <Users className="h-4 w-4" />
+                        </div>
                     </div>
-                    <div>
-                        <p className="text-muted-foreground text-xs font-medium">
-                            Clients uniques recensés
-                        </p>
-                        <p className="text-2xl font-bold tracking-tight">
+                    <div className="mt-3 flex items-baseline gap-1.5">
+                        <span className="text-foreground font-mono text-2xl font-bold tracking-tight sm:text-3xl">
                             {initialClients.length}
-                        </p>
+                        </span>
+                        <span className="text-muted-foreground text-xs">
+                            entreprises
+                        </span>
                     </div>
                 </Card>
 
-                <Card className="border-border flex items-center gap-4 border p-4 shadow-sm">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400">
-                        <FileText className="h-6 w-6" />
+                {/* 2. Total des devis cumulés */}
+                <Card className="border-border p-4 shadow-sm transition-all hover:shadow-md">
+                    <div className="flex items-center justify-between gap-2">
+                        <span className="text-muted-foreground text-xs font-medium">
+                            Devis cumulés
+                        </span>
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                            <FileText className="h-4 w-4" />
+                        </div>
                     </div>
-                    <div>
-                        <p className="text-muted-foreground text-xs font-medium">
-                            Devis cumulés en base de données
-                        </p>
-                        <p className="text-2xl font-bold tracking-tight">
+                    <div className="mt-3 flex items-baseline gap-1.5">
+                        <span className="text-foreground font-mono text-2xl font-bold tracking-tight sm:text-3xl">
                             {totalQuotesCount}
-                        </p>
+                        </span>
+                        <span className="text-muted-foreground text-xs">
+                            demandes
+                        </span>
+                    </div>
+                </Card>
+
+                {/* 3. Devis validés */}
+                <Card className="border-border p-4 shadow-sm transition-all hover:shadow-md">
+                    <div className="flex items-center justify-between gap-2">
+                        <span className="text-muted-foreground text-xs font-medium">
+                            Dernier devis validé
+                        </span>
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                            <CheckCircle2 className="h-4 w-4" />
+                        </div>
+                    </div>
+                    <div className="mt-3 flex items-baseline gap-1.5">
+                        <span className="font-mono text-2xl font-bold tracking-tight text-emerald-600 sm:text-3xl dark:text-emerald-400">
+                            {validatedQuotesCount}
+                        </span>
+                        <span className="text-muted-foreground text-xs">
+                            confirmés
+                        </span>
+                    </div>
+                </Card>
+
+                {/* 4. Devis en attente */}
+                <Card className="border-border p-4 shadow-sm transition-all hover:shadow-md">
+                    <div className="flex items-center justify-between gap-2">
+                        <span className="text-muted-foreground text-xs font-medium">
+                            En cours d&apos;étude
+                        </span>
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                            <Clock className="h-4 w-4" />
+                        </div>
+                    </div>
+                    <div className="mt-3 flex items-baseline gap-1.5">
+                        <span className="font-mono text-2xl font-bold tracking-tight text-amber-600 sm:text-3xl dark:text-amber-400">
+                            {pendingQuotesCount}
+                        </span>
+                        <span className="text-muted-foreground text-xs">
+                            à traiter
+                        </span>
                     </div>
                 </Card>
             </div>
 
-            {/* Liste & recherche */}
+            {/* Liste et Recherche */}
             <Card className="border-border border shadow-sm">
-                <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <CardTitle className="flex items-center gap-2 text-xl">
-                            <Users className="text-primary h-5 w-5" />
-                            Répertoire Clients Réel
-                        </CardTitle>
-                        <CardDescription className="mt-1">
-                            Données réelles agrégées automatiquement depuis la
-                            table PostgreSQL des devis.
-                        </CardDescription>
-                    </div>
+                <CardHeader className="space-y-4">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <CardTitle className="flex items-center gap-2 text-xl font-bold">
+                                <Users className="text-primary h-5 w-5" />
+                                <span>Répertoire des Clients Réels</span>
+                                <span className="bg-muted text-muted-foreground ml-1.5 inline-flex items-center rounded-full px-2.5 py-0.5 font-mono text-xs font-semibold">
+                                    {filteredClients.length}
+                                </span>
+                            </CardTitle>
+                            <CardDescription className="mt-1">
+                                Base consolidée des donneurs d&apos;ordres ayant
+                                au moins une demande de devis dans le système.
+                            </CardDescription>
+                        </div>
 
-                    <div className="relative w-full sm:w-72">
-                        <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-                        <Input
-                            placeholder="Rechercher nom, email, téléphone..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="h-10 pl-9"
-                        />
+                        <div className="relative w-full sm:w-72">
+                            <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                            <Input
+                                placeholder="Rechercher nom, email, tél..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="h-10 pr-8 pl-9"
+                                aria-label="Rechercher un client"
+                            />
+                            {searchTerm && (
+                                <button
+                                    onClick={() => setSearchTerm("")}
+                                    className="text-muted-foreground hover:text-foreground absolute top-1/2 right-2.5 -translate-y-1/2 p-1"
+                                    aria-label="Effacer la recherche"
+                                >
+                                    <X className="h-3.5 w-3.5" />
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </CardHeader>
 
                 <CardContent>
                     {filteredClients.length === 0 ? (
-                        <div className="text-muted-foreground flex flex-col items-center justify-center py-12 text-center">
-                            <Users className="text-muted-foreground/40 mb-3 h-12 w-12" />
-                            <p className="text-base font-medium">
+                        <div className="flex flex-col items-center justify-center py-12 text-center">
+                            <div className="bg-muted flex h-12 w-12 items-center justify-center rounded-full">
+                                <Users className="text-muted-foreground h-6 w-6" />
+                            </div>
+                            <h3 className="mt-3 text-sm font-semibold">
                                 Aucun client trouvé
-                            </p>
-                            <p className="mt-1 text-xs">
+                            </h3>
+                            <p className="text-muted-foreground mt-1 text-xs">
                                 {searchTerm
-                                    ? "Aucun résultat ne correspond à votre recherche."
-                                    : "Les clients apparaîtront automatiquement dès l'enregistrement des devis."}
+                                    ? "Aucun résultat ne correspond à votre filtre de recherche."
+                                    : "Aucun devis enregistré pour le moment."}
                             </p>
                         </div>
                     ) : (
-                        <>
-                            {/* Vue Mobile (Cards) */}
-                            <div className="space-y-3 md:hidden">
+                        <div>
+                            {/* Vue Mobile & Tablette (Cartes responsives adaptatives < 1024px) */}
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:hidden">
                                 {filteredClients.map((client) => (
                                     <div
                                         key={client.email}
-                                        className="bg-card space-y-3 rounded-lg border p-4 shadow-xs"
+                                        className="bg-card hover:border-primary/40 space-y-3 rounded-lg border p-4 shadow-2xs transition-all duration-200"
                                     >
                                         <div className="flex items-start justify-between gap-2">
-                                            <div>
-                                                <p className="text-sm font-semibold">
-                                                    {client.name}
-                                                </p>
-                                                <p className="text-muted-foreground text-xs">
-                                                    {client.email}
-                                                </p>
+                                            <div className="flex items-center gap-3">
+                                                <div
+                                                    aria-hidden="true"
+                                                    className="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-mono text-xs font-bold"
+                                                >
+                                                    {client.name
+                                                        .slice(0, 2)
+                                                        .toUpperCase()}
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-sm font-semibold">
+                                                        {client.name}
+                                                    </h4>
+                                                    <div className="mt-1 flex items-center gap-1.5">
+                                                        <span className="bg-primary/10 text-primary inline-flex items-center rounded-md px-2 py-0.5 font-mono text-[11px] font-semibold">
+                                                            {client.totalQuotes}{" "}
+                                                            devis
+                                                        </span>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <span className="bg-muted inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold">
-                                                {client.totalQuotes} devis
-                                            </span>
+                                            {getQuoteStatusBadge(
+                                                client.lastStatus
+                                            )}
                                         </div>
 
-                                        <div className="text-muted-foreground space-y-1 border-t pt-2 text-xs">
-                                            <div className="flex items-center justify-between">
-                                                <span>Téléphone :</span>
+                                        <div className="text-muted-foreground space-y-1.5 border-t pt-2 text-xs">
+                                            <div className="flex items-center gap-2">
+                                                <Mail className="h-3.5 w-3.5 shrink-0" />
+                                                <a
+                                                    href={`mailto:${client.email}`}
+                                                    className="text-primary truncate hover:underline"
+                                                    aria-label={`Envoyer un email à ${client.name}`}
+                                                >
+                                                    {client.email}
+                                                </a>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Phone className="h-3.5 w-3.5 shrink-0" />
                                                 <a
                                                     href={`tel:${client.phone}`}
-                                                    className="text-foreground font-medium hover:underline"
+                                                    className="text-foreground font-mono hover:underline"
+                                                    aria-label={`Appeler ${client.name}`}
                                                 >
                                                     {client.phone}
                                                 </a>
                                             </div>
-                                            <div className="flex items-center justify-between">
-                                                <span>Dernier statut :</span>
-                                                {getQuoteStatusBadge(
-                                                    client.lastStatus
-                                                )}
-                                            </div>
-                                            <div className="flex items-center justify-between">
+                                            <div className="flex items-center justify-between pt-1 text-[11px]">
                                                 <span>Dernière activité :</span>
-                                                <span>
+                                                <span className="text-foreground font-medium">
                                                     {format(
                                                         new Date(
                                                             client.lastQuoteDate
@@ -211,15 +317,14 @@ export function ClientDirectory({ initialClients }: ClientDirectoryProps) {
                                         <div className="pt-2">
                                             <Link
                                                 href={`/admin/quotes?search=${encodeURIComponent(client.email)}`}
-                                                className="w-full"
+                                                className="block w-full"
                                             >
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
-                                                    className="w-full text-xs"
+                                                    className="h-10 w-full text-xs font-medium"
                                                 >
-                                                    Voir les devis (
-                                                    {client.totalQuotes})
+                                                    Consulter les devis
                                                     <ExternalLink className="ml-1.5 h-3.5 w-3.5" />
                                                 </Button>
                                             </Link>
@@ -228,12 +333,12 @@ export function ClientDirectory({ initialClients }: ClientDirectoryProps) {
                                 ))}
                             </div>
 
-                            {/* Vue Desktop (Tableau structuré) */}
-                            <div className="hidden overflow-hidden rounded-md border md:block">
-                                <Table>
+                            {/* Vue Desktop Large (Tableau avec overflow-x-auto et min-width garanti >= 1024px) */}
+                            <div className="hidden overflow-x-auto rounded-md border lg:block">
+                                <Table className="min-w-[850px]">
                                     <TableHeader className="bg-muted/40">
                                         <TableRow>
-                                            <TableHead className="w-[200px]">
+                                            <TableHead className="w-[220px]">
                                                 Client
                                             </TableHead>
                                             <TableHead className="w-[220px]">
@@ -261,7 +366,10 @@ export function ClientDirectory({ initialClients }: ClientDirectoryProps) {
                                             >
                                                 <TableCell>
                                                     <div className="flex items-center gap-2.5">
-                                                        <div className="bg-primary/10 text-primary flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold">
+                                                        <div
+                                                            aria-hidden="true"
+                                                            className="bg-primary/10 text-primary flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-mono text-xs font-bold"
+                                                        >
                                                             {client.name
                                                                 .slice(0, 2)
                                                                 .toUpperCase()}
@@ -278,6 +386,7 @@ export function ClientDirectory({ initialClients }: ClientDirectoryProps) {
                                                             <a
                                                                 href={`mailto:${client.email}`}
                                                                 className="text-primary truncate hover:underline"
+                                                                aria-label={`Envoyer un email à ${client.name}`}
                                                             >
                                                                 {client.email}
                                                             </a>
@@ -286,7 +395,8 @@ export function ClientDirectory({ initialClients }: ClientDirectoryProps) {
                                                             <Phone className="h-3.5 w-3.5" />
                                                             <a
                                                                 href={`tel:${client.phone}`}
-                                                                className="hover:underline"
+                                                                className="font-mono hover:underline"
+                                                                aria-label={`Appeler ${client.name}`}
                                                             >
                                                                 {client.phone}
                                                             </a>
@@ -294,7 +404,7 @@ export function ClientDirectory({ initialClients }: ClientDirectoryProps) {
                                                     </div>
                                                 </TableCell>
                                                 <TableCell className="text-center">
-                                                    <span className="bg-primary/10 text-primary inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold">
+                                                    <span className="bg-primary/10 text-primary inline-flex min-w-[28px] items-center justify-center rounded-md px-2 py-0.5 font-mono text-xs font-bold">
                                                         {client.totalQuotes}
                                                     </span>
                                                 </TableCell>
@@ -303,12 +413,12 @@ export function ClientDirectory({ initialClients }: ClientDirectoryProps) {
                                                         client.lastStatus
                                                     )}
                                                 </TableCell>
-                                                <TableCell className="text-muted-foreground text-xs whitespace-nowrap">
+                                                <TableCell className="text-muted-foreground text-xs">
                                                     {format(
                                                         new Date(
                                                             client.lastQuoteDate
                                                         ),
-                                                        "dd MMM yyyy, HH:mm",
+                                                        "dd MMM yyyy à HH:mm",
                                                         {
                                                             locale: fr,
                                                         }
@@ -321,9 +431,10 @@ export function ClientDirectory({ initialClients }: ClientDirectoryProps) {
                                                         <Button
                                                             variant="ghost"
                                                             size="sm"
-                                                            className="h-8 text-xs"
+                                                            className="h-9 text-xs"
+                                                            aria-label={`Voir les devis de ${client.name}`}
                                                         >
-                                                            Détails devis
+                                                            Consulter
                                                             <ExternalLink className="ml-1.5 h-3.5 w-3.5" />
                                                         </Button>
                                                     </Link>
@@ -333,7 +444,7 @@ export function ClientDirectory({ initialClients }: ClientDirectoryProps) {
                                     </TableBody>
                                 </Table>
                             </div>
-                        </>
+                        </div>
                     )}
                 </CardContent>
             </Card>

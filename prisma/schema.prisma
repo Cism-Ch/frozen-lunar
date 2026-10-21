@@ -143,3 +143,34 @@ model ContactMessage {
   @@map("contact_message")
 }
 
+// --- Modèle de Paramètres Système & Entreprise (Singleton) ---
+
+model SystemSettings {
+  id                       String   @id @default("default")
+  companyName              String   @default("HBC SERVICE CASH LOGISTIQUE IMMOBILIÈRE")
+  address                  String   @default("123 Avenue du Transport, 75000 Paris")
+  siret                    String   @default("123 456 789 00012")
+  vatNumber                String   @default("FR 12 345678900")
+  contactEmail             String   @default("contact@hbclogistique.com")
+  contactPhone             String   @default("+33 1 23 45 67 89")
+
+  // WhatsApp & IA Hugging Face
+  whatsappNumber           String   @default("+33 1 23 45 67 89")
+  hfModel                  String   @default("mistralai/Mistral-7B-Instruct-v0.3")
+  whatsappTemplate         String   @default("Bonjour {client}, nous faisons suite à votre demande de transport #{id} ({type}). Votre dossier est pris en charge par notre équipe.") @db.Text
+  whatsappAiAutoGenerate   Boolean  @default(true)
+  whatsappAutoAuditLog     Boolean  @default(true)
+  whatsappCrossSearchPhone Boolean  @default(true)
+
+  // Préférences de Notifications
+  notifyNewQuoteEmail      Boolean  @default(true)
+  notifyWeeklyReport       Boolean  @default(true)
+  notifySystemUpdates      Boolean  @default(false)
+
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  @@map("system_settings")
+}
+
+

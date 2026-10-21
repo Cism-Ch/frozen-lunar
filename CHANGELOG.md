@@ -7,6 +7,40 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
 ## [Unreleased]
 
+### Added & Improved (Admin Dashboard, Activity Chart & UI/UX Audit)
+
+- **Refonte Ergonomique du Tableau de Bord Admin (`/admin/dashboard`)** :
+    - **Alignement & Marges Fluides** : Remplacement des conteneurs rigides par un conteneur adaptatif `max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`, éliminant les marges latérales excessives sur écrans ultra-larges tout en préservant l'aisance sur tablettes et mobiles.
+    - **Rationalisation des KPIs Exécutifs** : Remplacement du doublon des 8 cartes métriques par 4 cartes d'orientation stratégique à forte valeur ajoutée (Volume Financier & Panier moyen, Total Demandes avec ventilation Formulaire/Chat, Dossiers prioritaires en attente, Taux de conversion global).
+    - **Réorganisation du Flux Opérationnel** : Priorisation de l'activité opérationnelle en tête de page (`ActivityChart` en 4/7 et Devis Récents en 3/7), suivie des analyses macro-économiques (`BusinessAnalytics`).
+- **Graphique d'Activité & Historique Temporel (`ActivityChart`)** :
+    - **Barre d'outils unifiée** : Regroupement de l'ensemble des contrôles en haut à droite avec sélecteurs de granularité (`7j`, `14j`, `30j`, `Mois`), stepper chronologique `< >`, menu déroulant des mois et bouton de retour immédiat `Aujourd'hui`.
+    - **Tooltip Intelligent Anti-Collision** : Détection dynamique de position pour inverser l'ouverture du tooltip vers la gauche (`left-12`) dès qu'une barre est sur la moitié droite du graphique, éliminant tout masquage de la barre active.
+    - **En-tête & Métriques Aérées** : Largeur calibrée à `w-72`, séparation aérée entre date et badge total, présentation des métriques sous forme de capsules distinctes avec alignement tabulaire des valeurs et calcul dynamique des pourcentages.
+    - **Repère Visuel de Performance** : Remplacement du point flottant orphelin par une couronne dorée ancrée au sommet de la barre record.
+- **Analyses Métier (`BusinessAnalytics`)** :
+    - Équilibrage des hauteurs de cartes entre le donut de distribution des devis et la liste typologique du fret (`flex flex-col justify-between`).
+    - Assainissement des hubs logistiques avec filtrage des coordonnées GPS brutes.
+- **Actifs Statiques & Robustesse** :
+    - Création de `public/grid.svg` éliminant les erreurs 404 sur les pages d'authentification et d'administration.
+
+### Added & Improved (UI/UX 2026 & Responsive Audit Corrections)
+
+- **Correction Intégrale de Responsivité (Mobile & Tablette)** :
+    - **Grille Tablette (768px – 1024px)** : Remplacement d'`overflow-hidden` par `overflow-x-auto min-w-[850px]` sur les tables desktop et basculement adaptatif en cartes fluides sous `lg:` (1024px) dans `ContactMessagesInbox` et `ClientDirectory`, éliminant la troncature de 400px à 530px causée par la présence de la barre latérale fixe (256px) et des paddings.
+    - **Navigation par Onglets Mobile (< 390px)** : `TabsList` doté d'un conteneur horizontal scrollable anti-débordement (`overflow-x-auto no-scrollbar`), flexibilité totale sans cassure sur écrans étroits (iPhone SE, Galaxy S8).
+    - **Modale de Lecture Adaptative** : `DialogContent` borné à `max-h-[88dvh]` avec corps défilable `overflow-y-auto` et footer fixe (`shrink-0`), garantissant l'accès permanent aux boutons d'actions ("Supprimer", "Archiver", "Répondre") y compris sur les messages volumineux ou en orientation paysage.
+- **Ergonomie Tactile & Accessibilité WCAG 2.2** :
+    - Cibles tactiles rehaussées à $\ge 44\text{px}$ (boutons de filtres à `h-9 min-h-[36px]`, boutons d'action à `h-9 w-9`).
+    - Navigation clavier complète sur les lignes de tableau (`tabIndex={0}`, `role="button"`, écouteurs `Enter`/`Space`).
+    - Attributs ARIA (`aria-label`, `aria-hidden="true"` sur les initiales de clients).
+- **Standards SaaS B2B 2026** :
+    - **Actions Groupées (Bulk Actions)** : Système de sélection multiple par cases à cocher (`Checkbox`), barre d'actions de masse flottante (marquer comme lu, archiver, suppression groupée).
+    - **Nouvelles Server Actions par lot** : `bulkUpdateContactMessagesStatusAction` et `bulkDeleteContactMessagesAction`.
+    - **Synchronisation URL (Search Params)** : État des filtres et de la recherche synchronisé en temps réel avec l'URL (`?status=...&q=...`) avec debounce, permettant le partage de vues et le rechargement sans perte d'état.
+    - **Dialogue de Confirmation Accessible** (`ConfirmDialog`) : Élimination totale de `window.confirm()` natif au profit d'un composant Radix thématique avec piège de focus et styles destructifs.
+    - **Temps Réel Supabase (`useRealtimeContacts`)** : Souscription dynamique aux événements `postgres_changes` sur la table `contact_message` pour mettre à jour la boîte de réception sans rafraîchissement manuel.
+
 ---
 
 ## [1.4.0] — 2026-10-20 — Version 1.4.0 (Admin Contact Hub, PostgreSQL Inbox & Real Clients Directory Release)

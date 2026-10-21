@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
     Card,
     CardContent,
@@ -8,7 +8,7 @@ import {
     CardTitle,
     CardDescription,
 } from "@/components/ui/card";
-import { FileText, TrendingUp, Users, Clock, CheckCircle } from "lucide-react";
+import { FileText, TrendingUp, Clock, CheckCircle, Euro } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -36,6 +36,7 @@ import { getQuotesAction } from "@/app/actions/quote-management";
 import { useRealtimeQuotes } from "@/hooks/useRealtimeQuotes";
 import { DemoModeControl } from "@/components/features/admin/DemoModeControl";
 import { BusinessAnalytics } from "@/components/features/admin/BusinessAnalytics";
+import { ActivityChart } from "@/components/features/admin/ActivityChart";
 
 export default function DashboardPage() {
     const [quotes, setQuotes] = useState<Quote[]>([]);
@@ -59,41 +60,106 @@ export default function DashboardPage() {
         onQuoteDeleted: loadQuotes,
     });
 
-    const validatedQuotes = quotes.filter((q) => q.status === "Validé");
-    const pendingQuotes = quotes.filter((q) => q.status === "En attente");
+    // Calculs financiers et opérationnels consolidés
+    const {
+        validatedQuotes,
+        pendingQuotes,
+        totalRevenue,
+        averageDealSize,
+        formCount,
+        chatCount,
+        conversionRate,
+    } = useMemo(() => {
+        const validated = quotes.filter(
+            (q) =>
+                q.status === "Validé" ||
+                String(q.status).toUpperCase() === "VALIDATED"
+        );
+        const pending = quotes.filter(
+            (q) =>
+                q.status === "En attente" ||
+                String(q.status).toUpperCase() === "PENDING"
+        );
+
+        let revenue = 0;
+        let validAmountCount = 0;
+        let chat = 0;
+        let form = 0;
+
+        quotes.forEach((q) => {
+            if (q.amount && q.amount !== "À calculer") {
+                const numericStr = q.amount.replace(/[^0-9]/g, "");
+                const val = parseInt(numericStr, 10);
+                if (!isNaN(val) && val > 0) {
+                    revenue += val;
+                    validAmountCount++;
+                }
+            }
+            if (String(q.source).toUpperCase() === "CHAT") {
+                chat++;
+            } else {
+                form++;
+            }
+        });
+
+        const rate =
+            quotes.length > 0
+                ? Math.round((validated.length / quotes.length) * 100)
+                : 0;
+        const avgDeal =
+            validAmountCount > 0 ? Math.round(revenue / validAmountCount) : 0;
+
+        return {
+            validatedQuotes: validated,
+            pendingQuotes: pending,
+            totalRevenue: revenue,
+            averageDealSize: avgDeal,
+            formCount: form,
+            chatCount: chat,
+            conversionRate: rate,
+        };
+    }, [quotes]);
 
     const stats = [
         {
-            title: "Total Devis",
-            value: quotes.length,
-            change: "+12% ce mois",
-            icon: FileText,
+            title: "Volume Financier Estimé",
+            value: totalRevenue,
+            isCurrency: true,
+            isPercent: false,
+            change: `Panier moyen : ${averageDealSize.toLocaleString("fr-FR")} €`,
+            icon: Euro,
             color: "text-blue-500",
             bg: "bg-blue-500/10",
         },
         {
-            title: "En Attente",
+            title: "Total Demandes",
+            value: quotes.length,
+            isCurrency: false,
+            isPercent: false,
+            change: `${formCount} formulaire${formCount > 1 ? "s" : ""} • ${chatCount} IA chat`,
+            icon: FileText,
+            color: "text-indigo-500",
+            bg: "bg-indigo-500/10",
+        },
+        {
+            title: "Dossiers En Attente",
             value: pendingQuotes.length,
-            change: "Nécessite action",
+            isCurrency: false,
+            isPercent: false,
+            change: "Nécessite action prioritaire",
             icon: Clock,
             color: "text-orange-500",
             bg: "bg-orange-500/10",
         },
         {
-            title: "Validés",
-            value: validatedQuotes.length,
-            change: `${quotes.length > 0 ? Math.round((validatedQuotes.length / quotes.length) * 100) : 0}% de conversion`,
+            title: "Taux de Conversion",
+            value: conversionRate,
+            isCurrency: false,
+            isPercent: true,
+            change: `${validatedQuotes.length} validé${validatedQuotes.length > 1 ? "s" : ""} sur ${quotes.length} devis`,
             icon: CheckCircle,
-            color: "text-green-500",
-            bg: "bg-green-500/10",
-        },
-        {
-            title: "Clients",
-            value: new Set(quotes.map((q) => q.email)).size,
-            change: "+5 nouveaux",
-            icon: Users,
-            color: "text-purple-500",
-            bg: "bg-purple-500/10",
+            color: "text-emerald-500",
+            bg: "bg-emerald-500/10",
         },
     ];
 
@@ -169,15 +235,24 @@ export default function DashboardPage() {
                                     </motion.div>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="text-2xl font-bold">
+                                    <div className="font-mono text-2xl font-bold">
                                         <CountUp
                                             to={stat.value}
                                             duration={1.5}
+                                            suffix={
+                                                stat.isCurrency
+                                                    ? " €"
+                                                    : stat.isPercent
+                                                      ? " %"
+                                                      : ""
+                                            }
                                         />
                                     </div>
                                     <p className="text-muted-foreground mt-1 flex items-center gap-1 text-xs">
-                                        <TrendingUp className="h-3 w-3 text-green-500" />
-                                        {stat.change}
+                                        <TrendingUp className="h-3 w-3 shrink-0 text-green-500" />
+                                        <span className="truncate">
+                                            {stat.change}
+                                        </span>
                                     </p>
                                 </CardContent>
                             </Card>
@@ -186,148 +261,140 @@ export default function DashboardPage() {
                 ))}
             </StaggerContainer>
 
-            {/* Business Intelligence & Analytics Métier */}
-            <BusinessAnalytics quotes={quotes} />
-
+            {/* Suivi Opérationnel : Chronologie d'Activité & Devis Récents */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                {/* Revenue Chart Placeholder */}
+                {/* Real Interactive Activity Chart */}
                 <FadeIn
                     direction="left"
-                    delay={0.2}
+                    delay={0.15}
                     className="col-span-full lg:col-span-4"
                 >
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Activité Mensuelle</CardTitle>
-                            <CardDescription>
-                                Nombre de demandes de devis par jour sur les 30
-                                derniers jours.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="pl-2">
-                            <div className="flex h-[300px] items-end justify-between gap-2 px-4 pt-10 pb-4">
-                                {[
-                                    35, 45, 25, 60, 45, 70, 50, 65, 40, 55, 80,
-                                    60,
-                                ].map((h, i) => (
-                                    <motion.div
-                                        key={i}
-                                        className="bg-primary/10 hover:bg-primary/20 group relative w-full cursor-pointer rounded-t-sm transition-colors"
-                                        initial={{ height: 0 }}
-                                        animate={{ height: `${h}%` }}
-                                        transition={{
-                                            delay: i * 0.05,
-                                            type: "spring",
-                                            stiffness: 100,
-                                            damping: 15,
-                                        }}
-                                        whileHover={{ scaleY: 1.05 }}
-                                    >
-                                        <div className="bg-popover text-popover-foreground absolute -top-8 left-1/2 -translate-x-1/2 rounded px-2 py-1 text-xs opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
-                                            {h} demandes
-                                        </div>
-                                    </motion.div>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
+                    <ActivityChart quotes={quotes} />
                 </FadeIn>
 
                 {/* Recent Quotes */}
                 <FadeIn
                     direction="right"
-                    delay={0.3}
+                    delay={0.2}
                     className="col-span-full lg:col-span-3"
                 >
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Devis Récents</CardTitle>
-                            <CardDescription>
-                                Les 5 dernières demandes reçues.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Client</TableHead>
-                                        <TableHead>Statut</TableHead>
-                                        <TableHead className="text-right">
-                                            Date
-                                        </TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {recentQuotes.length === 0 ? (
+                    <Card className="flex h-full flex-col justify-between">
+                        <div>
+                            <CardHeader>
+                                <CardTitle>Devis Récents</CardTitle>
+                                <CardDescription>
+                                    Les 5 dernières demandes reçues.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableHeader>
                                         <TableRow>
-                                            <TableCell
-                                                colSpan={3}
-                                                className="text-muted-foreground py-8 text-center"
-                                            >
-                                                Aucun devis pour le moment
-                                            </TableCell>
+                                            <TableHead>Client</TableHead>
+                                            <TableHead>Statut</TableHead>
+                                            <TableHead className="text-right">
+                                                Date
+                                            </TableHead>
                                         </TableRow>
-                                    ) : (
-                                        recentQuotes.map((quote, index) => (
-                                            <motion.tr
-                                                key={quote.id}
-                                                className="hover:bg-muted/50 cursor-pointer transition-colors"
-                                                onClick={() =>
-                                                    handleQuoteClick(quote)
-                                                }
-                                                initial={{ opacity: 0, x: -10 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                transition={{
-                                                    delay: index * 0.1,
-                                                }}
-                                            >
-                                                <TableCell className="font-medium">
-                                                    <div className="flex flex-col">
-                                                        <span>
-                                                            {quote.client}
-                                                        </span>
-                                                        <span className="text-muted-foreground text-xs">
-                                                            {quote.type}
-                                                        </span>
-                                                    </div>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {recentQuotes.length === 0 ? (
+                                            <TableRow>
+                                                <TableCell
+                                                    colSpan={3}
+                                                    className="text-muted-foreground py-8 text-center"
+                                                >
+                                                    Aucun devis pour le moment
                                                 </TableCell>
-                                                <TableCell>
-                                                    <Badge
-                                                        variant={
-                                                            quote.status ===
-                                                            "Validé"
-                                                                ? "default"
-                                                                : quote.status ===
-                                                                    "Refusé"
-                                                                  ? "destructive"
-                                                                  : "secondary"
-                                                        }
-                                                        className={
-                                                            quote.status ===
-                                                            "Validé"
-                                                                ? "bg-green-500 hover:bg-green-600"
-                                                                : ""
-                                                        }
-                                                    >
-                                                        {quote.status}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell className="text-muted-foreground text-right text-xs">
-                                                    {format(
-                                                        new Date(quote.date),
-                                                        "dd MMM",
-                                                        { locale: fr }
-                                                    )}
-                                                </TableCell>
-                                            </motion.tr>
-                                        ))
-                                    )}
-                                </TableBody>
-                            </Table>
-                        </CardContent>
+                                            </TableRow>
+                                        ) : (
+                                            recentQuotes.map((quote, index) => (
+                                                <motion.tr
+                                                    key={quote.id}
+                                                    className="hover:bg-muted/50 cursor-pointer transition-colors"
+                                                    onClick={() =>
+                                                        handleQuoteClick(quote)
+                                                    }
+                                                    initial={{
+                                                        opacity: 0,
+                                                        x: -10,
+                                                    }}
+                                                    animate={{
+                                                        opacity: 1,
+                                                        x: 0,
+                                                    }}
+                                                    transition={{
+                                                        delay: index * 0.1,
+                                                    }}
+                                                >
+                                                    <TableCell className="font-medium">
+                                                        <div className="flex flex-col">
+                                                            <span className="max-w-[140px] truncate sm:max-w-[180px]">
+                                                                {quote.client}
+                                                            </span>
+                                                            <span className="text-muted-foreground max-w-[140px] truncate text-xs sm:max-w-[180px]">
+                                                                {quote.type}
+                                                            </span>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Badge
+                                                            variant={
+                                                                quote.status ===
+                                                                "Validé"
+                                                                    ? "default"
+                                                                    : quote.status ===
+                                                                        "Refusé"
+                                                                      ? "destructive"
+                                                                      : "secondary"
+                                                            }
+                                                            className={
+                                                                quote.status ===
+                                                                "Validé"
+                                                                    ? "bg-green-500 hover:bg-green-600"
+                                                                    : ""
+                                                            }
+                                                        >
+                                                            {quote.status}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell className="text-muted-foreground text-right text-xs">
+                                                        {format(
+                                                            new Date(
+                                                                quote.date
+                                                            ),
+                                                            "dd MMM",
+                                                            { locale: fr }
+                                                        )}
+                                                    </TableCell>
+                                                </motion.tr>
+                                            ))
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
+                        </div>
+                        <div className="bg-muted/10 border-t p-3 text-center">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                asChild
+                                className="text-muted-foreground hover:text-foreground w-full text-xs"
+                            >
+                                <Link href="/admin/quotes">
+                                    Consulter l&apos;intégralité des devis (
+                                    {quotes.length}) →
+                                </Link>
+                            </Button>
+                        </div>
                     </Card>
                 </FadeIn>
             </div>
+
+            {/* Business Intelligence & Analytics Métier */}
+            <FadeIn delay={0.25}>
+                <BusinessAnalytics quotes={quotes} />
+            </FadeIn>
 
             <QuoteDetailsSheet
                 quote={selectedQuote}

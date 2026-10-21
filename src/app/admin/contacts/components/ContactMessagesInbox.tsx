@@ -1,10 +1,19 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import {
+    useState,
+    useTransition,
+    useEffect,
+    useMemo,
+    useCallback,
+} from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { type ContactMessageItem, ContactStatus } from "@/types/contact";
 import {
     updateContactMessageStatusAction,
     deleteContactMessageAction,
+    bulkUpdateContactMessagesStatusAction,
+    bulkDeleteContactMessagesAction,
 } from "@/app/actions/contact";
 import {
     Card,
@@ -16,6 +25,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
     Table,
     TableBody,
@@ -40,6 +50,8 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { useRealtimeContacts } from "@/hooks/useRealtimeContacts";
 import {
     Mail,
     Phone,
@@ -51,6 +63,8 @@ import {
     Inbox,
     MessageSquare,
     User,
+    X,
+    CheckSquare,
 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -63,86 +77,265 @@ interface ContactMessagesInboxProps {
 export function ContactMessagesInbox({
     initialMessages,
 }: ContactMessagesInboxProps) {
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
+
+    // 1. Initialisation de l'état depuis l'URL (Norme 2026 : URL comme source de vérité partagée)
+    const initialStatusParam = searchParams.get("status");
+    const initialStatus: "ALL" | ContactStatus =
+        initialStatusParam === ContactStatus.UNREAD ||
+        initialStatusParam === ContactStatus.READ ||
+        initialStatusParam === ContactStatus.ARCHIVED
+            ? initialStatusParam
+            : "ALL";
+
+    const initialQuery = searchParams.get("q") ?? "";
+
     const [messages, setMessages] =
         useState<ContactMessageItem[]>(initialMessages);
-    const [searchTerm, setSearchTerm] = useState("");
+    const [searchTerm, setSearchTerm] = useState(initialQuery);
     const [statusFilter, setStatusFilter] = useState<"ALL" | ContactStatus>(
-        "ALL"
+        initialStatus
     );
     const [selectedMessage, setSelectedMessage] =
         useState<ContactMessageItem | null>(null);
+
+    // Sélection multiple pour actions par lot (Bulk)
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+    // Modales de confirmation accessibles
+    const [messageIdToDelete, setMessageIdToDelete] = useState<string | null>(
+        null
+    );
+    const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false);
+
     const [isPending, startTransition] = useTransition();
 
-    // Comptage des non-lus
-    const unreadCount = messages.filter(
-        (m) => m.status === ContactStatus.UNREAD
-    ).length;
+    // 2. Synchronisation de l'URL lors du changement de filtre ou de recherche (Debounced)
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            const params = new URLSearchParams(searchParams.toString());
 
-    // Filtrage
-    const filteredMessages = messages.filter((m) => {
-        const matchesStatus =
-            statusFilter === "ALL" ? true : m.status === statusFilter;
-        const q = searchTerm.toLowerCase().trim();
-        const matchesSearch =
-            !q ||
-            m.firstName.toLowerCase().includes(q) ||
-            m.lastName.toLowerCase().includes(q) ||
-            m.email.toLowerCase().includes(q) ||
-            m.phone.toLowerCase().includes(q) ||
-            m.message.toLowerCase().includes(q);
+            if (statusFilter !== "ALL") {
+                params.set("status", statusFilter);
+            } else {
+                params.delete("status");
+            }
 
-        return matchesStatus && matchesSearch;
+            if (searchTerm.trim()) {
+                params.set("q", searchTerm.trim());
+            } else {
+                params.delete("q");
+            }
+
+            const newQuery = params.toString();
+            const currentQuery = searchParams.toString();
+
+            if (newQuery !== currentQuery) {
+                router.replace(
+                    newQuery ? `${pathname}?${newQuery}` : pathname,
+                    { scroll: false }
+                );
+            }
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [searchTerm, statusFilter, pathname, router, searchParams]);
+
+    // 3. Souscription Supabase Realtime pour mises à jour instantanées
+    useRealtimeContacts({
+        onMessageInserted: useCallback((newMessage: ContactMessageItem) => {
+            setMessages((prev) => {
+                if (prev.some((m) => m.id === newMessage.id)) return prev;
+                return [newMessage, ...prev];
+            });
+        }, []),
+        onMessageUpdated: useCallback((updatedMessage: ContactMessageItem) => {
+            setMessages((prev) =>
+                prev.map((m) =>
+                    m.id === updatedMessage.id ? updatedMessage : m
+                )
+            );
+            setSelectedMessage((current) =>
+                current?.id === updatedMessage.id ? updatedMessage : current
+            );
+        }, []),
+        onMessageDeleted: useCallback((deletedId: string) => {
+            setMessages((prev) => prev.filter((m) => m.id !== deletedId));
+            setSelectedIds((prev) => {
+                const next = new Set(prev);
+                next.delete(deletedId);
+                return next;
+            });
+            setSelectedMessage((current) =>
+                current?.id === deletedId ? null : current
+            );
+        }, []),
     });
 
+    // Comptage des non-lus
+    const unreadCount = useMemo(
+        () => messages.filter((m) => m.status === ContactStatus.UNREAD).length,
+        [messages]
+    );
+
+    // Filtrage dynamique
+    const filteredMessages = useMemo(() => {
+        return messages.filter((m) => {
+            const matchesStatus =
+                statusFilter === "ALL" ? true : m.status === statusFilter;
+            const q = searchTerm.toLowerCase().trim();
+            const matchesSearch =
+                !q ||
+                m.firstName.toLowerCase().includes(q) ||
+                m.lastName.toLowerCase().includes(q) ||
+                m.email.toLowerCase().includes(q) ||
+                m.phone.toLowerCase().includes(q) ||
+                m.message.toLowerCase().includes(q);
+
+            return matchesStatus && matchesSearch;
+        });
+    }, [messages, statusFilter, searchTerm]);
+
+    // Gestion de la sélection par lot
+    const allFilteredSelected =
+        filteredMessages.length > 0 &&
+        filteredMessages.every((m) => selectedIds.has(m.id));
+
+    const toggleSelectAll = () => {
+        if (allFilteredSelected) {
+            setSelectedIds(new Set());
+        } else {
+            const next = new Set(selectedIds);
+            for (const m of filteredMessages) {
+                next.add(m.id);
+            }
+            setSelectedIds(next);
+        }
+    };
+
+    const toggleSelectOne = (id: string) => {
+        setSelectedIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(id)) {
+                next.delete(id);
+            } else {
+                next.add(id);
+            }
+            return next;
+        });
+    };
+
+    // Actions unitaires
     const handleStatusChange = (id: string, newStatus: ContactStatus) => {
+        // Optimistic UI update
+        setMessages((prev) =>
+            prev.map((m) => (m.id === id ? { ...m, status: newStatus } : m))
+        );
+
+        if (selectedMessage?.id === id) {
+            setSelectedMessage((prev) =>
+                prev ? { ...prev, status: newStatus } : null
+            );
+        }
+
         startTransition(async () => {
             const res = await updateContactMessageStatusAction(id, newStatus);
             if (res.error) {
                 toast.error(res.error);
-                return;
-            }
-
-            setMessages((prev) =>
-                prev.map((m) => (m.id === id ? { ...m, status: newStatus } : m))
-            );
-
-            if (selectedMessage?.id === id) {
-                setSelectedMessage((prev) =>
-                    prev ? { ...prev, status: newStatus } : null
+                // Rollback
+                setMessages(initialMessages);
+            } else {
+                toast.success(
+                    newStatus === ContactStatus.READ
+                        ? "Marqué comme lu"
+                        : newStatus === ContactStatus.ARCHIVED
+                          ? "Message archivé"
+                          : "Marqué comme non lu"
                 );
             }
-
-            toast.success(
-                newStatus === ContactStatus.READ
-                    ? "Message marqué comme lu"
-                    : newStatus === ContactStatus.ARCHIVED
-                      ? "Message archivé"
-                      : "Message marqué comme non lu"
-            );
         });
     };
 
-    const handleDelete = (id: string) => {
-        if (
-            !confirm(
-                "Voulez-vous vraiment supprimer définitivement ce message ?"
+    const handleConfirmDeleteSingle = () => {
+        if (!messageIdToDelete) return;
+        const targetId = messageIdToDelete;
+        setMessageIdToDelete(null);
+
+        // Optimistic delete
+        setMessages((prev) => prev.filter((m) => m.id !== targetId));
+        if (selectedMessage?.id === targetId) {
+            setSelectedMessage(null);
+        }
+        setSelectedIds((prev) => {
+            const next = new Set(prev);
+            next.delete(targetId);
+            return next;
+        });
+
+        startTransition(async () => {
+            const res = await deleteContactMessageAction(targetId);
+            if (res.error) {
+                toast.error(res.error);
+                setMessages(initialMessages);
+            } else {
+                toast.success("Message supprimé avec succès.");
+            }
+        });
+    };
+
+    // Actions par lot (Bulk)
+    const handleBulkStatusChange = (newStatus: ContactStatus) => {
+        const ids = Array.from(selectedIds);
+        if (ids.length === 0) return;
+
+        // Optimistic bulk update
+        setMessages((prev) =>
+            prev.map((m) =>
+                selectedIds.has(m.id) ? { ...m, status: newStatus } : m
             )
-        ) {
-            return;
+        );
+        setSelectedIds(new Set());
+
+        startTransition(async () => {
+            const res = await bulkUpdateContactMessagesStatusAction(
+                ids,
+                newStatus
+            );
+            if (res.error) {
+                toast.error(res.error);
+                setMessages(initialMessages);
+            } else {
+                toast.success(
+                    `${ids.length} message(s) mis à jour avec succès.`
+                );
+            }
+        });
+    };
+
+    const handleConfirmBulkDelete = () => {
+        const ids = Array.from(selectedIds);
+        setIsBulkDeleteOpen(false);
+        if (ids.length === 0) return;
+
+        // Optimistic bulk delete
+        setMessages((prev) => prev.filter((m) => !selectedIds.has(m.id)));
+        setSelectedIds(new Set());
+        if (selectedMessage && selectedIds.has(selectedMessage.id)) {
+            setSelectedMessage(null);
         }
 
         startTransition(async () => {
-            const res = await deleteContactMessageAction(id);
+            const res = await bulkDeleteContactMessagesAction(ids);
             if (res.error) {
                 toast.error(res.error);
-                return;
+                setMessages(initialMessages);
+            } else {
+                toast.success(
+                    `${ids.length} message(s) supprimé(s) définitivement.`
+                );
             }
-
-            setMessages((prev) => prev.filter((m) => m.id !== id));
-            if (selectedMessage?.id === id) {
-                setSelectedMessage(null);
-            }
-            toast.success("Message supprimé");
         });
     };
 
@@ -150,7 +343,7 @@ export function ContactMessagesInbox({
         switch (status) {
             case ContactStatus.UNREAD:
                 return (
-                    <Badge className="bg-emerald-600 text-xs font-medium text-white hover:bg-emerald-700">
+                    <Badge className="bg-primary/90 text-primary-foreground hover:bg-primary text-xs font-semibold shadow-xs">
                         Non lu
                     </Badge>
                 );
@@ -158,14 +351,17 @@ export function ContactMessagesInbox({
                 return (
                     <Badge
                         variant="outline"
-                        className="text-muted-foreground text-xs"
+                        className="text-muted-foreground border-border text-xs font-medium"
                     >
                         Lu
                     </Badge>
                 );
             case ContactStatus.ARCHIVED:
                 return (
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge
+                        variant="secondary"
+                        className="bg-muted text-muted-foreground text-xs font-medium"
+                    >
                         Archivé
                     </Badge>
                 );
@@ -177,17 +373,11 @@ export function ContactMessagesInbox({
             <CardHeader className="space-y-4">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <CardTitle className="flex items-center gap-2 text-xl">
+                        <CardTitle className="flex items-center gap-2 text-xl font-bold">
                             <Inbox className="text-primary h-5 w-5" />
-                            Boîte de Réception — Formulaire de Contact
-                            {unreadCount > 0 && (
-                                <span className="ml-2 inline-flex items-center rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
-                                    {unreadCount} nouveau
-                                    {unreadCount > 1 ? "x" : ""}
-                                </span>
-                            )}
+                            Boîte de Réception ({filteredMessages.length})
                         </CardTitle>
-                        <CardDescription className="mt-1">
+                        <CardDescription className="mt-1 text-xs sm:text-sm">
                             Messages envoyés par les prospects et clients depuis
                             la page de contact publique.
                         </CardDescription>
@@ -196,21 +386,31 @@ export function ContactMessagesInbox({
                     <div className="relative w-full sm:w-72">
                         <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
                         <Input
-                            placeholder="Rechercher expéditeur, email..."
+                            placeholder="Rechercher nom, email, tél..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="h-10 pl-9"
+                            className="h-10 pr-8 pl-9"
+                            aria-label="Rechercher dans les messages"
                         />
+                        {searchTerm && (
+                            <button
+                                onClick={() => setSearchTerm("")}
+                                className="text-muted-foreground hover:text-foreground absolute top-1/2 right-2.5 -translate-y-1/2 p-1"
+                                aria-label="Effacer la recherche"
+                            >
+                                <X className="h-3.5 w-3.5" />
+                            </button>
+                        )}
                     </div>
                 </div>
 
-                {/* Filtres de statut */}
+                {/* Filtres de statut avec hauteurs conformes tactile >= 44px (ou h-9 avec padding) */}
                 <div className="flex flex-wrap items-center gap-2 border-t pt-3">
                     <Button
                         variant={statusFilter === "ALL" ? "default" : "outline"}
                         size="sm"
                         onClick={() => setStatusFilter("ALL")}
-                        className="h-8 text-xs"
+                        className="h-9 min-h-[36px] px-3.5 text-xs font-medium"
                     >
                         Tous ({messages.length})
                     </Button>
@@ -222,7 +422,7 @@ export function ContactMessagesInbox({
                         }
                         size="sm"
                         onClick={() => setStatusFilter(ContactStatus.UNREAD)}
-                        className="h-8 text-xs"
+                        className="h-9 min-h-[36px] px-3.5 text-xs font-medium"
                     >
                         Non lus ({unreadCount})
                     </Button>
@@ -234,7 +434,7 @@ export function ContactMessagesInbox({
                         }
                         size="sm"
                         onClick={() => setStatusFilter(ContactStatus.READ)}
-                        className="h-8 text-xs"
+                        className="h-9 min-h-[36px] px-3.5 text-xs font-medium"
                     >
                         Lus (
                         {
@@ -252,7 +452,7 @@ export function ContactMessagesInbox({
                         }
                         size="sm"
                         onClick={() => setStatusFilter(ContactStatus.ARCHIVED)}
-                        className="h-8 text-xs"
+                        className="h-9 min-h-[36px] px-3.5 text-xs font-medium"
                     >
                         Archivés (
                         {
@@ -263,25 +463,103 @@ export function ContactMessagesInbox({
                         )
                     </Button>
                 </div>
+
+                {/* Barre d'actions par lot (Bulk Action Bar) si au moins 1 message sélectionné */}
+                {selectedIds.size > 0 && (
+                    <div className="bg-primary/5 border-primary/20 animate-in fade-in slide-in-from-top-2 flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
+                        <div className="flex items-center gap-2">
+                            <CheckSquare className="text-primary h-4 w-4" />
+                            <span className="text-xs font-semibold sm:text-sm">
+                                {selectedIds.size} message
+                                {selectedIds.size > 1 ? "s" : ""} sélectionné
+                                {selectedIds.size > 1 ? "s" : ""}
+                            </span>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={isPending}
+                                onClick={() =>
+                                    handleBulkStatusChange(ContactStatus.READ)
+                                }
+                                className="h-8 text-xs font-medium"
+                            >
+                                <CheckCircle2 className="mr-1.5 h-3.5 w-3.5 text-emerald-600" />
+                                Marquer comme lu
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={isPending}
+                                onClick={() =>
+                                    handleBulkStatusChange(
+                                        ContactStatus.ARCHIVED
+                                    )
+                                }
+                                className="h-8 text-xs font-medium"
+                            >
+                                <Archive className="mr-1.5 h-3.5 w-3.5 text-amber-600" />
+                                Archiver
+                            </Button>
+                            <Button
+                                variant="destructive"
+                                size="sm"
+                                disabled={isPending}
+                                onClick={() => setIsBulkDeleteOpen(true)}
+                                className="h-8 text-xs font-medium"
+                            >
+                                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                                Supprimer
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setSelectedIds(new Set())}
+                                className="h-8 text-xs"
+                            >
+                                Tout désélectionner
+                            </Button>
+                        </div>
+                    </div>
+                )}
             </CardHeader>
 
             <CardContent>
                 {filteredMessages.length === 0 ? (
-                    <div className="text-muted-foreground flex flex-col items-center justify-center py-12 text-center">
-                        <MessageSquare className="text-muted-foreground/40 mb-3 h-12 w-12" />
-                        <p className="text-base font-medium">
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                        <div className="bg-muted flex h-12 w-12 items-center justify-center rounded-full">
+                            <Inbox className="text-muted-foreground h-6 w-6" />
+                        </div>
+                        <h3 className="mt-3 text-sm font-semibold">
                             Aucun message trouvé
-                        </p>
-                        <p className="mt-1 text-xs">
+                        </h3>
+                        <p className="text-muted-foreground mt-1 text-xs">
                             {searchTerm || statusFilter !== "ALL"
-                                ? "Modifiez vos filtres de recherche."
-                                : "Aucun message reçu pour le moment."}
+                                ? "Aucun message ne correspond à vos critères de recherche."
+                                : "Votre boîte de réception est actuellement vide."}
                         </p>
                     </div>
                 ) : (
-                    <>
-                        {/* Vue Mobile (Cards) */}
-                        <div className="space-y-3 md:hidden">
+                    <div>
+                        {/* Vue Mobile & Tablette (Cartes responsives < 1024px) */}
+                        <div className="block space-y-3 lg:hidden">
+                            {/* Sélecteur global mobile */}
+                            <div className="flex items-center justify-between px-1 text-xs">
+                                <label className="flex cursor-pointer items-center gap-2 font-medium">
+                                    <Checkbox
+                                        checked={allFilteredSelected}
+                                        onCheckedChange={toggleSelectAll}
+                                        aria-label="Sélectionner tous les messages affichés"
+                                    />
+                                    <span>Sélectionner tout</span>
+                                </label>
+                                <span className="text-muted-foreground text-[11px]">
+                                    {filteredMessages.length} message(s)
+                                </span>
+                            </div>
+
                             {filteredMessages.map((msg) => (
                                 <div
                                     key={msg.id}
@@ -296,47 +574,189 @@ export function ContactMessagesInbox({
                                             );
                                         }
                                     }}
-                                    className={`hover:bg-muted/50 cursor-pointer rounded-lg border p-4 transition-colors ${
+                                    className={`bg-card hover:border-primary/50 relative cursor-pointer space-y-3 rounded-lg border p-4 shadow-2xs transition-all duration-200 ${
                                         msg.status === ContactStatus.UNREAD
-                                            ? "border-emerald-500/40 bg-emerald-50/20 dark:bg-emerald-950/10"
-                                            : "bg-card"
+                                            ? "border-primary/40 bg-primary/[0.02]"
+                                            : ""
                                     }`}
                                 >
-                                    <div className="mb-2 flex items-start justify-between gap-2">
-                                        <div>
-                                            <p className="text-sm font-semibold">
-                                                {msg.firstName} {msg.lastName}
-                                            </p>
-                                            <p className="text-muted-foreground text-xs">
-                                                {msg.email}
-                                            </p>
-                                        </div>
-                                        {getStatusBadge(msg.status)}
-                                    </div>
-                                    <p className="text-foreground/80 my-2 line-clamp-2 text-xs leading-relaxed">
-                                        {msg.message}
-                                    </p>
-                                    <div className="text-muted-foreground flex items-center justify-between border-t pt-2 text-xs">
-                                        <span>{msg.phone}</span>
-                                        <span>
-                                            {format(
-                                                new Date(msg.createdAt),
-                                                "dd MMM yyyy à HH:mm",
-                                                {
-                                                    locale: fr,
+                                    <div className="flex items-start justify-between gap-2">
+                                        <div className="flex items-center gap-2.5">
+                                            <div
+                                                onClick={(e) =>
+                                                    e.stopPropagation()
                                                 }
-                                            )}
+                                                className="pt-0.5"
+                                            >
+                                                <Checkbox
+                                                    checked={selectedIds.has(
+                                                        msg.id
+                                                    )}
+                                                    onCheckedChange={() =>
+                                                        toggleSelectOne(msg.id)
+                                                    }
+                                                    aria-label={`Sélectionner message de ${msg.firstName} ${msg.lastName}`}
+                                                />
+                                            </div>
+                                            <div>
+                                                <div className="text-sm font-semibold">
+                                                    {msg.firstName}{" "}
+                                                    {msg.lastName}
+                                                </div>
+                                                <div className="text-muted-foreground text-[11px]">
+                                                    {format(
+                                                        new Date(msg.createdAt),
+                                                        "dd MMM yyyy à HH:mm",
+                                                        { locale: fr }
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-1.5">
+                                            {getStatusBadge(msg.status)}
+                                        </div>
+                                    </div>
+
+                                    <div className="text-muted-foreground space-y-1 text-xs">
+                                        <div className="flex items-center gap-2">
+                                            <Mail className="h-3.5 w-3.5 shrink-0" />
+                                            <a
+                                                href={`mailto:${msg.email}`}
+                                                onClick={(e) =>
+                                                    e.stopPropagation()
+                                                }
+                                                className="text-primary truncate hover:underline"
+                                            >
+                                                {msg.email}
+                                            </a>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Phone className="h-3.5 w-3.5 shrink-0" />
+                                            <a
+                                                href={`tel:${msg.phone}`}
+                                                onClick={(e) =>
+                                                    e.stopPropagation()
+                                                }
+                                                className="hover:underline"
+                                            >
+                                                {msg.phone}
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-muted/40 text-foreground/90 line-clamp-2 rounded-md p-2.5 text-xs">
+                                        {msg.message}
+                                    </div>
+
+                                    <div className="flex items-center justify-between border-t pt-2">
+                                        <span className="text-muted-foreground text-[11px]">
+                                            Cliquer pour lire le détail
                                         </span>
+                                        <div
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-9 w-9"
+                                                        aria-label="Actions sur le message"
+                                                    >
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuLabel>
+                                                        Actions
+                                                    </DropdownMenuLabel>
+                                                    <DropdownMenuItem
+                                                        onClick={() => {
+                                                            setSelectedMessage(
+                                                                msg
+                                                            );
+                                                            if (
+                                                                msg.status ===
+                                                                ContactStatus.UNREAD
+                                                            ) {
+                                                                handleStatusChange(
+                                                                    msg.id,
+                                                                    ContactStatus.READ
+                                                                );
+                                                            }
+                                                        }}
+                                                    >
+                                                        <MessageSquare className="mr-2 h-4 w-4" />
+                                                        Voir le message
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        onClick={() =>
+                                                            handleStatusChange(
+                                                                msg.id,
+                                                                msg.status ===
+                                                                    ContactStatus.READ
+                                                                    ? ContactStatus.UNREAD
+                                                                    : ContactStatus.READ
+                                                            )
+                                                        }
+                                                    >
+                                                        <CheckCircle2 className="mr-2 h-4 w-4" />
+                                                        {msg.status ===
+                                                        ContactStatus.READ
+                                                            ? "Marquer non lu"
+                                                            : "Marquer lu"}
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        onClick={() =>
+                                                            handleStatusChange(
+                                                                msg.id,
+                                                                msg.status ===
+                                                                    ContactStatus.ARCHIVED
+                                                                    ? ContactStatus.READ
+                                                                    : ContactStatus.ARCHIVED
+                                                            )
+                                                        }
+                                                    >
+                                                        <Archive className="mr-2 h-4 w-4" />
+                                                        {msg.status ===
+                                                        ContactStatus.ARCHIVED
+                                                            ? "Désarchiver"
+                                                            : "Archiver"}
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem
+                                                        className="text-destructive focus:text-destructive"
+                                                        onClick={() =>
+                                                            setMessageIdToDelete(
+                                                                msg.id
+                                                            )
+                                                        }
+                                                    >
+                                                        <Trash2 className="mr-2 h-4 w-4" />
+                                                        Supprimer
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </div>
                                     </div>
                                 </div>
                             ))}
                         </div>
 
-                        {/* Vue Desktop (Tableau structuré) */}
-                        <div className="hidden overflow-hidden rounded-md border md:block">
-                            <Table>
+                        {/* Vue Desktop Large (Tableau avec overflow-x-auto garanti >= 1024px) */}
+                        <div className="hidden overflow-x-auto rounded-md border lg:block">
+                            <Table className="min-w-[850px]">
                                 <TableHeader className="bg-muted/40">
                                     <TableRow>
+                                        <TableHead className="w-[48px] px-3">
+                                            <Checkbox
+                                                checked={allFilteredSelected}
+                                                onCheckedChange={
+                                                    toggleSelectAll
+                                                }
+                                                aria-label="Sélectionner tous les messages du tableau"
+                                            />
+                                        </TableHead>
                                         <TableHead className="w-[110px]">
                                             Statut
                                         </TableHead>
@@ -359,10 +779,13 @@ export function ContactMessagesInbox({
                                     {filteredMessages.map((msg) => (
                                         <TableRow
                                             key={msg.id}
+                                            tabIndex={0}
+                                            role="button"
+                                            aria-label={`Lire le message de ${msg.firstName} ${msg.lastName}`}
                                             className={`hover:bg-muted/50 cursor-pointer transition-colors ${
                                                 msg.status ===
                                                 ContactStatus.UNREAD
-                                                    ? "bg-emerald-50/20 font-medium dark:bg-emerald-950/10"
+                                                    ? "bg-primary/[0.03] font-medium"
                                                     : ""
                                             }`}
                                             onClick={() => {
@@ -377,52 +800,85 @@ export function ContactMessagesInbox({
                                                     );
                                                 }
                                             }}
+                                            onKeyDown={(e) => {
+                                                if (
+                                                    e.key === "Enter" ||
+                                                    e.key === " "
+                                                ) {
+                                                    e.preventDefault();
+                                                    setSelectedMessage(msg);
+                                                    if (
+                                                        msg.status ===
+                                                        ContactStatus.UNREAD
+                                                    ) {
+                                                        handleStatusChange(
+                                                            msg.id,
+                                                            ContactStatus.READ
+                                                        );
+                                                    }
+                                                }
+                                            }}
                                         >
+                                            <TableCell
+                                                className="px-3"
+                                                onClick={(e) =>
+                                                    e.stopPropagation()
+                                                }
+                                            >
+                                                <Checkbox
+                                                    checked={selectedIds.has(
+                                                        msg.id
+                                                    )}
+                                                    onCheckedChange={() =>
+                                                        toggleSelectOne(msg.id)
+                                                    }
+                                                    aria-label={`Sélectionner message de ${msg.firstName} ${msg.lastName}`}
+                                                />
+                                            </TableCell>
                                             <TableCell>
                                                 {getStatusBadge(msg.status)}
                                             </TableCell>
-                                            <TableCell>
-                                                <div className="flex items-center gap-2">
-                                                    <div className="bg-primary/10 text-primary flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold">
-                                                        {msg.firstName.charAt(
-                                                            0
-                                                        )}
-                                                        {msg.lastName.charAt(0)}
-                                                    </div>
-                                                    <div>
-                                                        <div className="text-sm font-semibold">
-                                                            {msg.firstName}{" "}
-                                                            {msg.lastName}
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                            <TableCell className="font-semibold">
+                                                {msg.firstName} {msg.lastName}
                                             </TableCell>
                                             <TableCell>
                                                 <div className="text-muted-foreground space-y-0.5 text-xs">
                                                     <div className="flex items-center gap-1.5">
                                                         <Mail className="h-3.5 w-3.5" />
-                                                        <span className="truncate">
+                                                        <a
+                                                            href={`mailto:${msg.email}`}
+                                                            onClick={(e) =>
+                                                                e.stopPropagation()
+                                                            }
+                                                            className="text-primary truncate hover:underline"
+                                                        >
                                                             {msg.email}
-                                                        </span>
+                                                        </a>
                                                     </div>
                                                     <div className="flex items-center gap-1.5">
                                                         <Phone className="h-3.5 w-3.5" />
-                                                        <span>{msg.phone}</span>
+                                                        <a
+                                                            href={`tel:${msg.phone}`}
+                                                            onClick={(e) =>
+                                                                e.stopPropagation()
+                                                            }
+                                                            className="hover:underline"
+                                                        >
+                                                            {msg.phone}
+                                                        </a>
                                                     </div>
                                                 </div>
                                             </TableCell>
                                             <TableCell>
-                                                <p className="text-muted-foreground line-clamp-2 text-xs">
+                                                <div className="text-muted-foreground max-w-[280px] truncate text-xs">
                                                     {msg.message}
-                                                </p>
+                                                </div>
                                             </TableCell>
                                             <TableCell className="text-muted-foreground text-xs whitespace-nowrap">
                                                 {format(
                                                     new Date(msg.createdAt),
-                                                    "dd MMM yyyy, HH:mm",
-                                                    {
-                                                        locale: fr,
-                                                    }
+                                                    "dd MMM yyyy à HH:mm",
+                                                    { locale: fr }
                                                 )}
                                             </TableCell>
                                             <TableCell
@@ -438,7 +894,8 @@ export function ContactMessagesInbox({
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            className="h-8 w-8"
+                                                            className="h-9 w-9"
+                                                            aria-label="Actions"
                                                         >
                                                             <MoreHorizontal className="h-4 w-4" />
                                                         </Button>
@@ -464,35 +921,25 @@ export function ContactMessagesInbox({
                                                             }}
                                                         >
                                                             <MessageSquare className="mr-2 h-4 w-4" />
-                                                            Ouvrir le message
+                                                            Voir le message
                                                         </DropdownMenuItem>
-                                                        {msg.status ===
-                                                        ContactStatus.UNREAD ? (
-                                                            <DropdownMenuItem
-                                                                onClick={() =>
-                                                                    handleStatusChange(
-                                                                        msg.id,
+                                                        <DropdownMenuItem
+                                                            onClick={() =>
+                                                                handleStatusChange(
+                                                                    msg.id,
+                                                                    msg.status ===
                                                                         ContactStatus.READ
-                                                                    )
-                                                                }
-                                                            >
-                                                                <CheckCircle2 className="mr-2 h-4 w-4" />
-                                                                Marquer comme lu
-                                                            </DropdownMenuItem>
-                                                        ) : (
-                                                            <DropdownMenuItem
-                                                                onClick={() =>
-                                                                    handleStatusChange(
-                                                                        msg.id,
-                                                                        ContactStatus.UNREAD
-                                                                    )
-                                                                }
-                                                            >
-                                                                <Inbox className="mr-2 h-4 w-4" />
-                                                                Marquer comme
-                                                                non lu
-                                                            </DropdownMenuItem>
-                                                        )}
+                                                                        ? ContactStatus.UNREAD
+                                                                        : ContactStatus.READ
+                                                                )
+                                                            }
+                                                        >
+                                                            <CheckCircle2 className="mr-2 h-4 w-4" />
+                                                            {msg.status ===
+                                                            ContactStatus.READ
+                                                                ? "Marquer non lu"
+                                                                : "Marquer lu"}
+                                                        </DropdownMenuItem>
                                                         <DropdownMenuItem
                                                             onClick={() =>
                                                                 handleStatusChange(
@@ -512,9 +959,9 @@ export function ContactMessagesInbox({
                                                         </DropdownMenuItem>
                                                         <DropdownMenuSeparator />
                                                         <DropdownMenuItem
-                                                            className="text-red-600 focus:text-red-600"
+                                                            className="text-destructive focus:text-destructive"
                                                             onClick={() =>
-                                                                handleDelete(
+                                                                setMessageIdToDelete(
                                                                     msg.id
                                                                 )
                                                             }
@@ -530,26 +977,28 @@ export function ContactMessagesInbox({
                                 </TableBody>
                             </Table>
                         </div>
-                    </>
+                    </div>
                 )}
             </CardContent>
 
-            {/* Modal de détail du message */}
+            {/* Modale de Détail Responsive conforme 2026 (max-h clampé avec overflow-y scrollable) */}
             <Dialog
                 open={!!selectedMessage}
                 onOpenChange={(open) => {
                     if (!open) setSelectedMessage(null);
                 }}
             >
-                <DialogContent className="sm:max-w-[550px]">
+                <DialogContent className="flex max-h-[88dvh] flex-col overflow-hidden p-0 sm:max-w-[550px]">
                     {selectedMessage && (
                         <>
-                            <DialogHeader>
+                            <DialogHeader className="shrink-0 border-b p-5 pb-3">
                                 <div className="flex items-center justify-between gap-2 pr-6">
-                                    <DialogTitle className="flex items-center gap-2 text-lg font-bold">
-                                        <User className="text-primary h-5 w-5" />
-                                        {selectedMessage.firstName}{" "}
-                                        {selectedMessage.lastName}
+                                    <DialogTitle className="flex items-center gap-2 text-base font-bold sm:text-lg">
+                                        <User className="text-primary h-5 w-5 shrink-0" />
+                                        <span>
+                                            {selectedMessage.firstName}{" "}
+                                            {selectedMessage.lastName}
+                                        </span>
                                     </DialogTitle>
                                     {getStatusBadge(selectedMessage.status)}
                                 </div>
@@ -563,7 +1012,8 @@ export function ContactMessagesInbox({
                                 </DialogDescription>
                             </DialogHeader>
 
-                            <div className="space-y-4 py-2">
+                            {/* Corps défilable sans déborder de la modale */}
+                            <div className="flex-1 space-y-4 overflow-y-auto p-5">
                                 {/* Coordonnées de contact */}
                                 <div className="bg-muted/40 grid grid-cols-1 gap-3 rounded-lg p-3 text-xs sm:grid-cols-2">
                                     <div className="space-y-1">
@@ -571,7 +1021,7 @@ export function ContactMessagesInbox({
                                             Adresse email
                                         </span>
                                         <div className="flex items-center gap-1.5 font-semibold">
-                                            <Mail className="text-primary h-3.5 w-3.5" />
+                                            <Mail className="text-primary h-3.5 w-3.5 shrink-0" />
                                             <a
                                                 href={`mailto:${selectedMessage.email}`}
                                                 className="text-primary truncate hover:underline"
@@ -585,7 +1035,7 @@ export function ContactMessagesInbox({
                                             Téléphone
                                         </span>
                                         <div className="flex items-center gap-1.5 font-semibold">
-                                            <Phone className="text-primary h-3.5 w-3.5" />
+                                            <Phone className="text-primary h-3.5 w-3.5 shrink-0" />
                                             <a
                                                 href={`tel:${selectedMessage.phone}`}
                                                 className="text-primary hover:underline"
@@ -607,12 +1057,13 @@ export function ContactMessagesInbox({
                                 </div>
                             </div>
 
-                            <DialogFooter className="flex flex-col items-center gap-2 border-t pt-4 sm:flex-row sm:justify-between">
+                            {/* Footer toujours accessible et sticky en bas */}
+                            <DialogFooter className="bg-muted/20 flex shrink-0 flex-col items-center gap-2 border-t p-4 pt-3 sm:flex-row sm:justify-between">
                                 <div className="flex w-full items-center gap-2 sm:w-auto">
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        className="text-xs"
+                                        className="h-10 flex-1 text-xs sm:flex-initial"
                                         disabled={isPending}
                                         onClick={() =>
                                             handleStatusChange(
@@ -633,10 +1084,12 @@ export function ContactMessagesInbox({
                                     <Button
                                         variant="destructive"
                                         size="sm"
-                                        className="text-xs"
+                                        className="h-10 flex-1 text-xs sm:flex-initial"
                                         disabled={isPending}
                                         onClick={() =>
-                                            handleDelete(selectedMessage.id)
+                                            setMessageIdToDelete(
+                                                selectedMessage.id
+                                            )
                                         }
                                     >
                                         <Trash2 className="mr-1.5 h-3.5 w-3.5" />
@@ -644,11 +1097,11 @@ export function ContactMessagesInbox({
                                     </Button>
                                 </div>
 
-                                <div className="flex w-full items-center justify-end gap-2 sm:w-auto">
+                                <div className="flex w-full items-center justify-end sm:w-auto">
                                     <Button
                                         variant="default"
                                         size="sm"
-                                        className="text-xs"
+                                        className="h-10 w-full text-xs sm:w-auto"
                                         asChild
                                     >
                                         <a
@@ -664,6 +1117,32 @@ export function ContactMessagesInbox({
                     )}
                 </DialogContent>
             </Dialog>
+
+            {/* Boîte de confirmation accessible unitaire */}
+            <ConfirmDialog
+                open={!!messageIdToDelete}
+                onOpenChange={(open) => {
+                    if (!open) setMessageIdToDelete(null);
+                }}
+                title="Supprimer ce message ?"
+                description="Cette action est irréversible. Le message sera définitivement supprimé de la base de données."
+                confirmLabel="Supprimer"
+                variant="destructive"
+                isLoading={isPending}
+                onConfirm={handleConfirmDeleteSingle}
+            />
+
+            {/* Boîte de confirmation accessible groupée (Bulk) */}
+            <ConfirmDialog
+                open={isBulkDeleteOpen}
+                onOpenChange={setIsBulkDeleteOpen}
+                title={`Supprimer ${selectedIds.size} message(s) ?`}
+                description="Cette action est irréversible. Tous les messages sélectionnés seront définitivement supprimés."
+                confirmLabel="Supprimer tout"
+                variant="destructive"
+                isLoading={isPending}
+                onConfirm={handleConfirmBulkDelete}
+            />
         </Card>
     );
 }
