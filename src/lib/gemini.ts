@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { QueryCategory, Sentiment } from "./support-agent/types";
+import { logger } from "@/lib/logger";
 
 /**
  * Récupère et valide la clé API Gemini depuis les variables d'environnement.
@@ -53,10 +54,9 @@ function getGeminiClient(): GoogleGenerativeAI | null {
         lastKeyUsed = key;
         return cachedClient;
     } catch (error: unknown) {
-        console.warn(
-            "Échec d'initialisation du client GoogleGenerativeAI :",
-            error
-        );
+        logger.warn("Échec d'initialisation du client GoogleGenerativeAI", {
+            error: error instanceof Error ? error.message : String(error),
+        });
         return null;
     }
 }
@@ -444,10 +444,9 @@ export const geminiService = {
             }
             return calculateHeuristicEstimate(pickup, dropoff, type);
         } catch (error: unknown) {
-            console.warn(
-                "Gemini estimateTransport warning (Fail-Safe activé) :",
-                error instanceof Error ? error.message : error
-            );
+            logger.warn("Gemini estimateTransport warning (Fail-Safe activé)", {
+                error: error instanceof Error ? error.message : String(error),
+            });
             const fallback = calculateHeuristicEstimate(pickup, dropoff, type);
             fallback.reasoning +=
                 " (Fail-safe activé : calcul heuristique appliqué)";
@@ -506,10 +505,9 @@ export const geminiService = {
             }
             return generateFallbackEmail(type, clientName, quoteId);
         } catch (error: unknown) {
-            console.warn(
-                "Gemini draftEmail warning (Fail-Safe activé) :",
-                error instanceof Error ? error.message : error
-            );
+            logger.warn("Gemini draftEmail warning (Fail-Safe activé)", {
+                error: error instanceof Error ? error.message : String(error),
+            });
             return generateFallbackEmail(type, clientName, quoteId);
         }
     },
@@ -619,10 +617,9 @@ export async function generateSupportAiResponse(
         }
         return null;
     } catch (error: unknown) {
-        console.warn(
-            "Gemini support response warning (Fail-Safe activé) :",
-            error instanceof Error ? error.message : error
-        );
+        logger.warn("Gemini support response warning (Fail-Safe activé)", {
+            error: error instanceof Error ? error.message : String(error),
+        });
         return null;
     }
 }

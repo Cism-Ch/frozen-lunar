@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { requestPasswordResetAction } from "@/app/actions/auth-actions";
+import { logger } from "@/lib/logger";
 
 interface ForgotPasswordFormProps {
     context?: "admin" | "user" | "auto";
@@ -66,7 +67,7 @@ export function ForgotPasswordForm({
                 toast.success("Demande prise en compte");
             }
         } catch (err: unknown) {
-            console.error("Erreur handleSubmit forgot password:", err);
+            logger.error("Erreur handleSubmit forgot password", err);
             setError("Une erreur inattendue est survenue. Veuillez réessayer.");
             toast.error("Échec de la demande");
         } finally {

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { handleError } from "@/lib/error-handler";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/admin/check
@@ -25,7 +26,7 @@ export async function GET() {
         return NextResponse.json({ hasAdmin: adminCount > 0 });
     } catch (error: unknown) {
         // Log l'erreur complète côté serveur pour le débogage
-        console.error("❌ Erreur lors de la vérification admin:", error);
+        logger.error("❌ Erreur lors de la vérification admin", error);
 
         // Utiliser le gestionnaire d'erreurs centralisé
         const errorResponse = handleError(error);

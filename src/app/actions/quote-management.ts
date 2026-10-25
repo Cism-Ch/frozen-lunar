@@ -13,6 +13,7 @@ import {
 import { handleError } from "@/lib/error-handler";
 import { emailQueue, pdfQueue } from "@/lib/qstash";
 import { requireAdmin } from "@/lib/auth-guard";
+import { logger } from "@/lib/logger";
 
 type QuoteWithHistory = Quote & { history: QuoteHistory[] };
 
@@ -229,10 +230,12 @@ export async function createQuoteAction(
                 date: quote.date.toISOString(),
             });
         } catch (enqueueError: unknown) {
-            console.warn(
-                "⚠️ Warning: QStash enqueue non-blocking error:",
-                enqueueError
-            );
+            logger.warn("⚠️ Warning: QStash enqueue non-blocking error", {
+                error:
+                    enqueueError instanceof Error
+                        ? enqueueError.message
+                        : String(enqueueError),
+            });
         }
 
         revalidatePath("/admin/quotes");
@@ -260,7 +263,7 @@ export async function createQuoteAction(
             },
         };
     } catch (error: unknown) {
-        console.error("Create Quote Error:", error);
+        logger.error("Create Quote Error", error);
         if (error instanceof z.ZodError) {
             const firstError = error.issues[0];
             return { success: false, error: firstError.message };
@@ -350,7 +353,7 @@ export async function getQuotesAction(filters?: {
             })),
         };
     } catch (error: unknown) {
-        console.error("Get Quotes Error:", error);
+        logger.error("Get Quotes Error", error);
         if (error instanceof z.ZodError) {
             return {
                 success: false,
@@ -418,7 +421,7 @@ export async function getQuoteByIdAction(id: string) {
             },
         };
     } catch (error: unknown) {
-        console.error("Get Quote By ID Error:", error);
+        logger.error("Get Quote By ID Error", error);
         if (error instanceof z.ZodError) {
             return {
                 success: false,
@@ -470,7 +473,7 @@ export async function updateQuoteStatusAction(id: string, status: string) {
             },
         };
     } catch (error: unknown) {
-        console.error("Update Quote Status Error:", error);
+        logger.error("Update Quote Status Error", error);
         if (error instanceof z.ZodError) {
             return {
                 success: false,
@@ -534,7 +537,7 @@ export async function updateQuoteAction(
 
         return { success: true, quote };
     } catch (error: unknown) {
-        console.error("Update Quote Error:", error);
+        logger.error("Update Quote Error", error);
         if (error instanceof z.ZodError) {
             return {
                 success: false,
@@ -572,7 +575,7 @@ export async function addQuoteNoteAction(id: string, note: string) {
 
         return { success: true };
     } catch (error: unknown) {
-        console.error("Add Quote Note Error:", error);
+        logger.error("Add Quote Note Error", error);
         if (error instanceof z.ZodError) {
             return { success: false, error: error.issues[0].message };
         }
@@ -599,7 +602,7 @@ export async function deleteQuoteAction(id: string) {
 
         return { success: true };
     } catch (error: unknown) {
-        console.error("Delete Quote Error:", error);
+        logger.error("Delete Quote Error", error);
         if (error instanceof z.ZodError) {
             return {
                 success: false,

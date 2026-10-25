@@ -54,6 +54,7 @@ import {
     deleteQuoteAction,
     updateQuoteStatusAction,
 } from "@/app/actions/quote-management";
+import { logger } from "@/lib/logger";
 
 // Safe date formatting for dates that might be free-text (from chat)
 function safeFormatDate(dateString: string | undefined): string {
@@ -97,7 +98,7 @@ export default function QuotesPage() {
                 );
             }
         } catch (error: unknown) {
-            console.error("Error loading quotes:", error);
+            logger.error("Error loading quotes", error);
             toast.error("Erreur lors du chargement des devis");
         } finally {
             setIsLoading(false);
@@ -130,7 +131,7 @@ export default function QuotesPage() {
                 toast.error(result.error || "Erreur lors de la mise à jour");
             }
         } catch (error: unknown) {
-            console.error("Error updating status:", error);
+            logger.error("Error updating status", error);
             toast.error("Erreur lors de la mise à jour du statut");
         }
     };
@@ -151,7 +152,7 @@ export default function QuotesPage() {
                 toast.error(result.error || "Erreur lors de la suppression");
             }
         } catch (error: unknown) {
-            console.error("Error deleting quote:", error);
+            logger.error("Error deleting quote", error);
             toast.error("Erreur lors de la suppression");
         } finally {
             setIsDeleting(false);

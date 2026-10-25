@@ -26,10 +26,10 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AdminNotifications } from "@/components/features/AdminNotifications";
 import { SidebarContent } from "@/components/features/admin/SidebarContent";
+import { AdminCommandPalette } from "@/components/features/admin/AdminCommandPalette";
 import {
     motion,
     AnimatePresence,
@@ -38,7 +38,8 @@ import {
 import { transitions } from "@/lib/animations";
 import { authClient, UserWithRole } from "@/lib/auth-client";
 import { toast } from "sonner";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useSyncExternalStore } from "react";
+import { logger } from "@/lib/logger";
 
 export default function AdminLayout({
     children,
@@ -49,6 +50,33 @@ export default function AdminLayout({
     const router = useRouter();
     const prefersReducedMotion = usePrefersReducedMotion();
     const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const [commandOpen, setCommandOpen] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const isMac = useSyncExternalStore(
+        () => () => {},
+        () =>
+            typeof window !== "undefined" &&
+            /(Mac|iPhone|iPod|iPad)/i.test(navigator.userAgent),
+        () => false
+    );
+
+    useEffect(() => {
+        const handleGlobalKeyDown = (e: KeyboardEvent) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+                e.preventDefault();
+                setCommandOpen((prev) => !prev);
+            }
+        };
+        window.addEventListener("keydown", handleGlobalKeyDown);
+        return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+    }, []);
+
+    // Fermeture automatique du tiroir mobile lors d'un changement de route (idiomatique React sans effet en cascade)
+    const [prevPathname, setPrevPathname] = useState(pathname);
+    if (prevPathname !== pathname) {
+        setPrevPathname(pathname);
+        setSidebarOpen(false);
+    }
 
     const isAuthRoute =
         pathname === "/admin/login" || pathname === "/admin/init";
@@ -74,7 +102,7 @@ export default function AdminLayout({
             router.push("/admin/login");
             router.refresh();
         } catch (error: unknown) {
-            console.error("Logout error:", error);
+            logger.error("Logout error", error);
             toast.error("Erreur lors de la déconnexion");
             setIsLoggingOut(false);
         }
@@ -119,13 +147,13 @@ export default function AdminLayout({
             <div className="flex min-h-screen flex-1 flex-col md:ml-64">
                 {/* Header */}
                 <motion.header
-                    className="bg-background/95 sticky top-0 z-40 flex h-16 items-center gap-4 border-b px-6 shadow-sm backdrop-blur"
+                    className="bg-background/95 sticky top-0 z-40 flex h-16 items-center gap-2 border-b px-3 shadow-sm backdrop-blur sm:gap-4 sm:px-6"
                     initial={prefersReducedMotion ? {} : { y: -20, opacity: 0 }}
                     animate={prefersReducedMotion ? {} : { y: 0, opacity: 1 }}
                     transition={{ delay: 0.1, type: "spring", stiffness: 300 }}
                 >
-                    <div className="flex items-center gap-2 md:hidden">
-                        <Sheet>
+                    <div className="flex items-center gap-1.5 sm:gap-2 md:hidden">
+                        <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
                             <SheetTrigger asChild>
                                 <Button
                                     variant="ghost"
@@ -144,14 +172,15 @@ export default function AdminLayout({
                                     pathname={pathname}
                                     isLoggingOut={isLoggingOut}
                                     onLogout={handleLogout}
+                                    onNavigate={() => setSidebarOpen(false)}
                                 />
                             </SheetContent>
                         </Sheet>
                         <Link
                             href="/admin/dashboard"
-                            className="flex items-center gap-2 text-lg font-bold"
+                            className="flex items-center gap-1.5 text-base font-bold sm:gap-2 sm:text-lg"
                         >
-                            <div className="bg-primary/10 rounded-md p-1">
+                            <div className="bg-primary/10 shrink-0 rounded-md p-1">
                                 <Truck className="text-primary h-4 w-4" />
                             </div>
                             <span className="hidden sm:inline-block">
@@ -160,18 +189,38 @@ export default function AdminLayout({
                         </Link>
                     </div>
 
-                    <div className="w-full flex-1 md:w-auto md:flex-none">
-                        <form className="relative">
-                            <Search className="text-muted-foreground absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2" />
-                            <Input
-                                type="search"
-                                placeholder="Rechercher..."
-                                className="bg-background w-full pl-8 md:w-[300px] lg:w-[400px]"
-                            />
-                        </form>
+                    <div className="w-auto flex-1 sm:w-auto sm:flex-none">
+                        <button
+                            type="button"
+                            onClick={() => setCommandOpen(true)}
+                            className="bg-background/80 hover:bg-muted/60 text-muted-foreground border-border/80 focus-visible:ring-primary flex w-full max-w-[200px] cursor-pointer items-center justify-between gap-2 rounded-lg border px-2 py-1.5 text-xs shadow-2xs transition-colors focus-visible:ring-2 focus-visible:outline-hidden sm:w-[240px] sm:max-w-none sm:px-3 sm:py-1.5 md:w-[270px] lg:w-[340px]"
+                            aria-label={
+                                isMac
+                                    ? "Rechercher (⌘ + K)"
+                                    : "Rechercher (Ctrl + K)"
+                            }
+                        >
+                            <span className="flex items-center gap-2 truncate">
+                                <Search className="h-4 w-4 shrink-0 opacity-70" />
+                                <span className="hidden truncate sm:inline-block">
+                                    Rechercher un devis, client...
+                                </span>
+                                <span className="truncate sm:hidden">
+                                    Rechercher...
+                                </span>
+                            </span>
+                            <span className="hidden shrink-0 items-center gap-1 sm:flex">
+                                <kbd className="bg-muted text-muted-foreground border-border/80 rounded border px-1.5 py-0.5 font-mono text-[10px] font-semibold">
+                                    {isMac ? "⌘" : "Ctrl"}
+                                </kbd>
+                                <kbd className="bg-muted text-muted-foreground border-border/80 rounded border px-1.5 py-0.5 font-mono text-[10px] font-semibold">
+                                    K
+                                </kbd>
+                            </span>
+                        </button>
                     </div>
 
-                    <div className="ml-auto flex items-center gap-4">
+                    <div className="ml-auto flex items-center gap-1.5 sm:gap-3">
                         <AdminNotifications />
 
                         <DropdownMenu>
@@ -280,6 +329,12 @@ export default function AdminLayout({
                     </AnimatePresence>
                 </main>
             </div>
+
+            {/* Modale de Commande Globale (Ctrl + K) */}
+            <AdminCommandPalette
+                open={commandOpen}
+                onOpenChange={setCommandOpen}
+            />
         </div>
     );
 }

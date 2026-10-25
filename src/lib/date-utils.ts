@@ -1,5 +1,6 @@
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { logger } from "@/lib/logger";
 
 /**
  * Safely formats a date string or Date object with fallback behavior
@@ -23,13 +24,15 @@ export function safeFormatDate(
 
         // Check if the date is valid
         if (isNaN(date.getTime())) {
-            console.warn("Invalid date value:", dateInput);
+            logger.warn("Invalid date value", { dateInput: String(dateInput) });
             return fallback;
         }
 
         return format(date, formatStr, { locale: fr });
     } catch (error) {
-        console.error("Error formatting date:", dateInput, error);
+        logger.error("Error formatting date", error, {
+            dateInput: String(dateInput),
+        });
         return fallback;
     }
 }
@@ -52,13 +55,15 @@ export function safeParseDate(
 
         // Check if the date is valid
         if (isNaN(date.getTime())) {
-            console.warn("Invalid date value:", dateInput);
+            logger.warn("Invalid date value", { dateInput: String(dateInput) });
             return null;
         }
 
         return date;
     } catch (error) {
-        console.error("Error parsing date:", dateInput, error);
+        logger.error("Error parsing date", error, {
+            dateInput: String(dateInput),
+        });
         return null;
     }
 }

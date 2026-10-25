@@ -48,6 +48,7 @@ import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { updateQuoteStatusAction } from "@/app/actions/quote-management";
 import { logWhatsAppContactAction } from "@/app/actions/whatsapp-actions";
+import { logger } from "@/lib/logger";
 
 interface QuoteDetailsSheetProps {
     quote: Quote | null;
@@ -178,7 +179,7 @@ export function QuoteDetailsSheet({
             toast.success(`${label} copié dans le presse-papier`);
             setTimeout(() => setCopiedField(null), 2000);
         } catch (err: unknown) {
-            console.error("Erreur copie presse-papier:", err);
+            logger.error("Erreur copie presse-papier", err);
             toast.error("Impossible de copier dans le presse-papier");
         }
     };
@@ -199,7 +200,7 @@ export function QuoteDetailsSheet({
                 "Échange initié depuis le panneau latéral de consultation"
             );
         } catch (err: unknown) {
-            console.error("Erreur log WhatsApp:", err);
+            logger.error("Erreur log WhatsApp", err);
         }
     };
 
@@ -218,7 +219,7 @@ export function QuoteDetailsSheet({
                 toast.error(result.error || "Erreur lors de la mise à jour");
             }
         } catch (error: unknown) {
-            console.error("Error updating status:", error);
+            logger.error("Error updating status", error);
             toast.error("Erreur lors de la mise à jour du statut");
         } finally {
             setIsUpdating(false);

@@ -12,6 +12,7 @@ import {
     type ContactMessageItem,
     type ClientDirectoryItem,
 } from "@/types/contact";
+import { logger } from "@/lib/logger";
 
 /**
  * Server Action publique : Enregistrement d'un message de contact en base de données.
@@ -48,7 +49,7 @@ export async function sendContactMessageAction(
             error: null,
         };
     } catch (error: unknown) {
-        console.error("sendContactMessageAction Error:", error);
+        logger.error("sendContactMessageAction Error", error);
         if (error instanceof z.ZodError) {
             const firstError = error.issues[0]?.message || "Données invalides";
             return { data: null, error: firstError };
@@ -138,7 +139,7 @@ export async function getContactMessagesAction(filters?: {
 
         return { data: formatted, error: null };
     } catch (error: unknown) {
-        console.error("getContactMessagesAction Error:", error);
+        logger.error("getContactMessagesAction Error", error);
         if (error instanceof Error) {
             return { data: null, error: error.message };
         }
@@ -171,7 +172,7 @@ export async function updateContactMessageStatusAction(
         revalidatePath("/admin/contacts");
         return { data: { success: true }, error: null };
     } catch (error: unknown) {
-        console.error("updateContactMessageStatusAction Error:", error);
+        logger.error("updateContactMessageStatusAction Error", error);
         if (error instanceof Error) {
             return { data: null, error: error.message };
         }
@@ -202,7 +203,7 @@ export async function deleteContactMessageAction(
         revalidatePath("/admin/contacts");
         return { data: { success: true }, error: null };
     } catch (error: unknown) {
-        console.error("deleteContactMessageAction Error:", error);
+        logger.error("deleteContactMessageAction Error", error);
         if (error instanceof Error) {
             return { data: null, error: error.message };
         }
@@ -235,7 +236,7 @@ export async function bulkUpdateContactMessagesStatusAction(
         revalidatePath("/admin/contacts");
         return { data: { count: result.count }, error: null };
     } catch (error: unknown) {
-        console.error("bulkUpdateContactMessagesStatusAction Error:", error);
+        logger.error("bulkUpdateContactMessagesStatusAction Error", error);
         if (error instanceof Error) {
             return { data: null, error: error.message };
         }
@@ -266,7 +267,7 @@ export async function bulkDeleteContactMessagesAction(
         revalidatePath("/admin/contacts");
         return { data: { count: result.count }, error: null };
     } catch (error: unknown) {
-        console.error("bulkDeleteContactMessagesAction Error:", error);
+        logger.error("bulkDeleteContactMessagesAction Error", error);
         if (error instanceof Error) {
             return { data: null, error: error.message };
         }
@@ -339,7 +340,7 @@ export async function getClientsDirectoryAction(
 
         return { data: result, error: null };
     } catch (error: unknown) {
-        console.error("getClientsDirectoryAction Error:", error);
+        logger.error("getClientsDirectoryAction Error", error);
         if (error instanceof Error) {
             return { data: null, error: error.message };
         }

@@ -1,10 +1,11 @@
 import { Client } from "@upstash/qstash";
+import { logger } from "@/lib/logger";
 
 const qstashToken = process.env.QSTASH_TOKEN;
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 if (!qstashToken) {
-    console.warn(
+    logger.warn(
         "⚠️ Upstash QStash environment variable is missing (QSTASH_TOKEN). Workflow fallback mode enabled."
     );
 }
@@ -37,7 +38,7 @@ export interface PdfWorkflowPayload {
 export const emailQueue = {
     enqueue: async (payload: EmailWorkflowPayload) => {
         if (!qstash) {
-            console.log(
+            logger.info(
                 "ℹ️ QStash non configuré. Envoi différé simulé en dev."
             );
             return { messageId: "dev-mock-id" };
@@ -50,7 +51,7 @@ export const emailQueue = {
                 retries: 3,
             });
         } catch (error: unknown) {
-            console.error("❌ QStash Publish Email Error:", error);
+            logger.error("❌ QStash Publish Email Error", error);
             return null;
         }
     },
@@ -62,7 +63,7 @@ export const emailQueue = {
 export const pdfQueue = {
     enqueue: async (payload: PdfWorkflowPayload) => {
         if (!qstash) {
-            console.log(
+            logger.info(
                 "ℹ️ QStash non configuré. Génération PDF différée simulée en dev."
             );
             return { messageId: "dev-mock-id" };
@@ -75,7 +76,7 @@ export const pdfQueue = {
                 retries: 3,
             });
         } catch (error: unknown) {
-            console.error("❌ QStash Publish PDF Error:", error);
+            logger.error("❌ QStash Publish PDF Error", error);
             return null;
         }
     },

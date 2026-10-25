@@ -2,9 +2,13 @@ import prisma from "../src/lib/prisma";
 import { auth } from "../src/lib/auth";
 
 async function main() {
-    const name = "Cism-Ch";
-    const email = "cism-ch@hbc-logistique.fr";
-    const password = "ZZZZ0000@@@@aaaa";
+    const name = process.env.ADMIN_INITIAL_NAME || "Cism-Ch";
+    const email =
+        process.env.ADMIN_INITIAL_EMAIL || "cism-ch@hbc-logistique.fr";
+    const password =
+        process.env.ADMIN_INITIAL_PASSWORD ||
+        process.env.SEED_ADMIN_PASSWORD ||
+        "dev-only-password-please-change-in-env";
 
     console.log(`⏳ Création du compte administrateur ${name} (${email})...`);
 

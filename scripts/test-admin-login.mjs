@@ -7,8 +7,15 @@ dotenv.config();
 const prisma = new PrismaClient();
 
 async function testAdminLogin() {
-    const email = "cism-ch@hbc-logistique.fr";
-    const password = "&rM!TR65$9&z4mxq";
+    const email =
+        process.env.ADMIN_TEST_EMAIL ||
+        process.env.ADMIN_INITIAL_EMAIL ||
+        "cism-ch@hbc-logistique.fr";
+    const password =
+        process.env.ADMIN_TEST_PASSWORD ||
+        process.env.ADMIN_INITIAL_PASSWORD ||
+        process.env.SEED_ADMIN_PASSWORD ||
+        "test-password-from-env";
 
     console.log("======================================================");
     console.log("🧪 TEST DE CONNEXION DU COMPTE ADMINISTRATEUR");

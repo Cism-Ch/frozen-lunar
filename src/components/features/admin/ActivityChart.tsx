@@ -245,9 +245,9 @@ export function ActivityChart({ quotes }: ActivityChartProps) {
         maxCount,
     ];
 
-    // Espacement dynamique des étiquettes d'abscisse X
+    // Espacement dynamique des étiquettes d'abscisse X (adapté pour lisibilité mobile >= 10px)
     const xLabelStep =
-        chartData.length <= 8 ? 1 : chartData.length <= 16 ? 2 : 4;
+        chartData.length <= 8 ? 1 : chartData.length <= 16 ? 2 : 5;
 
     // Positionnement dynamique de l'infobulle (évite de recouvrir la barre active)
     const isRightHalf =
@@ -290,13 +290,13 @@ export function ActivityChart({ quotes }: ActivityChartProps) {
                         </div>
                     </div>
 
-                    {/* Colonne Droite : Barre de Contrôles Temporels Unifiée */}
-                    <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+                    {/* Colonne Droite : Barre de Contrôles Temporels Unifiée Adaptative */}
+                    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
                         {/* 1. Sélecteur de Granularité 7j / 14j / 30j / Mois */}
-                        <div className="bg-muted inline-flex items-center rounded-lg p-0.5 text-xs">
+                        <div className="bg-muted flex w-full items-center justify-between rounded-lg p-0.5 text-xs sm:w-auto">
                             <button
                                 type="button"
-                                className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
+                                className={`flex-1 rounded px-2.5 py-1.5 text-xs font-medium transition-colors sm:flex-none sm:py-1 ${
                                     timeRange === "7d"
                                         ? "bg-background text-foreground shadow-sm"
                                         : "text-muted-foreground hover:text-foreground"
@@ -307,7 +307,7 @@ export function ActivityChart({ quotes }: ActivityChartProps) {
                             </button>
                             <button
                                 type="button"
-                                className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
+                                className={`flex-1 rounded px-2.5 py-1.5 text-xs font-medium transition-colors sm:flex-none sm:py-1 ${
                                     timeRange === "14d"
                                         ? "bg-background text-foreground shadow-sm"
                                         : "text-muted-foreground hover:text-foreground"
@@ -318,7 +318,7 @@ export function ActivityChart({ quotes }: ActivityChartProps) {
                             </button>
                             <button
                                 type="button"
-                                className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
+                                className={`flex-1 rounded px-2.5 py-1.5 text-xs font-medium transition-colors sm:flex-none sm:py-1 ${
                                     timeRange === "30d"
                                         ? "bg-background text-foreground shadow-sm"
                                         : "text-muted-foreground hover:text-foreground"
@@ -329,7 +329,7 @@ export function ActivityChart({ quotes }: ActivityChartProps) {
                             </button>
                             <button
                                 type="button"
-                                className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
+                                className={`flex-1 rounded px-2.5 py-1.5 text-xs font-medium transition-colors sm:flex-none sm:py-1 ${
                                     timeRange === "month"
                                         ? "bg-background text-foreground shadow-sm"
                                         : "text-muted-foreground hover:text-foreground"
@@ -341,11 +341,11 @@ export function ActivityChart({ quotes }: ActivityChartProps) {
                         </div>
 
                         {/* 2. Stepper Temporel & Sélecteur de Mois */}
-                        <div className="bg-background/50 inline-flex items-center gap-1 rounded-lg border p-0.5 shadow-xs">
+                        <div className="bg-background/50 flex w-full items-center justify-between gap-1 rounded-lg border p-0.5 shadow-xs sm:w-auto sm:justify-start">
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="text-muted-foreground hover:text-foreground h-7 w-7"
+                                className="text-muted-foreground hover:text-foreground h-8 w-8 sm:h-7 sm:w-7"
                                 title="Période précédente"
                                 onClick={handlePreviousPeriod}
                             >
@@ -355,7 +355,7 @@ export function ActivityChart({ quotes }: ActivityChartProps) {
                             {/* Dropdown de mois rapide OU bouton Aujourd'hui */}
                             {timeRange === "month" ? (
                                 <select
-                                    className="text-foreground h-7 cursor-pointer rounded bg-transparent px-1.5 text-xs font-medium capitalize focus:outline-none"
+                                    className="text-foreground h-8 cursor-pointer rounded bg-transparent px-2 text-xs font-medium capitalize focus:outline-none sm:h-7"
                                     value={format(endDate, "yyyy-MM")}
                                     onChange={(e) => {
                                         const match = availableMonths.find(
@@ -382,7 +382,7 @@ export function ActivityChart({ quotes }: ActivityChartProps) {
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        className="h-7 gap-1 px-2 text-xs font-medium text-amber-600 hover:text-amber-700 dark:text-amber-400"
+                                        className="h-8 gap-1 px-2 text-xs font-medium text-amber-600 hover:text-amber-700 sm:h-7 dark:text-amber-400"
                                         onClick={handleResetToToday}
                                         title="Revenir à la période récente"
                                     >
@@ -395,7 +395,7 @@ export function ActivityChart({ quotes }: ActivityChartProps) {
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="text-muted-foreground hover:text-foreground h-7 w-7"
+                                className="text-muted-foreground hover:text-foreground h-8 w-8 sm:h-7 sm:w-7"
                                 title="Période suivante"
                                 disabled={isAtCurrentDate}
                                 onClick={handleNextPeriod}
@@ -414,7 +414,7 @@ export function ActivityChart({ quotes }: ActivityChartProps) {
                         <span className="text-muted-foreground text-xs font-medium">
                             Total période
                         </span>
-                        <div className="font-mono text-xl font-bold">
+                        <div className="font-mono text-lg font-bold sm:text-xl">
                             {totalPeriod}{" "}
                             <span className="text-muted-foreground text-xs font-normal">
                                 demande{totalPeriod > 1 ? "s" : ""}
@@ -426,7 +426,7 @@ export function ActivityChart({ quotes }: ActivityChartProps) {
                         <span className="text-muted-foreground text-xs font-medium">
                             Moyenne journalière
                         </span>
-                        <div className="font-mono text-xl font-bold">
+                        <div className="font-mono text-lg font-bold sm:text-xl">
                             {averageDaily}{" "}
                             <span className="text-muted-foreground text-xs font-normal">
                                 / jour
@@ -438,7 +438,7 @@ export function ActivityChart({ quotes }: ActivityChartProps) {
                         <span className="text-muted-foreground text-xs font-medium">
                             Pic d&apos;activité
                         </span>
-                        <div className="text-primary font-mono text-xl font-bold">
+                        <div className="text-primary font-mono text-lg font-bold sm:text-xl">
                             {peakDay ? peakDay.total : 0}{" "}
                             <span className="text-muted-foreground text-xs font-normal">
                                 {peakDay ? `(${peakDay.dayNumber})` : "N/A"}
@@ -450,7 +450,7 @@ export function ActivityChart({ quotes }: ActivityChartProps) {
                         <span className="text-muted-foreground text-xs font-medium">
                             Taux de validation
                         </span>
-                        <div className="font-mono text-xl font-bold text-emerald-600 dark:text-emerald-400">
+                        <div className="font-mono text-lg font-bold text-emerald-600 sm:text-xl dark:text-emerald-400">
                             {totalPeriod > 0
                                 ? Math.round(
                                       (chartData.reduce(
@@ -561,7 +561,8 @@ export function ActivityChart({ quotes }: ActivityChartProps) {
                                             x={paddingLeft - 8}
                                             y={y + 4}
                                             textAnchor="end"
-                                            className="fill-muted-foreground font-mono text-[10px]"
+                                            fontSize="11"
+                                            className="fill-muted-foreground font-mono"
                                         >
                                             {val}
                                         </text>
@@ -674,7 +675,8 @@ export function ActivityChart({ quotes }: ActivityChartProps) {
                                                 }
                                                 y={svgHeight - 10}
                                                 textAnchor="middle"
-                                                className="fill-muted-foreground font-mono text-[10px]"
+                                                fontSize="11"
+                                                className="fill-muted-foreground font-mono font-medium"
                                             >
                                                 {item.dayNumber}
                                             </text>
@@ -693,8 +695,10 @@ export function ActivityChart({ quotes }: ActivityChartProps) {
                                 animate={{ opacity: 1, scale: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.96, y: 4 }}
                                 transition={{ duration: 0.15, ease: "easeOut" }}
-                                className={`bg-popover/95 text-popover-foreground border-border/80 pointer-events-none absolute top-3 z-30 w-72 rounded-xl border p-3.5 shadow-xl backdrop-blur-md transition-all duration-200 ${
-                                    isRightHalf ? "left-12" : "right-4"
+                                className={`bg-popover/95 text-popover-foreground border-border/80 pointer-events-none absolute top-3 z-30 w-72 max-w-[calc(100vw-3rem)] rounded-xl border p-3.5 shadow-xl backdrop-blur-md transition-all duration-200 ${
+                                    isRightHalf
+                                        ? "left-4 sm:left-12"
+                                        : "right-4"
                                 }`}
                             >
                                 {/* En-tête : Date & Badge Total avec espacement aéré */}

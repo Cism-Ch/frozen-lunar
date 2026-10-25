@@ -1,5 +1,6 @@
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { logger } from "@/lib/logger";
 
 const S3_BUCKET_NAME = process.env.TIGRIS_BUCKET_NAME || "frozen-lunar-bucket";
 const S3_REGION = process.env.AWS_REGION || "auto";
@@ -11,7 +12,7 @@ const hasTigrisConfig = !!(
 );
 
 if (!hasTigrisConfig) {
-    console.warn(
+    logger.warn(
         "⚠️ Tigris environment variables are missing (TIGRIS_STORAGE_*). Upload fallback enabled."
     );
 }
@@ -45,7 +46,7 @@ export async function getUploadUrl(
     expiresIn = 300
 ): Promise<string> {
     if (!hasTigrisConfig) {
-        console.log(
+        logger.info(
             "ℹ️ Tigris non configuré. URL pré-signée simulée pour dev."
         );
         return `http://localhost:3000/api/mock-upload?key=${encodeURIComponent(key)}`;

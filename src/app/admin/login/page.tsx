@@ -9,6 +9,7 @@ import { useState, Suspense } from "react";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
+import { logger } from "@/lib/logger";
 
 function LoginForm() {
     const router = useRouter();
@@ -69,7 +70,7 @@ function LoginForm() {
             router.push(callbackUrl);
             router.refresh();
         } catch (err: unknown) {
-            console.error("Login error:", err);
+            logger.error("Login error", err);
             setError("Une erreur s'est produite lors de la connexion");
             toast.error("Erreur de connexion");
             setIsLoading(false);
@@ -119,8 +120,18 @@ function LoginForm() {
             </div>
 
             {/* Right Side - Login Form */}
-            <div className="bg-background flex items-center justify-center p-8">
+            <div className="bg-background flex items-center justify-center p-4 sm:p-8">
                 <div className="animate-in fade-in slide-in-from-right-8 mx-auto w-full max-w-sm space-y-8 duration-700">
+                    {/* En-tête d'identité de marque mobile (Norme UI/UX 2026) */}
+                    <div className="mb-2 flex items-center justify-center gap-2.5 lg:hidden">
+                        <div className="bg-primary/10 rounded-lg p-2">
+                            <Truck className="text-primary h-6 w-6" />
+                        </div>
+                        <span className="text-lg font-bold tracking-tight">
+                            HBC Logistique Admin
+                        </span>
+                    </div>
+
                     <div className="flex flex-col space-y-2 text-center lg:text-left">
                         <h1 className="text-3xl font-bold tracking-tight">
                             Bon retour

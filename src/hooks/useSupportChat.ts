@@ -28,6 +28,7 @@ import {
     getAiStatusAction,
     generateSupportAiAction,
 } from "@/app/actions/ai-actions";
+import { logger } from "@/lib/logger";
 
 export interface ChatItem {
     type:
@@ -231,15 +232,7 @@ export function useSupportChat(onClose: () => void) {
 
                 toast.success("Devis créé avec succès !");
             } catch (error: unknown) {
-                if (error instanceof Error) {
-                    console.error(
-                        "Error creating quote:",
-                        error.message,
-                        error.stack
-                    );
-                } else {
-                    console.error("Error creating quote:", error);
-                }
+                logger.error("Error creating quote in support chat", error);
                 await addTypingThenMessage(
                     "❌ Une erreur s'est produite lors de l'enregistrement. Veuillez réessayer ou utiliser notre formulaire."
                 );
@@ -401,9 +394,9 @@ export function useSupportChat(onClose: () => void) {
                     }
                 }
             } catch (aiErr: unknown) {
-                console.warn(
-                    "Échec IA cloud, basculement silencieux vers le moteur résilient local :",
-                    aiErr
+                logger.warn(
+                    "Échec IA cloud, basculement silencieux vers le moteur résilient local",
+                    { error: String(aiErr) }
                 );
             }
 
@@ -477,8 +470,8 @@ export function useSupportChat(onClose: () => void) {
             }
         } catch (error: unknown) {
             // Tier 3 : Filet de sécurité absolu en cas d'exception imprévue
-            console.error(
-                "Erreur critique support chat (Tier 3 de secours activé) :",
+            logger.error(
+                "Erreur critique support chat (Tier 3 de secours activé)",
                 error
             );
             setChatItems((prev) => {

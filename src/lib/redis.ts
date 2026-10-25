@@ -1,10 +1,11 @@
 import { Redis } from "@upstash/redis";
+import { logger } from "@/lib/logger";
 
 if (
     !process.env.UPSTASH_REDIS_REST_URL ||
     !process.env.UPSTASH_REDIS_REST_TOKEN
 ) {
-    console.warn("⚠️ Upstash Redis environment variables are missing.");
+    logger.warn("⚠️ Upstash Redis environment variables are missing.");
 }
 
 export const redis = new Redis({

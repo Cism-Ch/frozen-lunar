@@ -1,15 +1,18 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { requireAdmin } from "@/lib/auth-guard";
 import { handleError } from "@/lib/error-handler";
+import { QuoteStatus, ContactStatus } from "@prisma/client";
+import { logger } from "@/lib/logger";
 
 /**
- * Server Actions for Notification Management
+ * Server Actions pour le Centre de Notifications Opérationnelles Réelles
+ * Connecté directement aux flux de devis (PENDING) et de messagerie (UNREAD)
  */
 
-export type NotificationType = "info" | "warning" | "success" | "message";
+export type NotificationType =
+    "info" | "warning" | "success" | "message" | "quote" | "contact" | "urgent";
 
 export interface Notification {
     id: string;
@@ -18,56 +21,114 @@ export interface Notification {
     type: NotificationType;
     read: boolean;
     timestamp: string;
-    userId: string;
+    href: string;
+    isUrgent?: boolean;
+    userId?: string;
 }
 
 /**
- * Get notifications for the current user
+ * Récupère les alertes et notifications opérationnelles réelles pour l'administrateur
+ * Agrège les devis en attente et les messages non lus directement depuis PostgreSQL
  */
-export async function getNotificationsAction() {
+export async function getNotificationsAction(): Promise<{
+    success: boolean;
+    notifications: Notification[];
+    error?: string;
+}> {
     try {
-        const session = await auth.api.getSession({
-            headers: await headers(),
+        await requireAdmin();
+
+        // Récupération simultanée des devis en attente et des messages de contact non lus
+        const [pendingQuotes, unreadMessages] = await Promise.all([
+            prisma.quote.findMany({
+                where: {
+                    status: QuoteStatus.PENDING,
+                },
+                orderBy: { date: "desc" },
+                take: 8,
+                select: {
+                    id: true,
+                    clientName: true,
+                    pickupLocation: true,
+                    dropoffLocation: true,
+                    itemType: true,
+                    date: true,
+                    supplementaryInfo: true,
+                },
+            }),
+            prisma.contactMessage.findMany({
+                where: {
+                    status: ContactStatus.UNREAD,
+                },
+                orderBy: { createdAt: "desc" },
+                take: 8,
+                select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                    message: true,
+                    createdAt: true,
+                },
+            }),
+        ]);
+
+        const quoteNotifications: Notification[] = pendingQuotes.map((q) => {
+            const suppInfo = q.supplementaryInfo as {
+                urgency?: string;
+                hazardous?: boolean;
+                requiresCrane?: boolean;
+            } | null;
+            const isUrgent =
+                suppInfo?.urgency === "urgent" ||
+                suppInfo?.urgency === "very_urgent" ||
+                Boolean(suppInfo?.hazardous);
+
+            const title = isUrgent
+                ? `Devis Urgent • ${q.clientName}`
+                : `Nouveau Devis • ${q.clientName}`;
+
+            return {
+                id: `quote-${q.id}`,
+                title,
+                description: `${q.pickupLocation} ➔ ${q.dropoffLocation} (${q.itemType})`,
+                type: isUrgent ? "urgent" : "quote",
+                read: false,
+                timestamp: q.date.toISOString(),
+                href: `/admin/quotes/${encodeURIComponent(q.id)}`,
+                isUrgent,
+            };
         });
 
-        if (!session) {
-            return {
-                success: false,
-                error: "Non authentifié",
-                notifications: [],
-            };
-        }
-
-        // For now, return mock notifications
-        // In production, fetch from database
-        const notifications: Notification[] = [
-            {
-                id: "1",
-                title: "Nouveau devis reçu",
+        const contactNotifications: Notification[] = unreadMessages.map(
+            (m) => ({
+                id: `contact-${m.id}`,
+                title: `Message • ${m.firstName} ${m.lastName}`.trim(),
                 description:
-                    "Un client a demandé un devis pour un transport Paris-Lyon.",
-                type: "info",
+                    m.message.length > 75
+                        ? `${m.message.slice(0, 75)}...`
+                        : m.message,
+                type: "contact",
                 read: false,
-                timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-                userId: session.user.id,
-            },
-            {
-                id: "2",
-                title: "Paiement confirmé",
-                description:
-                    "Le paiement pour la commande #INV-2024-001 a été reçu.",
-                type: "success",
-                read: false,
-                timestamp: new Date(
-                    Date.now() - 1000 * 60 * 60 * 2
-                ).toISOString(),
-                userId: session.user.id,
-            },
-        ];
+                timestamp: m.createdAt.toISOString(),
+                href: `/admin/contacts?q=${encodeURIComponent(m.email)}`,
+                isUrgent: false,
+            })
+        );
 
-        return { success: true, notifications };
+        // Concaténation et ordonnancement chronologique décroissant
+        const combined = [...quoteNotifications, ...contactNotifications].sort(
+            (a, b) =>
+                new Date(b.timestamp).getTime() -
+                new Date(a.timestamp).getTime()
+        );
+
+        return {
+            success: true,
+            notifications: combined.slice(0, 10),
+        };
     } catch (error: unknown) {
-        console.error("Get Notifications Error:", error);
+        logger.error("Get Notifications Error", error);
         const errorResponse = handleError(error);
         return {
             success: false,
@@ -78,87 +139,81 @@ export async function getNotificationsAction() {
 }
 
 /**
- * Mark a notification as read
+ * Marque toutes les notifications comme lues
+ * Dans l'architecture dérivée, cela marque les messages de contact récents comme READ
  */
-export async function markNotificationAsReadAction(notificationId: string) {
+export async function markAllNotificationsAsReadAction(): Promise<{
+    success: boolean;
+    error?: string;
+}> {
     try {
-        const session = await auth.api.getSession({
-            headers: await headers(),
+        await requireAdmin();
+
+        // Mettre à jour les messages non lus vers le statut READ
+        await prisma.contactMessage.updateMany({
+            where: { status: ContactStatus.UNREAD },
+            data: { status: ContactStatus.READ },
         });
 
-        if (!session) {
-            return { success: false, error: "Non authentifié" };
-        }
-
-        // In production, update in database
-        // await prisma.notification.update({
-        //     where: { id: notificationId, userId: session.user.id },
-        //     data: { read: true },
-        // });
-
-        // Use notificationId when database is integrated
-        console.log("Marking notification as read:", notificationId);
-
-        revalidatePath("/admin/dashboard");
         return { success: true };
     } catch (error: unknown) {
-        console.error("Mark Notification Error:", error);
+        logger.error("Mark All Notifications Error", error);
         const errorResponse = handleError(error);
         return { success: false, error: errorResponse.message };
     }
 }
 
 /**
- * Mark all notifications as read
+ * Marque une notification spécifique comme traitée/lue
  */
-export async function markAllNotificationsAsReadAction() {
+export async function markNotificationAsReadAction(
+    notificationId: string
+): Promise<{ success: boolean; error?: string }> {
     try {
-        const session = await auth.api.getSession({
-            headers: await headers(),
-        });
+        await requireAdmin();
 
-        if (!session) {
-            return { success: false, error: "Non authentifié" };
+        if (notificationId.startsWith("contact-")) {
+            const messageId = notificationId.replace("contact-", "");
+            await prisma.contactMessage.update({
+                where: { id: messageId },
+                data: { status: ContactStatus.READ },
+            });
         }
 
-        // In production, update in database
-        // await prisma.notification.updateMany({
-        //     where: { userId: session.user.id, read: false },
-        //     data: { read: true },
-        // });
-
-        revalidatePath("/admin/dashboard");
         return { success: true };
     } catch (error: unknown) {
-        console.error("Mark All Notifications Error:", error);
+        logger.error("Mark Notification Error", error);
         const errorResponse = handleError(error);
         return { success: false, error: errorResponse.message };
     }
 }
 
 /**
- * Get unread notification count
+ * Récupère le décompte exact d'alertes non traitées
  */
-export async function getUnreadNotificationCountAction() {
+export async function getUnreadNotificationCountAction(): Promise<{
+    success: boolean;
+    count: number;
+    error?: string;
+}> {
     try {
-        const session = await auth.api.getSession({
-            headers: await headers(),
-        });
+        await requireAdmin();
 
-        if (!session) {
-            return { success: false, error: "Non authentifié", count: 0 };
-        }
+        const [pendingQuotesCount, unreadMessagesCount] = await Promise.all([
+            prisma.quote.count({
+                where: { status: QuoteStatus.PENDING },
+            }),
+            prisma.contactMessage.count({
+                where: { status: ContactStatus.UNREAD },
+            }),
+        ]);
 
-        // In production, count from database
-        // const count = await prisma.notification.count({
-        //     where: { userId: session.user.id, read: false },
-        // });
-
-        const count = 2; // Mock count
-
-        return { success: true, count };
+        return {
+            success: true,
+            count: pendingQuotesCount + unreadMessagesCount,
+        };
     } catch (error: unknown) {
-        console.error("Get Unread Count Error:", error);
+        logger.error("Get Unread Count Error", error);
         const errorResponse = handleError(error);
         return { success: false, error: errorResponse.message, count: 0 };
     }

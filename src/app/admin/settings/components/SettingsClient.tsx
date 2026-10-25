@@ -279,47 +279,46 @@ export function SettingsClient({ initialData }: SettingsClientProps) {
 
             <FadeIn direction="up" delay={0.1}>
                 <Tabs defaultValue="general" className="space-y-4">
-                    <TabsList className="flex h-auto w-full flex-wrap gap-1 sm:inline-flex sm:w-auto">
-                        <TabsTrigger
-                            value="general"
-                            className="flex-1 gap-2 sm:flex-none"
-                        >
-                            <User className="h-4 w-4" />{" "}
-                            <span className="hidden sm:inline">Général</span>
-                        </TabsTrigger>
-                        <TabsTrigger
-                            value="notifications"
-                            className="flex-1 gap-2 sm:flex-none"
-                        >
-                            <Bell className="h-4 w-4" />{" "}
-                            <span className="hidden sm:inline">
-                                Notifications
-                            </span>
-                        </TabsTrigger>
-                        <TabsTrigger
-                            value="whatsapp"
-                            className="flex-1 gap-2 sm:flex-none"
-                        >
-                            <MessageCircle className="h-4 w-4" />{" "}
-                            <span className="hidden sm:inline">
-                                WhatsApp & IA
-                            </span>
-                        </TabsTrigger>
-                        <TabsTrigger
-                            value="company"
-                            className="flex-1 gap-2 sm:flex-none"
-                        >
-                            <Building className="h-4 w-4" />{" "}
-                            <span className="hidden sm:inline">Entreprise</span>
-                        </TabsTrigger>
-                        <TabsTrigger
-                            value="security"
-                            className="flex-1 gap-2 sm:flex-none"
-                        >
-                            <Lock className="h-4 w-4" />{" "}
-                            <span className="hidden sm:inline">Sécurité</span>
-                        </TabsTrigger>
-                    </TabsList>
+                    <div className="relative w-full">
+                        <TabsList className="no-scrollbar flex h-auto w-full items-center justify-start gap-1.5 overflow-x-auto scroll-smooth p-1.5 sm:inline-flex sm:w-auto">
+                            <TabsTrigger
+                                value="general"
+                                className="inline-flex shrink-0 items-center gap-2 px-3.5 py-2 text-xs font-medium sm:text-sm"
+                            >
+                                <User className="h-4 w-4 shrink-0" />
+                                <span>Général</span>
+                            </TabsTrigger>
+                            <TabsTrigger
+                                value="notifications"
+                                className="inline-flex shrink-0 items-center gap-2 px-3.5 py-2 text-xs font-medium sm:text-sm"
+                            >
+                                <Bell className="h-4 w-4 shrink-0" />
+                                <span>Notifications</span>
+                            </TabsTrigger>
+                            <TabsTrigger
+                                value="whatsapp"
+                                className="inline-flex shrink-0 items-center gap-2 px-3.5 py-2 text-xs font-medium sm:text-sm"
+                            >
+                                <MessageCircle className="h-4 w-4 shrink-0" />
+                                <span>WhatsApp & IA</span>
+                            </TabsTrigger>
+                            <TabsTrigger
+                                value="company"
+                                className="inline-flex shrink-0 items-center gap-2 px-3.5 py-2 text-xs font-medium sm:text-sm"
+                            >
+                                <Building className="h-4 w-4 shrink-0" />
+                                <span>Entreprise</span>
+                            </TabsTrigger>
+                            <TabsTrigger
+                                value="security"
+                                className="inline-flex shrink-0 items-center gap-2 px-3.5 py-2 text-xs font-medium sm:text-sm"
+                            >
+                                <Lock className="h-4 w-4 shrink-0" />
+                                <span>Sécurité</span>
+                            </TabsTrigger>
+                        </TabsList>
+                        <div className="from-background pointer-events-none absolute top-0 right-0 bottom-0 w-6 bg-gradient-to-l to-transparent sm:hidden" />
+                    </div>
 
                     {/* 1. ONGLET GÉNÉRAL */}
                     <TabsContent value="general">

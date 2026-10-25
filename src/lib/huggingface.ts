@@ -3,6 +3,7 @@
  * Utilise l'Inference API Serverless de Hugging Face avec basculement automatique
  * sur un moteur de modèles paramétriques (Fail-Safe 100% autonome).
  */
+import { logger } from "@/lib/logger";
 
 export interface WhatsAppQuotePayload {
     id: string;
@@ -185,14 +186,13 @@ Règles strictes :
             }
         }
 
-        console.warn(
+        logger.warn(
             "Hugging Face Inference indisponible ou format inattendu. Basculement sur template local."
         );
     } catch (error: unknown) {
-        console.warn(
-            "Hugging Face warning (basculement fail-safe déclenché) :",
-            error instanceof Error ? error.message : error
-        );
+        logger.warn("Hugging Face warning (basculement fail-safe déclenché)", {
+            error: error instanceof Error ? error.message : String(error),
+        });
     }
 
     const fallbackText = formatLocalWhatsAppMessage(payload, customContext);

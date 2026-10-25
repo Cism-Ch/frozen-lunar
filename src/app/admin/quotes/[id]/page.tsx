@@ -61,6 +61,7 @@ import {
     updateQuoteStatusAction,
     addQuoteNoteAction,
 } from "@/app/actions/quote-management";
+import { logger } from "@/lib/logger";
 
 export default function QuoteModerationPage() {
     const params = useParams();
@@ -128,7 +129,7 @@ export default function QuoteModerationPage() {
                 );
             }
         } catch (err: unknown) {
-            console.error("Erreur génération WhatsApp:", err);
+            logger.error("Erreur génération WhatsApp", err);
             toast.error("Erreur inattendue lors de la préparation WhatsApp");
         } finally {
             setGeneratingWhatsApp(false);
@@ -178,16 +179,8 @@ export default function QuoteModerationPage() {
                 );
             }
         } catch (error: unknown) {
-            if (error instanceof Error) {
-                console.error(
-                    "Error during transport estimation:",
-                    error.message,
-                    error.stack
-                );
-            } else {
-                console.error("Error during transport estimation:", error);
-            }
-            toast.error("Erreur lors de l&apos;estimation");
+            logger.error("Error during transport estimation", error);
+            toast.error("Erreur lors de l'estimation");
         } finally {
             setEstimating(false);
         }
@@ -209,16 +202,8 @@ export default function QuoteModerationPage() {
             );
             setEmailDraft(draft);
         } catch (error: unknown) {
-            if (error instanceof Error) {
-                console.error(
-                    "Error generating AI email:",
-                    error.message,
-                    error.stack
-                );
-            } else {
-                console.error("Error generating AI email:", error);
-            }
-            toast.error("Erreur de génération d&apos;email");
+            logger.error("Error generating AI email", error);
+            toast.error("Erreur de génération d'email");
             setEmailOpen(false);
         } finally {
             setGeneratingEmail(false);
@@ -244,10 +229,8 @@ export default function QuoteModerationPage() {
                     setQuote(result.quote as Quote);
                 }
             } catch (error: unknown) {
-                console.error("Error applying estimation:", error);
-                toast.error(
-                    "Erreur lors de l&apos;application de l&apos;estimation"
-                );
+                logger.error("Error applying estimation", error);
+                toast.error("Erreur lors de l'application de l'estimation");
             }
         }
     };
@@ -267,7 +250,7 @@ export default function QuoteModerationPage() {
                     router.push("/admin/quotes");
                 }
             } catch (error: unknown) {
-                console.error("Error loading quote:", error);
+                logger.error("Error loading quote", error);
                 toast.error("Erreur lors du chargement du devis");
                 router.push("/admin/quotes");
             } finally {
@@ -298,7 +281,7 @@ export default function QuoteModerationPage() {
                 toast.error(result.error || "Erreur lors de la sauvegarde");
             }
         } catch (error: unknown) {
-            console.error("Error saving changes:", error);
+            logger.error("Error saving changes", error);
             toast.error("Erreur lors de la sauvegarde");
         }
     };
@@ -319,7 +302,7 @@ export default function QuoteModerationPage() {
                 toast.error(result.error || "Erreur lors de la mise à jour");
             }
         } catch (error: unknown) {
-            console.error("Error updating status:", error);
+            logger.error("Error updating status", error);
             toast.error("Erreur lors de la mise à jour du statut");
         }
     };
@@ -338,7 +321,7 @@ export default function QuoteModerationPage() {
     if (!quote) return null;
 
     return (
-        <div className="w-full space-y-6">
+        <div className="w-full space-y-6 pb-24 lg:pb-0">
             {/* Header */}
             <div className="flex flex-col gap-4">
                 <div className="flex items-start gap-3 sm:gap-4">
@@ -413,31 +396,31 @@ export default function QuoteModerationPage() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="relative space-y-8 pl-6">
+                            <div className="relative space-y-8 pl-3 sm:pl-6">
                                 {/* Dotted Line */}
-                                <div className="border-muted-foreground/20 absolute top-3 bottom-3 left-6 w-px border-l-2 border-dashed" />
+                                <div className="border-muted-foreground/20 absolute top-3 bottom-3 left-3 w-px border-l-2 border-dashed sm:left-6" />
 
                                 {/* Pickup */}
-                                <div className="relative pl-8">
+                                <div className="relative pl-6 sm:pl-8">
                                     <div className="bg-background absolute top-0 left-[-5px] h-4 w-4 rounded-full border-2 border-green-500 shadow-sm" />
                                     <div className="bg-muted/10 rounded-lg border p-4">
                                         <h4 className="mb-1 text-xs font-semibold tracking-wider text-green-600 uppercase">
                                             Départ
                                         </h4>
-                                        <p className="text-lg font-medium">
+                                        <p className="text-base font-medium sm:text-lg">
                                             {quote.pickup}
                                         </p>
                                     </div>
                                 </div>
 
                                 {/* Dropoff */}
-                                <div className="relative pl-8">
+                                <div className="relative pl-6 sm:pl-8">
                                     <div className="bg-background absolute top-0 left-[-5px] h-4 w-4 rounded-full border-2 border-red-500 shadow-sm" />
                                     <div className="bg-muted/10 rounded-lg border p-4">
                                         <h4 className="mb-1 text-xs font-semibold tracking-wider text-red-600 uppercase">
                                             Arrivée
                                         </h4>
-                                        <p className="text-lg font-medium">
+                                        <p className="text-base font-medium sm:text-lg">
                                             {quote.dropoff}
                                         </p>
                                     </div>
@@ -923,6 +906,53 @@ export default function QuoteModerationPage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {/* Sticky Mobile Decision Bar (Norme SaaS B2B 2026 - Accès 1-clic d'une seule main) */}
+            <div className="border-border/80 bg-background/95 fixed right-0 bottom-0 left-0 z-30 border-t p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-lg backdrop-blur-md lg:hidden">
+                <div className="mx-auto flex max-w-md items-center justify-between gap-2">
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-11 flex-1 border-emerald-300 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700/50 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
+                        onClick={() => handleStatusChange("Validé")}
+                    >
+                        <CheckCircle className="mr-1.5 h-4 w-4 text-emerald-600" />
+                        <span>Valider</span>
+                    </Button>
+
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-11 flex-1 border-red-200 text-xs font-semibold text-red-600 hover:bg-red-50 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-950/40"
+                        onClick={() => handleStatusChange("Refusé")}
+                    >
+                        <XCircle className="mr-1.5 h-4 w-4 text-red-600" />
+                        <span>Refuser</span>
+                    </Button>
+
+                    <Button
+                        size="sm"
+                        className="h-11 bg-emerald-600 px-3 text-white hover:bg-emerald-700"
+                        onClick={() => handleOpenWhatsAppDialog()}
+                        aria-label="Contacter sur WhatsApp"
+                        title="WhatsApp 1-Clic"
+                    >
+                        <MessageCircle className="h-4 w-4" />
+                    </Button>
+
+                    {hasChanges && (
+                        <Button
+                            size="sm"
+                            className="bg-primary text-primary-foreground h-11 px-3 shadow-xs"
+                            onClick={handleSaveChanges}
+                            aria-label="Enregistrer modifications"
+                            title="Enregistrer"
+                        >
+                            <Save className="h-4 w-4" />
+                        </Button>
+                    )}
+                </div>
+            </div>
         </div>
     );
 }

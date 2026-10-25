@@ -15,6 +15,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
+import { logger } from "@/lib/logger";
 
 export default function AdminInitPage() {
     const router = useRouter();
@@ -35,10 +36,10 @@ export default function AdminInitPage() {
 
                 // Afficher les erreurs de configuration au lieu de les masquer
                 if (!response.ok && data.error) {
-                    console.error("❌ Erreur de configuration:", data.error);
-                    if (data.details) {
-                        console.error("Détails:", data.details);
-                    }
+                    logger.error("❌ Erreur de configuration", undefined, {
+                        error: data.error,
+                        details: data.details,
+                    });
                     toast.error(
                         data.error + (data.details ? ": " + data.details : "")
                     );
@@ -46,7 +47,7 @@ export default function AdminInitPage() {
 
                 setHasAdmin(data.hasAdmin);
             } catch (err: unknown) {
-                console.error("❌ Erreur lors de la vérification admin:", err);
+                logger.error("❌ Erreur lors de la vérification admin", err);
                 // Afficher une erreur utilisateur si la vérification échoue
                 toast.error(
                     "Impossible de vérifier la configuration. Voir la console pour les détails."
@@ -132,7 +133,7 @@ export default function AdminInitPage() {
                 router.push("/admin/dashboard");
             }
         } catch (err: unknown) {
-            console.error("❌ Erreur lors de l'initialisation:", err);
+            logger.error("❌ Erreur lors de l'initialisation", err);
             const errorMessage =
                 err instanceof Error
                     ? err.message

@@ -48,12 +48,12 @@ export function AddUserDialog() {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button>
+                <Button className="w-full sm:w-auto">
                     <Plus className="mr-2 h-4 w-4" />
                     Ajouter un utilisateur
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-[440px]">
                 <form onSubmit={handleSubmit}>
                     <DialogHeader>
                         <DialogTitle>Ajouter un utilisateur</DialogTitle>
@@ -63,20 +63,27 @@ export function AddUserDialog() {
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="name" className="text-right">
+                        <div className="space-y-1.5 sm:grid sm:grid-cols-4 sm:items-center sm:gap-4 sm:space-y-0">
+                            <Label
+                                htmlFor="name"
+                                className="text-left text-sm font-medium sm:text-right"
+                            >
                                 Nom
                             </Label>
                             <Input
                                 id="name"
                                 name="name"
                                 className="col-span-3"
+                                placeholder="Jean Dupont"
                                 required
                                 minLength={2}
                             />
                         </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="email" className="text-right">
+                        <div className="space-y-1.5 sm:grid sm:grid-cols-4 sm:items-center sm:gap-4 sm:space-y-0">
+                            <Label
+                                htmlFor="email"
+                                className="text-left text-sm font-medium sm:text-right"
+                            >
                                 Email
                             </Label>
                             <Input
@@ -84,16 +91,20 @@ export function AddUserDialog() {
                                 name="email"
                                 type="email"
                                 className="col-span-3"
+                                placeholder="nom@hbclogistique.com"
                                 required
                             />
                         </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="role" className="text-right">
+                        <div className="space-y-1.5 sm:grid sm:grid-cols-4 sm:items-center sm:gap-4 sm:space-y-0">
+                            <Label
+                                htmlFor="role"
+                                className="text-left text-sm font-medium sm:text-right"
+                            >
                                 Rôle
                             </Label>
                             <Select name="role" defaultValue="user">
-                                <SelectTrigger className="col-span-3">
-                                    <SelectValue placeholder="Selectionner un rôle" />
+                                <SelectTrigger className="col-span-3 w-full">
+                                    <SelectValue placeholder="Sélectionner un rôle" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="user">
@@ -111,22 +122,39 @@ export function AddUserDialog() {
                                 </SelectContent>
                             </Select>
                         </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="password" className="text-right">
-                                Password
+                        <div className="space-y-1.5 sm:grid sm:grid-cols-4 sm:items-center sm:gap-4 sm:space-y-0">
+                            <Label
+                                htmlFor="password"
+                                className="text-left text-sm font-medium sm:text-right"
+                            >
+                                Mot de passe
                             </Label>
                             <Input
                                 id="password"
                                 name="password"
                                 type="password"
                                 className="col-span-3"
+                                placeholder="••••••••"
                                 required
                                 minLength={8}
                             />
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button type="submit" disabled={isLoading}>
+                    <DialogFooter className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setOpen(false)}
+                            disabled={isLoading}
+                            className="h-10 w-full sm:w-auto"
+                        >
+                            Annuler
+                        </Button>
+                        <Button
+                            type="submit"
+                            disabled={isLoading}
+                            className="h-10 w-full sm:w-auto"
+                        >
                             {isLoading && (
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             )}

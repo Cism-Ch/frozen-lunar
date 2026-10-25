@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/seed
@@ -121,7 +122,7 @@ export async function POST() {
                     status: "Créé avec succès",
                 });
             } catch (error: unknown) {
-                console.error(`❌ Échec de création de ${user.email}:`, error);
+                logger.error(`❌ Échec de création de ${user.email}`, error);
                 results.push({
                     email: user.email,
                     name: user.name,
@@ -146,7 +147,7 @@ export async function POST() {
             },
         });
     } catch (error: unknown) {
-        console.error("❌ Erreur globale lors du seed:", error);
+        logger.error("❌ Erreur globale lors du seed", error);
 
         if (error instanceof Error) {
             // Erreur de configuration DB

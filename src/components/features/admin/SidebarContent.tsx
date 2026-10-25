@@ -24,6 +24,7 @@ interface SidebarContentProps {
     pathname: string;
     isLoggingOut: boolean;
     onLogout: () => void;
+    onNavigate?: () => void;
 }
 
 const navItems = [
@@ -58,6 +59,7 @@ export function SidebarContent({
     pathname,
     isLoggingOut,
     onLogout,
+    onNavigate,
 }: SidebarContentProps) {
     const prefersReducedMotion = usePrefersReducedMotion();
 
@@ -66,6 +68,7 @@ export function SidebarContent({
             <div className="flex h-16 items-center border-b px-6">
                 <MotionLink
                     href="/admin/dashboard"
+                    onClick={onNavigate}
                     className="flex items-center gap-2 text-xl font-bold"
                     whileHover={prefersReducedMotion ? {} : { scale: 1.02 }}
                     transition={transitions.spring}
@@ -94,6 +97,7 @@ export function SidebarContent({
                     >
                         <Link
                             href={item.href}
+                            onClick={onNavigate}
                             className={cn(
                                 "hover:bg-primary/5 hover:text-primary relative flex items-center gap-3 overflow-hidden rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
                                 pathname === item.href
@@ -140,7 +144,7 @@ export function SidebarContent({
                         className="w-full justify-start gap-3"
                         asChild
                     >
-                        <Link href="/">
+                        <Link href="/" onClick={onNavigate}>
                             <Home className="h-4 w-4" />
                             Retour au site
                         </Link>

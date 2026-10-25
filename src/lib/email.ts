@@ -1,15 +1,16 @@
 import { Resend } from "resend";
+import { logger } from "@/lib/logger";
 
 // Use the correct environment variable name
 const apiKey = process.env.RESEND_KEY || process.env.AUTH_RESEND_KEY;
 
 if (!apiKey) {
     if (process.env.NODE_ENV === "production") {
-        console.error(
+        logger.error(
             "❌ [CONFIGURATION SÉCURITÉ] RESEND_KEY est manquante en production. Les envois de mails transactionnels échoueront."
         );
     } else {
-        console.warn("⚠️ [DEV] RESEND_KEY est absente en environnement local.");
+        logger.warn("⚠️ [DEV] RESEND_KEY est absente en environnement local.");
     }
 }
 

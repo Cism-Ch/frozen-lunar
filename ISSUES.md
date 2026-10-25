@@ -42,11 +42,11 @@
 - **Priorité** : P1 (Gouvernance & Qualité)
 - **Type** : Règle Qualité / Refactor
 - **Statut** : 🟢 Fixed & Verified
-- **Composants** : [eslint.config.mjs](file:///c:/Users/hanok/Dev/Personal-Project/frozen-lunar/eslint.config.mjs), [.agents/AGENTS.md](file:///c:/Users/hanok/Dev/Personal-Project/frozen-lunar/.agents/AGENTS.md), [src/lib/support-agent/quote-flow.ts](file:///c:/Users/hanok/Dev/Personal-Project/frozen-lunar/src/lib/support-agent/quote-flow.ts), suite de tests `tests/`
+- **Composants** : [eslint.config.mjs](file:///c:/Users/hanok/Dev/Personal-Project/frozen-lunar/eslint.config.mjs), [AGENTS.md](file:///c:/Users/hanok/Dev/Personal-Project/frozen-lunar/AGENTS.md), [src/lib/support-agent/quote-flow.ts](file:///c:/Users/hanok/Dev/Personal-Project/frozen-lunar/src/lib/support-agent/quote-flow.ts), suite de tests `tests/`
 - **Rapporté** : 2026-07-26
 - **Description** : Imposition de la règle **Zero `any`** sur l'ensemble du projet.
 - **Solution appliquée** :
     1. Ajout de la règle `"@typescript-eslint/no-explicit-any": "error"` dans [eslint.config.mjs](file:///c:/Users/hanok/Dev/Personal-Project/frozen-lunar/eslint.config.mjs).
-    2. Mise à jour des conventions du projet dans [.agents/AGENTS.md](file:///c:/Users/hanok/Dev/Personal-Project/frozen-lunar/.agents/AGENTS.md).
+    2. Mise à jour des conventions du projet dans [AGENTS.md](file:///c:/Users/hanok/Dev/Personal-Project/frozen-lunar/AGENTS.md).
     3. Nettoyage de tous les types `any` restants dans le code applicatif et la suite de tests (remplacés par des types concrets, generics et `unknown`).
 - **Vérifié** : tsc ✅ | lint ✅ | vitest ✅

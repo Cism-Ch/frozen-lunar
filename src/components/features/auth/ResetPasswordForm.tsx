@@ -24,6 +24,7 @@ import {
     verifyResetTokenAction,
     resetPasswordWithTokenAction,
 } from "@/app/actions/auth-actions";
+import { logger } from "@/lib/logger";
 
 interface ResetPasswordFormProps {
     token?: string;
@@ -94,7 +95,7 @@ export function ResetPasswordForm({
                 toast.success("Jeton vérifié : Modification autorisée");
             } catch (err: unknown) {
                 if (!isMounted) return;
-                console.error("Erreur de vérification du jeton:", err);
+                logger.error("Erreur de vérification du jeton", err);
                 setStatus("invalid");
                 setErrorMessage(
                     "Une erreur est survenue lors de la validation du lien."
@@ -222,7 +223,7 @@ export function ResetPasswordForm({
             setStatus("success");
             toast.success("Mot de passe mis à jour avec succès !");
         } catch (err: unknown) {
-            console.error("Erreur reset password submit:", err);
+            logger.error("Erreur reset password submit", err);
             setStatus("authorized");
             setErrorMessage(
                 "Une erreur inattendue est survenue. Veuillez réessayer."

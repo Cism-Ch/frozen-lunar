@@ -14,6 +14,7 @@ import {
     type QuoteSummaryData,
 } from "./QuoteSummaryDialog";
 import { createQuoteAction } from "@/app/actions/quote-management";
+import { logger } from "@/lib/logger";
 
 // Sub-components
 import { WizardHeader } from "./quote-wizard/WizardHeader";
@@ -97,17 +98,12 @@ export function QuoteWizard() {
                 email: values.email,
             });
         } catch (error: unknown) {
+            logger.error("Quote submission error", error);
             if (error instanceof Error) {
-                console.error(
-                    "Quote submission error:",
-                    error.message,
-                    error.stack
-                );
                 toast.error(error.message);
             } else {
-                console.error("Quote submission error:", error);
                 toast.error(
-                    "Une erreur est survenue lors de l&apos;envoi de la demande."
+                    "Une erreur est survenue lors de l'envoi de la demande."
                 );
             }
         } finally {
@@ -186,7 +182,7 @@ export function QuoteWizard() {
                 onNext={nextStep}
                 onPrev={prevStep}
                 onSubmit={form.handleSubmit(onSubmit, (errors) => {
-                    console.error("Form validation errors:", errors);
+                    logger.error("Form validation errors", errors);
                     toast.error("Veuillez vérifier les informations saisies.");
                 })}
             />

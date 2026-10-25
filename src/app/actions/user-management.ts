@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache";
 import { createUserSchemaSimple } from "@/lib/validation";
 import { handleError } from "@/lib/error-handler";
 import { ERROR_CODES } from "@/lib/error-codes";
+import { logger } from "@/lib/logger";
 
 /**
  * Actions serveur pour la gestion des utilisateurs
@@ -87,7 +88,7 @@ export async function createUserAction(formData: FormData) {
             message: `Utilisateur ${validated.name} créé avec succès`,
         };
     } catch (error: unknown) {
-        console.error("❌ Erreur lors de la création d'utilisateur:", error);
+        logger.error("❌ Erreur lors de la création d'utilisateur", error);
 
         // Gestion des erreurs de validation Zod
         if (error instanceof z.ZodError) {
@@ -169,7 +170,7 @@ export async function deleteUserAction(formData: FormData) {
             message: `Utilisateur ${userToDelete.name} supprimé avec succès`,
         };
     } catch (error: unknown) {
-        console.error("❌ Erreur lors de la suppression d'utilisateur:", error);
+        logger.error("❌ Erreur lors de la suppression d'utilisateur", error);
 
         // Utiliser le gestionnaire d'erreurs centralisé
         const errorResponse = handleError(error);

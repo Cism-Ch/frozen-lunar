@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { hashPassword, verifyPassword } from "better-auth/crypto";
 import { formatZodError } from "@/lib/validation";
+import { logger } from "@/lib/logger";
 
 /**
  * Schémas de validation Zod internes pour les différents onglets de paramètres
@@ -151,7 +152,7 @@ export async function getAdminSettingsAction(): Promise<{
             error: null,
         };
     } catch (error: unknown) {
-        console.error("❌ Erreur getAdminSettingsAction:", error);
+        logger.error("❌ Erreur getAdminSettingsAction", error);
         if (error instanceof Error) {
             return { data: null, error: error.message };
         }
@@ -205,7 +206,7 @@ export async function updateAdminProfileAction(input: unknown): Promise<{
             error: null,
         };
     } catch (error: unknown) {
-        console.error("❌ Erreur updateAdminProfileAction:", error);
+        logger.error("❌ Erreur updateAdminProfileAction", error);
         if (error instanceof z.ZodError) {
             return { data: null, error: formatZodError(error) };
         }
@@ -266,7 +267,7 @@ export async function updateCompanySettingsAction(input: unknown): Promise<{
             error: null,
         };
     } catch (error: unknown) {
-        console.error("❌ Erreur updateCompanySettingsAction:", error);
+        logger.error("❌ Erreur updateCompanySettingsAction", error);
         if (error instanceof z.ZodError) {
             return { data: null, error: formatZodError(error) };
         }
@@ -319,7 +320,7 @@ export async function updateWhatsAppSettingsAction(
             error: null,
         };
     } catch (error: unknown) {
-        console.error("❌ Erreur updateWhatsAppSettingsAction:", error);
+        logger.error("❌ Erreur updateWhatsAppSettingsAction", error);
         if (error instanceof z.ZodError) {
             return { data: null, error: formatZodError(error) };
         }
@@ -365,7 +366,7 @@ export async function updateNotificationSettingsAction(
             error: null,
         };
     } catch (error: unknown) {
-        console.error("❌ Erreur updateNotificationSettingsAction:", error);
+        logger.error("❌ Erreur updateNotificationSettingsAction", error);
         if (error instanceof z.ZodError) {
             return { data: null, error: formatZodError(error) };
         }
@@ -441,7 +442,7 @@ export async function changeAdminPasswordAction(input: unknown): Promise<{
             error: null,
         };
     } catch (error: unknown) {
-        console.error("❌ Erreur changeAdminPasswordAction:", error);
+        logger.error("❌ Erreur changeAdminPasswordAction", error);
         if (error instanceof z.ZodError) {
             return { data: null, error: formatZodError(error) };
         }

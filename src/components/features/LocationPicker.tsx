@@ -14,6 +14,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { logger } from "@/lib/logger";
 
 interface LocationPickerProps extends Omit<
     React.HTMLAttributes<HTMLDivElement>,
@@ -51,7 +52,7 @@ export const LocationPicker = React.forwardRef<
                     toast.success("Position trouvée !");
                 },
                 (error) => {
-                    console.error(error);
+                    logger.error("Erreur de géolocalisation", error);
                     toast.error("Impossible de récupérer votre position.");
                     setIsLoading(false);
                 }

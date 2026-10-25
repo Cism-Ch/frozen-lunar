@@ -9,6 +9,7 @@ import {
     GeneratedWhatsAppMessage,
 } from "@/lib/huggingface";
 import { safeFormatDate } from "@/lib/date-utils";
+import { logger } from "@/lib/logger";
 
 const prepareWhatsAppSchema = z.object({
     quoteId: z.string().min(1, "L'identifiant du devis est requis"),
@@ -55,7 +56,7 @@ export async function prepareWhatsAppQuoteMessageAction(
 
         return { data: result, error: null };
     } catch (error: unknown) {
-        console.error("Erreur prepareWhatsAppQuoteMessageAction :", error);
+        logger.error("Erreur prepareWhatsAppQuoteMessageAction", error);
         if (error instanceof z.ZodError) {
             return {
                 data: null,
@@ -94,7 +95,7 @@ export async function logWhatsAppContactAction(
 
         return { data: true, error: null };
     } catch (error: unknown) {
-        console.error("Erreur logWhatsAppContactAction :", error);
+        logger.error("Erreur logWhatsAppContactAction", error);
         return { data: false, error: "Impossible de consigner l'action" };
     }
 }
@@ -154,7 +155,7 @@ export async function getQuotesByPhoneAction(input: unknown): Promise<{
             error: null,
         };
     } catch (error: unknown) {
-        console.error("Erreur getQuotesByPhoneAction :", error);
+        logger.error("Erreur getQuotesByPhoneAction", error);
         if (error instanceof Error) {
             return { data: null, error: error.message };
         }

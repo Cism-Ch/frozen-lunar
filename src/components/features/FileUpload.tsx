@@ -4,6 +4,7 @@ import React, { useState, useRef } from "react";
 import { Upload, FileText, CheckCircle2, X, Loader2 } from "lucide-react";
 import { getPresignedUploadUrlAction } from "@/app/actions/upload-management";
 import { toast } from "sonner";
+import { logger } from "@/lib/logger";
 
 export interface UploadedFile {
     fileName: string;
@@ -98,7 +99,7 @@ export function FileUpload({
             toast.success(`Fichier ${file.name} téléversé avec succès`);
             onUploadSuccess?.(fileData);
         } catch (error: unknown) {
-            console.error("Upload Error:", error);
+            logger.error("Upload Error", error);
             const msg =
                 error instanceof Error
                     ? error.message

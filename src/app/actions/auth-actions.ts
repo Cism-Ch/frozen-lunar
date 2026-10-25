@@ -13,6 +13,7 @@ import {
     formatZodError,
 } from "@/lib/validation";
 import { z } from "zod";
+import { logger } from "@/lib/logger";
 
 /**
  * Type pour masquer un email à l'affichage (ex: a***n@domain.com)
@@ -121,17 +122,19 @@ export async function requestPasswordResetAction(
                         expiresInMinutes: 60,
                     }),
                 });
-                console.log(
-                    `📧 [RESET PASSWORD] Courriel de réinitialisation envoyé à ${user.email} (rôle: ${userRole})`
+                logger.info(
+                    `📧 [RESET PASSWORD] Courriel de réinitialisation envoyé à ${user.email}`,
+                    { email: user.email, role: userRole }
                 );
             } else {
-                console.warn(
-                    `⚠️ [DEV RESET PASSWORD] RESEND_KEY non configurée. Lien direct pour ${user.email} (${userRole}) : ${resetUrl}`
+                logger.warn(
+                    `⚠️ [DEV RESET PASSWORD] RESEND_KEY non configurée. Lien direct généré pour ${user.email}`,
+                    { email: user.email, role: userRole, resetUrl }
                 );
             }
         } catch (emailError: unknown) {
-            console.error(
-                "❌ [RESET PASSWORD] Erreur d'envoi du mail Resend:",
+            logger.error(
+                "❌ [RESET PASSWORD] Erreur d'envoi du mail Resend",
                 emailError
             );
         }
@@ -146,7 +149,7 @@ export async function requestPasswordResetAction(
             error: null,
         };
     } catch (error: unknown) {
-        console.error("❌ Erreur requestPasswordResetAction:", error);
+        logger.error("❌ Erreur requestPasswordResetAction", error);
         if (error instanceof z.ZodError) {
             return { data: null, error: formatZodError(error) };
         }
@@ -222,7 +225,7 @@ export async function verifyResetTokenAction(
             error: null,
         };
     } catch (error: unknown) {
-        console.error("❌ Erreur verifyResetTokenAction:", error);
+        logger.error("❌ Erreur verifyResetTokenAction", error);
         if (error instanceof z.ZodError) {
             return { data: null, error: formatZodError(error) };
         }
@@ -344,7 +347,7 @@ export async function resetPasswordWithTokenAction(
             error: null,
         };
     } catch (error: unknown) {
-        console.error("❌ Erreur resetPasswordWithTokenAction:", error);
+        logger.error("❌ Erreur resetPasswordWithTokenAction", error);
         if (error instanceof z.ZodError) {
             return { data: null, error: formatZodError(error) };
         }

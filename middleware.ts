@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
+import { logger } from "@/lib/logger";
 
 /**
  * Middleware Next.js pour la protection des routes et le rate limiting
@@ -158,7 +159,7 @@ export async function middleware(request: NextRequest) {
             return res;
         } catch (error: unknown) {
             // En cas d'indisponibilité temporaire de Redis, autoriser la requête pour ne pas bloquer les utilisateurs
-            console.error("❌ Erreur Rate Limiting:", error);
+            logger.error("❌ Erreur Rate Limiting", error);
             return NextResponse.next();
         }
     }

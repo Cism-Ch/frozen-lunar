@@ -9,6 +9,7 @@ import {
     EstimationResult,
 } from "@/lib/gemini";
 import { requireAdmin } from "@/lib/auth-guard";
+import { logger } from "@/lib/logger";
 
 // Schémas de validation Zod
 const estimateTransportSchema = z.object({
@@ -63,7 +64,7 @@ export async function getAiStatusAction(): Promise<{
             error: null,
         };
     } catch (error: unknown) {
-        console.error("Erreur getAiStatusAction :", error);
+        logger.error("Erreur getAiStatusAction", error);
         return {
             data: {
                 isAvailable: false,
@@ -91,7 +92,7 @@ export async function estimateTransportAction(
         );
         return { data: result, error: null };
     } catch (error: unknown) {
-        console.error("Erreur estimateTransportAction :", error);
+        logger.error("Erreur estimateTransportAction", error);
         if (error instanceof z.ZodError) {
             return {
                 data: null,
@@ -127,7 +128,7 @@ export async function draftEmailAction(input: unknown): Promise<{
         );
         return { data: draft, error: null };
     } catch (error: unknown) {
-        console.error("Erreur draftEmailAction :", error);
+        logger.error("Erreur draftEmailAction", error);
         if (error instanceof z.ZodError) {
             return {
                 data: null,
@@ -174,9 +175,9 @@ export async function generateSupportAiAction(input: unknown): Promise<{
             error: null,
         };
     } catch (error: unknown) {
-        console.warn(
-            "generateSupportAiAction exception (repli fail-safe automatique) :",
-            error instanceof Error ? error.message : error
+        logger.warn(
+            "generateSupportAiAction exception (repli fail-safe automatique)",
+            { error: error instanceof Error ? error.message : String(error) }
         );
         return {
             data: null,

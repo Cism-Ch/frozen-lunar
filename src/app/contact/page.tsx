@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Mail, Phone, MapPin, Send, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { sendContactMessageAction } from "@/app/actions/contact";
+import { logger } from "@/lib/logger";
 import {
     FadeIn,
     ScrollReveal,
@@ -238,8 +239,8 @@ export default function ContactPage() {
                                                             );
                                                         }
                                                     } catch (err: unknown) {
-                                                        console.error(
-                                                            "Contact submit error:",
+                                                        logger.error(
+                                                            "Contact submit error",
                                                             err
                                                         );
                                                         toast.error(

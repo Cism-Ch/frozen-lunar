@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { handleError } from "@/lib/error-handler";
 import demoQuotes from "../../../prisma/demo-data.json";
 import { QuoteStatus, QuoteSource } from "@prisma/client";
+import { logger } from "@/lib/logger";
 
 /**
  * Server Action pour injecter les données de démonstration dans la base PostgreSQL
@@ -69,7 +70,7 @@ export async function injectDemoDataAction() {
             error: null,
         };
     } catch (error: unknown) {
-        console.error("❌ Erreur lors de l'injection des données démo:", error);
+        logger.error("❌ Erreur lors de l'injection des données démo", error);
         return {
             data: null,
             error: handleError(error).message,
@@ -103,8 +104,8 @@ export async function clearDemoDataAction() {
             error: null,
         };
     } catch (error: unknown) {
-        console.error(
-            "❌ Erreur lors de la suppression des données démo:",
+        logger.error(
+            "❌ Erreur lors de la suppression des données démo",
             error
         );
         return {

@@ -3,6 +3,7 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import prisma from "@/lib/prisma";
 import { resend, EMAIL_SENDER } from "@/lib/email";
 import { PasswordResetEmail } from "@/components/emails/PasswordResetEmail";
+import { logger } from "@/lib/logger";
 
 /**
  * Configuration de Better Auth avec Prisma adapter
@@ -24,7 +25,7 @@ if (!authSecret) {
             "❌ [FATAL SECURITY] BETTER_AUTH_SECRET est manquant en production. Impossible d'initialiser Better-Auth sans clé secrète robuste."
         );
     }
-    console.warn(
+    logger.warn(
         "⚠️ [SECURITY WARNING] BETTER_AUTH_SECRET n'est pas défini en local. Utilisation d'une clé temporaire réservée au développement."
     );
 }
@@ -65,18 +66,21 @@ export const auth = betterAuth({
                             expiresInMinutes: 60,
                         }),
                     });
-                    console.log(
-                        `📧 [RESET PASSWORD] Email envoyé avec succès à ${user.email} (rôle: ${userRole})`
+                    logger.info(
+                        `📧 [RESET PASSWORD] Email envoyé avec succès à ${user.email} (rôle: ${userRole})`,
+                        { email: user.email, role: userRole }
                     );
                 } else {
-                    console.warn(
-                        `⚠️ [DEV RESET PASSWORD] Clé Resend absente. Lien généré pour ${user.email} (${userRole}) : ${resetUrl}`
+                    logger.warn(
+                        `⚠️ [DEV RESET PASSWORD] Clé Resend absente. Lien généré pour ${user.email} (${userRole}) : ${resetUrl}`,
+                        { email: user.email, role: userRole }
                     );
                 }
             } catch (mailError: unknown) {
-                console.error(
-                    "❌ [RESET PASSWORD] Erreur lors de l'envoi de l'email:",
-                    mailError
+                logger.error(
+                    "❌ [RESET PASSWORD] Erreur lors de l'envoi de l'email",
+                    mailError,
+                    { email: user.email, role: userRole }
                 );
             }
         },

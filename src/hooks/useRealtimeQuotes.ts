@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 interface RealtimeOptions {
     onQuoteInserted?: (newQuote: unknown) => void;
@@ -27,11 +28,9 @@ export function useRealtimeQuotes(options?: RealtimeOptions) {
 
     const handleRealtimeEvent = useCallback(
         (payload: { eventType: string; new: unknown; old: unknown }) => {
-            console.log(
-                "⚡ Supabase Realtime Event:",
-                payload.eventType,
-                payload
-            );
+            logger.info("⚡ Supabase Realtime Event", {
+                eventType: payload.eventType,
+            });
 
             if (payload.eventType === "INSERT") {
                 if (enableToast) {
@@ -58,7 +57,7 @@ export function useRealtimeQuotes(options?: RealtimeOptions) {
 
     useEffect(() => {
         if (!supabase) {
-            console.warn(
+            logger.warn(
                 "⚠️ Supabase Realtime non initialisé. Variables NEXT_PUBLIC_SUPABASE_* manquantes."
             );
             return;

@@ -1,11 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { safeFormatDate, safeParseDate } from "@/lib/date-utils";
+import { logger } from "@/lib/logger";
 
 describe("Date Utilities (date-utils.ts)", () => {
     let warnSpy: ReturnType<typeof vi.spyOn>;
 
     beforeEach(() => {
-        warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+        warnSpy = vi.spyOn(logger, "warn").mockImplementation(() => {});
     });
 
     afterEach(() => {

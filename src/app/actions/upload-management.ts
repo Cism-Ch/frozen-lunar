@@ -4,6 +4,7 @@ import { getUploadUrl, getPublicUrl } from "@/lib/storage";
 import { handleError } from "@/lib/error-handler";
 import { ERROR_CODES } from "@/lib/error-codes";
 import { z } from "zod";
+import { logger } from "@/lib/logger";
 
 const ALLOWED_MIME_TYPES = [
     "application/pdf",
@@ -60,7 +61,7 @@ export async function getPresignedUploadUrlAction(input: unknown) {
             key: uniqueKey,
         };
     } catch (error: unknown) {
-        console.error("Presigned Upload URL Error:", error);
+        logger.error("Presigned Upload URL Error", error);
         if (error instanceof z.ZodError) {
             return {
                 success: false,

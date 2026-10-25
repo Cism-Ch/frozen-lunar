@@ -4,6 +4,7 @@ import { resend, EMAIL_SENDER } from "@/lib/email";
 import { QuoteRequestEmail } from "@/components/emails/QuoteRequestEmail";
 import { QuoteConfirmationEmail } from "@/components/emails/QuoteConfirmationEmail";
 import { EmailWorkflowPayload } from "@/lib/qstash";
+import { logger } from "@/lib/logger";
 
 async function handler(req: NextRequest) {
     try {
@@ -40,7 +41,7 @@ async function handler(req: NextRequest) {
             });
 
             if (error) {
-                console.error("Resend Client Confirmation Error:", error);
+                logger.error("Resend Client Confirmation Error", error);
                 return NextResponse.json(
                     { error: error.message },
                     { status: 500 }
@@ -71,7 +72,7 @@ async function handler(req: NextRequest) {
         });
 
         if (error) {
-            console.error("Resend Admin Notification Error:", error);
+            logger.error("Resend Admin Notification Error", error);
             return NextResponse.json({ error: error.message }, { status: 500 });
         }
 
@@ -80,7 +81,7 @@ async function handler(req: NextRequest) {
             data,
         });
     } catch (err: unknown) {
-        console.error("Email Workflow Error:", err);
+        logger.error("Email Workflow Error", err);
         return NextResponse.json(
             {
                 error:

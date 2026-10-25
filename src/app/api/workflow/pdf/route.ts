@@ -4,6 +4,7 @@ import { PdfService } from "@/lib/pdf";
 import { s3Client, getPublicUrl } from "@/lib/storage";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { PdfWorkflowPayload } from "@/lib/qstash";
+import { logger } from "@/lib/logger";
 
 async function handler(req: NextRequest) {
     try {
@@ -40,7 +41,7 @@ async function handler(req: NextRequest) {
             url: publicUrl,
         });
     } catch (err: unknown) {
-        console.error("PDF Worker Error:", err);
+        logger.error("PDF Worker Error", err);
         return NextResponse.json(
             {
                 error:

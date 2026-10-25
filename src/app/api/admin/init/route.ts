@@ -5,6 +5,7 @@ import { adminInitSchema } from "@/lib/validation";
 import { handleError } from "@/lib/error-handler";
 import { ERROR_CODES, createErrorResponse } from "@/lib/error-codes";
 import { z } from "zod";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/admin/init
@@ -47,8 +48,8 @@ export async function POST(request: NextRequest) {
         try {
             body = await request.json();
         } catch (parseError: unknown) {
-            console.error(
-                "❌ Erreur de parsing JSON dans /api/admin/init:",
+            logger.error(
+                "❌ Erreur de parsing JSON dans /api/admin/init",
                 parseError
             );
             const errorResponse = createErrorResponse(
@@ -91,7 +92,7 @@ export async function POST(request: NextRequest) {
         });
     } catch (error: unknown) {
         // Log l'erreur complète pour le débogage côté serveur
-        console.error("❌ Erreur lors de l'initialisation admin:", error);
+        logger.error("❌ Erreur lors de l'initialisation admin", error);
 
         // Gestion des erreurs de validation Zod
         if (error instanceof z.ZodError) {

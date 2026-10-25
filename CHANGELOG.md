@@ -7,9 +7,75 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
 ## [Unreleased]
 
+### Improved & Fixed (DT-008 : Éradication Totale des `console.*` et Migration vers Pino `logger`)
+
+- **Migration Complète vers le Singleton Pino (`@/lib/logger`)** :
+    - Élimination des 68 occurrences de `console.log`, `console.warn`, `console.error` et `console.info` dans l'ensemble de la codebase `src/`.
+    - Migration des 11 Server Actions (`src/app/actions/`), des 5 Route Handlers (`src/app/api/`), de la couche de services (`src/lib/auth.ts`, `src/lib/date-utils.ts`, `src/lib/gemini.ts`, `src/lib/huggingface.ts`, `src/lib/email.ts`, `src/lib/qstash.ts`, `src/lib/redis.ts`, `src/lib/storage.ts`), des hooks (`useSupportChat.ts`, `useRealtimeQuotes.ts`), et des composants et pages de l'espace d'administration.
+    - Mise à jour de la suite de tests unitaires (`tests/unit/date-utils.test.ts`) avec espionnage direct sur `logger.warn`.
+    - Formatage JSON structuré des logs avec métadonnées (`service`, `env`, timestamp ISO standardisé) et gestion transparente en environnement client (browser mode Pino).
+
+### Added & Improved (TASK-026 : Refonte Responsivité & Normes UI/UX 2026 Espace Administration)
+
+- **Dual Pattern Tactile Mobile & Desktop (`RESP-01` — `UserList.tsx`)** :
+    - Remplacement du tableau monolithique écrasé par une vue duale : cartes tactiles fluides avec cibles tactiles $\ge 44\text{px}$ sur mobile (`md:hidden`), tableau étendu avec défilement de sécurité sur desktop (`hidden md:block`).
+    - Remplacement de `window.confirm()` bloquant par le dialogue accessible `@/components/ui/confirm-dialog` (`ConfirmDialog`).
+- **Formulaire Adaptatif Vertical (`RESP-02` — `AddUserDialog.tsx`)** :
+    - Alignement vertical fluide des libellés et champs en vue mobile, éliminant les collisions sur écran étroit.
+    - Largeur modale calibrée `w-[calc(100vw-2rem)] sm:max-w-[440px]` et boutons CTA pleine largeur sur mobile (`w-full sm:w-auto`).
+- **En-Tête Adaptatif (`RESP-03` — `admin/users/page.tsx`)** :
+    - Réorganisation du conteneur en `flex-col sm:flex-row sm:items-center sm:justify-between`, supprimant le télescopage entre le titre H1 et le CTA d'ajout.
+- **Fermeture Automatique du Tiroir Mobile (`RESP-04` — `admin/layout.tsx` & `SidebarContent.tsx`)** :
+    - État contrôlé `sidebarOpen` avec prop `onNavigate` fermant instantanément le tiroir mobile (`Sheet`) lors de la sélection d'un onglet.
+    - Synchronisation automatique sur changement d'URL (`pathname`) pour garantir une navigation fluide.
+- **Barre d'Onglets Défilable Horizontalement (`RESP-05` — `SettingsClient.tsx`)** :
+    - Restauration des libellés textuels sur tous les écrans (fin des icônes orphelines sans label) avec défilement horizontal fluide (`overflow-x-auto no-scrollbar scroll-smooth`) et dégradé d'indication visuel sur mobile.
+    - Ajout de l'utilitaire Tailwind v4 `@utility no-scrollbar` dans `globals.css`.
+- **Barre de Décision Tactile Sticky Mobile (`RESP-06` — `quotes/[id]/page.tsx`)** :
+    - Barre fixe d'actions décisionnelles au pouce (`fixed bottom-0 left-0 right-0 z-30`) offrant les actions critiques 1-clic (_Valider_, _Refuser_, _WhatsApp_) sans nécessiter de défilement préalable.
+    - Padding de sécurité `pb-24 lg:pb-0` et tracé de l'itinéraire calibré (`pl-3 sm:pl-6`) sans débordement.
+- **Toolbar Temporelle Adaptative & SVG Responsive (`RESP-07` — `ActivityChart.tsx`)** :
+    - Réorganisation de la barre de contrôle temporelle en disposition adaptative et grille de statistiques récapitulatives `grid-cols-2 sm:grid-cols-4`.
+    - Pas d'échantillonnage dynamique (`xLabelStep`) préservant la lisibilité des dates de l'axe X $\ge 10\text{px}$ sur mobile.
+- **Identité de Marque Mobile & Paddings Fluides (`RESP-08` — `admin/login/page.tsx`)** :
+    - Intégration de l'en-tête de marque HBC Logistique visible sur mobile (`lg:hidden`).
+    - Fluidification des marges intérieures `p-4 sm:p-8` pour maximiser la surface utile.
+
+### Changed (Documentation agents)
+
+- **`AGENTS.md` déplacé à la racine** (standard agents.md) : désormais versionné (`.agents/` est ignoré par git) et lu par Antigravity, Copilot, Codex et Cursor. Ancienne version archivée dans `docs/old/AGENTS.legacy.md`.
+- **Constitution resynchronisée avec le code** : services `src/lib` réels (`auth-guard`, `logger`, `huggingface`, `supabase`), modèle de données, tests Vitest, CI, variables d'environnement complètes, Definition of Done alignée sur la CI, section « Limites » et nouveaux gotchas.
+- **`PROJECT_STATUS.md` synchronisé à 100% avec l'état réel** : métriques réelles (79 tests Vitest / 12 suites, 11 Server Actions, 75 composants TSX, 26 modules lib, 4 hooks), nettoyage des fausses tâches manquantes déjà terminées, et identification de la dette DT-008 (migration `console.*` vers `logger`).
+
 ---
 
 ## [1.5.0] — 2026-10-21 — Version 1.5.0 (Admin Dashboard & Quote Management 2026 UI/UX Overhaul)
+
+### Added & Improved (Global Search Command Palette & Real Operational Notifications)
+
+- **Recherche Globale & Command Palette Omnibar (`Ctrl + K` / `⌘ K`)** :
+    - **Composant `AdminCommandPalette`** : Fenêtre modale accessible (Radix UI `Dialog`) déclenchable au clavier depuis n'importe quelle page de l'administration ou via le nouveau bouton d'en-tête interactif.
+    - **Recherche Multi-Tables Asynchrone (`searchAdminAction`)** : Interrogation simultanée PostgreSQL en sous-50ms sur les devis (`prisma.quote` par réf, client, téléphone, trajet, type) et les messages (`prisma.contactMessage` par nom, email, téléphone, contenu).
+    - **Navigation Clavier Intuitive** : Navigation par flèches `↑` / `↓`, ouverture directe par `Entrée` vers `/admin/quotes/[id]` ou `/admin/contacts?q=...`, et fermeture immédiate par `Échap`.
+    - **Raccourcis Système Instantanés** : Accès direct en un clic aux sections Dashboard, Devis, Contacts, Utilisateurs, Paramètres d'entreprise et Site public.
+    - **Audit UI/UX & Accessibilité 2026 (`/ui-styling`)** :
+        - _Auto-Scroll Clavier_ : Défilement assisté (`scrollIntoView({ block: "nearest" })`) assurant la visibilité permanente de l'élément actif lors de la navigation aux flèches `↑` / `↓`.
+        - _Contraste & Lisibilité des Badges_ : Remplacement de l'aplat saturé `bg-primary` par un surlignage neutre `bg-accent/80 text-foreground` préservant l'intégrité chromatique et la lisibilité des badges de statut (`QuoteStatusBadge`, badges contacts).
+        - _Détection Dynamique macOS / Windows_ : Affichage automatique de `⌘K` sur Mac et `Ctrl+K` sur PC/Linux via `useSyncExternalStore` (zéro cascade de re-render).
+        - _Ergonomie Mobile & Accessibilité_ : Calibrage responsive du déclencheur, focus ring accessible, bouton de réinitialisation explicite dans l'état vide et neutralisation du comportement natif `type="search"`.
+- **Centre de Notifications Opérationnelles Réelles (Derived Alerts)** :
+    - **Élimination Totale des Mocks Statiques** : Remplacement du tableau factice en dur par une agrégation en temps réel des faits métier réels de PostgreSQL via `getLiveAdminNotificationsAction()`.
+    - **Alertes Dérivées des Devis en Attente (`PENDING`)** : Notification automatique des nouveaux dossiers avec mise en évidence des dossiers prioritaires et urgences critiques (`very_urgent`, matières dangereuses).
+    - **Alertes des Nouveaux Messages de Contact (`UNREAD`)** : Notification immédiate des demandes clients avec lien direct vers la boîte de réception.
+    - **Résolution Automatique Zéro Dette** : Dès qu'un devis est validé/refusé ou qu'un message est marqué comme lu, l'alerte se résout d'elle-même sans risque de désynchronisation.
+    - **Acquittement & Interactivité** : Bouton « Tout acquitter » fonctionnel avec `e.stopPropagation()` et mise à jour du compteur dynamique.
+    - **Audit UI/UX & Ergonomie 2026 (`/ui-styling`)** :
+        - _Micro-Badge Chiffré Direct_ : Remplacement du simple point clignotant par une pastille rouge chiffrée (`1`, `3`, `9+`) avec support de `motion-reduce:hidden` pour l'accessibilité vestibulaire.
+        - _Tag d'Urgence Explicite_ : Badge visuel `Urgent` sur fond rosé avec animation calmée (`motion-reduce:animate-none`).
+        - _Footer Intelligent Bipolaire_ : Accès rapide simultané vers les Devis en attente et la Boîte de réception des Messages de contact, résolvant le blocage unilatéral.
+        - _Dimensionnement Anti-Débordement_ : Remplacement de la largeur rigide `w-84` par `w-[calc(100vw-2rem)] max-w-sm sm:w-96`.
+- **Tests Automatisés Vitest (`tests/unit/admin-search-notifications.test.ts`)** :
+    - 6 nouveaux tests unitaires couvrant la recherche multi-tables, les raccourcis par défaut, le filtrage des alertes et le comptage unifié (suite portée à **79 tests réussis** sur 12 suites).
 
 ### Added & Improved (Quote Management & QuoteDetailsSheet 2026 UI/UX Overhaul)
 

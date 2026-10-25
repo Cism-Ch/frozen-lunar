@@ -6,7 +6,7 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
 [![Prisma ORM](https://img.shields.io/badge/Prisma-6-2D3748?logo=prisma)](https://www.prisma.io/)
 [![Better-Auth](https://img.shields.io/badge/Better--Auth-1.4-black)](https://better-auth.com/)
-[![Tests Vitest](https://img.shields.io/badge/Vitest-73%20passed-success?logo=vitest)](https://vitest.dev/)
+[![Tests Vitest](https://img.shields.io/badge/Vitest-79%20passed-success?logo=vitest)](https://vitest.dev/)
 [![License](https://img.shields.io/badge/License-Private-red)](<>)
 
 > **"Votre sécurité, Notre priorité"**  
@@ -48,7 +48,7 @@
 | :--------------------------------------- | :-------------------------------------------------------------------------------------------- | :---------: | :--------: |
 | **Phase 1 : UI / UX & Design System**    | Landing page, Wizard devis 4 étapes, Chat support, Dashboard admin, Accessibilité WCAG AA/AAA | ✅ Terminé  |    100%    |
 | **Phase 2 : Backend & Infrastructure**   | Auth Better-Auth, Prisma ORM, Supabase DB, QStash queues, Tigris S3, Resend, Redis Rate Limit | ✅ Terminé  |    100%    |
-| **Phase 3 : Production & Résilience IA** | Tests Vitest (73 tests), Circuit-breaker Gemini, Inférence Hugging Face, WhatsApp 1-Clic, RLS | 🔄 En cours |    ~90%    |
+| **Phase 3 : Production & Résilience IA** | Tests Vitest (79 tests), Circuit-breaker Gemini, Inférence Hugging Face, WhatsApp 1-Clic, RLS | 🔄 En cours |    ~92%    |
 
 ---
 
@@ -65,6 +65,13 @@
 ### 🔐 Espace Administrateur (`/admin`)
 
 - **Authentification & Contrôle d'Accès** basé sur Better-Auth (session sécurisée, RBAC admin).
+- **Omnibar & Command Palette Globale (`Ctrl + K` / `⌘ K`)** :
+    - Recherche unifiée et instantanée (débouncée à 180ms) multi-tables (Devis par référence/client/ville, Messages de contact par expéditeur/sujet).
+    - Raccourcis de navigation directe au clavier (`↑`, `↓`, `Enter`) vers toutes les sections administratives.
+- **Centre de Notifications Opérationnelles en Temps Réel** :
+    - Alertes dérivées de l'état réel de la base de données (devis `PENDING` et messages `UNREAD`), sans mocks ni données simulées.
+    - Détection intelligente des urgences opérationnelles (délai express, matières dangereuses) avec badge pulsé et routage direct au clic.
+    - Action d'acquittement groupé et lien direct vers les devis en attente.
 - **Dashboard Métier temps réel** avec KPIs financiers, volume de fret, graphique d'activité dynamique (`ActivityChart`) et écoute Supabase Realtime.
 - **Gestion Complète des Devis** :
     - Traitement des dossiers (Acceptation, Planification, Facturation, Rejet).
