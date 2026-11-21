@@ -5,6 +5,7 @@ import { Footer } from "@/components/layout/Footer";
 import { SectionContainer } from "@/components/layout/SectionContainer";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { COMPANY_CONFIG } from "@/lib/company-config";
 
 export default function CGVPage() {
     return (
@@ -51,11 +52,12 @@ export default function CGVPage() {
                                 </h2>
                                 <p className="text-muted-foreground leading-relaxed">
                                     Les prix de nos services sont indiqués en
-                                    euros toutes taxes comprises (TTC). Ils sont
-                                    susceptibles d&apos;être modifiés à tout
-                                    moment mais les services seront facturés sur
-                                    la base des tarifs en vigueur au moment de
-                                    la validation de la commande.
+                                    Francs CFA (FCFA / XOF) hors taxes ou toutes
+                                    taxes comprises selon le devis. Toute
+                                    estimation fournie par l&apos;assistant IA
+                                    est strictement indicative ; seul un devis
+                                    validé par écrit par{" "}
+                                    {COMPANY_CONFIG.shortName} fait foi.
                                 </p>
                             </section>
 
@@ -81,9 +83,12 @@ export default function CGVPage() {
                                     Le règlement des services s&apos;effectue :
                                 </p>
                                 <ul className="text-muted-foreground list-disc space-y-2 pl-6">
-                                    <li>Par virement bancaire</li>
-                                    <li>Par chèque</li>
-                                    <li>Par carte bancaire</li>
+                                    <li>Par virement bancaire (zone UEMOA)</li>
+                                    <li>
+                                        Par Mobile Money professionnel (Orange
+                                        Money, MTN MoMo, Wave, Moov Money)
+                                    </li>
+                                    <li>Par chèque d&apos;entreprise certifié</li>
                                 </ul>
                                 <p className="text-muted-foreground mt-4 leading-relaxed">
                                     Le paiement est exigible selon les modalités
@@ -122,9 +127,12 @@ export default function CGVPage() {
                                     Article 7 - Litiges
                                 </h2>
                                 <p className="text-muted-foreground leading-relaxed">
-                                    Les présentes CGV sont soumises au droit
-                                    français. En cas de litige, les tribunaux
-                                    français seront seuls compétents.
+                                    Les présentes CGV sont soumises au{" "}
+                                    {COMPANY_CONFIG.compliance.legalFramework}.
+                                    En cas de litige, et à défaut de règlement
+                                    amiable, le{" "}
+                                    {COMPANY_CONFIG.compliance.jurisdiction}{" "}
+                                    sera seul compétent.
                                 </p>
                             </section>
                         </CardContent>

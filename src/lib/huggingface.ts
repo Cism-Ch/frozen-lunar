@@ -65,12 +65,12 @@ export function normalizePhoneForWhatsApp(phone: string): string {
         digitsOnly = digitsOnly.slice(2);
     }
 
-    // Si numéro français au format local (10 chiffres commençant par 0)
+    // Numéro local ivoirien à 10 chiffres (ex: 07 08 09 10 11, 05..., 01..., 27...) -> préfixe 225 conservant le 0
     if (digitsOnly.length === 10 && digitsOnly.startsWith("0")) {
-        return `33${digitsOnly.slice(1)}`;
+        return `225${digitsOnly}`;
     }
 
-    // Sinon conserve la suite de chiffres nettoyée (ex: 22507000000 ou 33612345678)
+    // Sinon conserve la suite de chiffres nettoyée (ex: 2250700000000 ou 33612345678)
     return digitsOnly;
 }
 

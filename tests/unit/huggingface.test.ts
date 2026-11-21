@@ -8,15 +8,15 @@ import {
 
 describe("Hugging Face & WhatsApp Utilities (huggingface.ts)", () => {
     describe("normalizePhoneForWhatsApp", () => {
-        it("should normalize French 0X numbers to 33X international format", () => {
-            expect(normalizePhoneForWhatsApp("06 12 34 56 78")).toBe(
-                "33612345678"
+        it("should normalize Côte d'Ivoire 10-digit 0X numbers to 2250X international format", () => {
+            expect(normalizePhoneForWhatsApp("07 12 34 56 78")).toBe(
+                "2250712345678"
             );
-            expect(normalizePhoneForWhatsApp("07.98.76.54.32")).toBe(
-                "33798765432"
+            expect(normalizePhoneForWhatsApp("05.98.76.54.32")).toBe(
+                "2250598765432"
             );
             expect(normalizePhoneForWhatsApp("01-40-50-60-70")).toBe(
-                "33140506070"
+                "2250140506070"
             );
         });
 

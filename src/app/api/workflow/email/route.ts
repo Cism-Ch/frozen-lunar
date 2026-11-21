@@ -1,14 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifySignatureAppRouter } from "@upstash/qstash/dist/nextjs";
+import { z } from "zod";
 import { resend, EMAIL_SENDER } from "@/lib/email";
 import { QuoteRequestEmail } from "@/components/emails/QuoteRequestEmail";
 import { QuoteConfirmationEmail } from "@/components/emails/QuoteConfirmationEmail";
-import { EmailWorkflowPayload } from "@/lib/qstash";
 import { logger } from "@/lib/logger";
+
+const emailWorkflowSchema = z.object({
+    type: z
+        .enum(["admin_notification", "client_confirmation"])
+        .optional()
+        .default("admin_notification"),
+    clientName: z.string().min(1).max(200),
+    email: z.string().email(),
+    phone: z.string().min(1).max(50),
+    pickup: z.string().min(1).max(500),
+    dropoff: z.string().min(1).max(500),
+    itemType: z.string().min(1).max(200),
+    date: z.string().min(1).max(100),
+    quoteId: z.string().min(1).max(100),
+});
 
 async function handler(req: NextRequest) {
     try {
-        const body = (await req.json()) as EmailWorkflowPayload;
+        const rawBody: unknown = await req.json();
+        const parsed = emailWorkflowSchema.safeParse(rawBody);
+        if (!parsed.success) {
+            return NextResponse.json(
+                {
+                    error: "Payload webhook email invalide",
+                    details: parsed.error.issues[0]?.message,
+                },
+                { status: 400 }
+            );
+        }
+
         const {
             type,
             clientName,
@@ -19,7 +45,7 @@ async function handler(req: NextRequest) {
             itemType,
             date,
             quoteId,
-        } = body;
+        } = parsed.data;
 
         const adminEmail =
             process.env.ADMIN_NOTIFICATION_EMAIL || "contact@hbc-logistique.fr";
@@ -94,11 +120,25 @@ async function handler(req: NextRequest) {
     }
 }
 
-// Sécurisation stricte de la route webhook QStash :
-// Si les clés de signature sont configurées, verifySignatureAppRouter est systématiquement appliqué
-export const POST = Boolean(
+// Sécurisation stricte fail-closed de la route webhook QStash :
+// En production, les clés de signature QStash sont obligatoires (HTTP 503 si absentes).
+const hasQStashKeys = Boolean(
     process.env.QSTASH_CURRENT_SIGNING_KEY &&
     process.env.QSTASH_NEXT_SIGNING_KEY
-)
+);
+
+async function unconfiguredProdHandler() {
+    logger.error(
+        "QStash signing keys missing in production on /api/workflow/email"
+    );
+    return NextResponse.json(
+        { error: "Webhook signature verification not configured" },
+        { status: 503 }
+    );
+}
+
+export const POST = hasQStashKeys
     ? verifySignatureAppRouter(handler)
-    : handler;
+    : process.env.NODE_ENV === "production"
+      ? unconfiguredProdHandler
+      : handler;

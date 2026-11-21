@@ -5,6 +5,7 @@ import { Footer } from "@/components/layout/Footer";
 import { SectionContainer } from "@/components/layout/SectionContainer";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { COMPANY_CONFIG } from "@/lib/company-config";
 
 export default function MentionsLegalesPage() {
     return (
@@ -36,39 +37,54 @@ export default function MentionsLegalesPage() {
                                 </h2>
                                 <div className="text-muted-foreground space-y-2 leading-relaxed">
                                     <p>
-                                        <strong>Raison sociale :</strong> HBC
-                                        SERVICE CASH LOGISTIQUE IMMOBILIÈRE
+                                        <strong>Raison sociale :</strong>{" "}
+                                        {COMPANY_CONFIG.legalName}
                                     </p>
                                     <p>
-                                        <strong>Forme juridique :</strong> [À
-                                        compléter]
+                                        <strong>Forme juridique :</strong>{" "}
+                                        {COMPANY_CONFIG.legalForm}
                                     </p>
                                     <p>
-                                        <strong>Capital social :</strong> [À
-                                        compléter]
+                                        <strong>Capital social :</strong>{" "}
+                                        {COMPANY_CONFIG.capitalSocial}
                                     </p>
                                     <p>
-                                        <strong>Siège social :</strong> 123
-                                        Avenue de la Logistique, 75000 Paris,
-                                        France
+                                        <strong>Siège social :</strong>{" "}
+                                        {COMPANY_CONFIG.address.full} (
+                                        {COMPANY_CONFIG.address.postalBox})
                                     </p>
                                     <p>
-                                        <strong>Numéro SIRET :</strong> [À
-                                        compléter]
+                                        <strong>RCCM :</strong>{" "}
+                                        {COMPANY_CONFIG.rccm}
                                     </p>
                                     <p>
                                         <strong>
-                                            Numéro de TVA intracommunautaire :
+                                            NCC (Numéro Compte Contribuable) :
                                         </strong>{" "}
-                                        [À compléter]
+                                        {COMPANY_CONFIG.ncc}
                                     </p>
                                     <p>
-                                        <strong>Téléphone :</strong> +33 1 23 45
-                                        67 89
+                                        <strong>Téléphone :</strong>{" "}
+                                        {COMPANY_CONFIG.contact.phoneDisplay}
                                     </p>
                                     <p>
                                         <strong>Email :</strong>{" "}
-                                        contact@hbc-logistique.com
+                                        {COMPANY_CONFIG.contact.email}
+                                    </p>
+                                    <p>
+                                        <strong>
+                                            Protection des données personnelles :
+                                        </strong>{" "}
+                                        {
+                                            COMPANY_CONFIG.compliance
+                                                .dataProtectionLaw
+                                        }{" "}
+                                        —{" "}
+                                        {
+                                            COMPANY_CONFIG.compliance
+                                                .dataProtectionAuthority
+                                        }
+                                        .
                                     </p>
                                 </div>
                             </section>
@@ -78,7 +94,7 @@ export default function MentionsLegalesPage() {
                                     Directeur de la publication
                                 </h2>
                                 <p className="text-muted-foreground leading-relaxed">
-                                    [Nom du directeur de la publication]
+                                    {COMPANY_CONFIG.publicationDirector}
                                 </p>
                             </section>
 

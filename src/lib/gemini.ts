@@ -6,6 +6,8 @@ import {
     extractJsonFromAiText,
     isOpenRouterAvailable,
 } from "@/lib/openrouter";
+import { buildCompliantSupportSystemPrompt } from "@/lib/support-agent/knowledge";
+import { getCompanyInfoTool } from "@/lib/support-agent/tools";
 
 /**
  * Modèle Google Gemini par défaut (configurable via GEMINI_MODEL).
@@ -111,144 +113,112 @@ export interface EstimationResult {
     source?: "gemini" | "openrouter" | "heuristic";
 }
 
-interface FrenchCityCoord {
+interface LogisticsCityCoord {
     name: string;
     aliases: string[];
     lat: number;
     lon: number;
 }
 
-// Référentiel des principaux nœuds logistiques français pour le calcul de distance heuristique
-const NOTABLE_CITIES: FrenchCityCoord[] = [
+// Référentiel des principaux nœuds logistiques de Côte d'Ivoire pour le calcul de distance heuristique
+const NOTABLE_CITIES: LogisticsCityCoord[] = [
     {
-        name: "Paris",
+        name: "Abidjan",
         aliases: [
-            "paris",
-            "idf",
-            "ile-de-france",
-            "75",
-            "92",
-            "93",
-            "94",
-            "91",
-            "77",
-            "78",
-            "95",
+            "abidjan",
+            "yopougon",
+            "vridi",
+            "cocody",
+            "marcory",
+            "treichville",
+            "plateau",
+            "koumassi",
+            "abobo",
+            "port-bouet",
+            "port-bouët",
+            "port autonome",
+            "anyama",
+            "bingerville",
+            "pk24",
         ],
-        lat: 48.8566,
-        lon: 2.3522,
+        lat: 5.36,
+        lon: -4.0083,
     },
     {
-        name: "Lyon",
-        aliases: ["lyon", "rhone", "rhône", "69"],
-        lat: 45.764,
-        lon: 4.8357,
+        name: "Grand-Bassam",
+        aliases: ["grand-bassam", "bassam"],
+        lat: 5.2118,
+        lon: -3.7388,
     },
     {
-        name: "Marseille",
-        aliases: ["marseille", "bouches-du-rhone", "paca", "13"],
-        lat: 43.2965,
-        lon: 5.3698,
+        name: "Yamoussoukro",
+        aliases: ["yamoussoukro", "yakro"],
+        lat: 6.8276,
+        lon: -5.2893,
     },
     {
-        name: "Toulouse",
-        aliases: ["toulouse", "haute-garonne", "31"],
-        lat: 43.6047,
-        lon: 1.4442,
+        name: "Bouaké",
+        aliases: ["bouake", "bouaké"],
+        lat: 7.6939,
+        lon: -5.0303,
     },
     {
-        name: "Nice",
-        aliases: ["nice", "alpes-maritimes", "06"],
-        lat: 43.7102,
-        lon: 7.262,
+        name: "San-Pédro",
+        aliases: ["san-pedro", "san-pédro", "san pedro"],
+        lat: 4.7485,
+        lon: -6.6363,
     },
     {
-        name: "Nantes",
-        aliases: ["nantes", "loire-atlantique", "44"],
-        lat: 47.2184,
-        lon: -1.5536,
+        name: "Korhogo",
+        aliases: ["korhogo"],
+        lat: 9.458,
+        lon: -5.6296,
     },
     {
-        name: "Strasbourg",
-        aliases: ["strasbourg", "bas-rhin", "alsace", "67"],
-        lat: 48.5734,
-        lon: 7.7521,
+        name: "Daloa",
+        aliases: ["daloa"],
+        lat: 6.8774,
+        lon: -6.4502,
     },
     {
-        name: "Montpellier",
-        aliases: ["montpellier", "herault", "hérault", "34"],
-        lat: 43.6108,
-        lon: 3.8767,
+        name: "Man",
+        aliases: ["man", "tonkpi"],
+        lat: 7.4125,
+        lon: -7.5538,
     },
     {
-        name: "Bordeaux",
-        aliases: ["bordeaux", "gironde", "33"],
-        lat: 44.8378,
-        lon: -0.5792,
+        name: "Gagnoa",
+        aliases: ["gagnoa"],
+        lat: 6.1319,
+        lon: -5.9506,
     },
     {
-        name: "Lille",
-        aliases: ["lille", "nord", "59"],
-        lat: 50.6292,
-        lon: 3.0573,
+        name: "Abengourou",
+        aliases: ["abengourou"],
+        lat: 6.7297,
+        lon: -3.4964,
     },
     {
-        name: "Rennes",
-        aliases: ["rennes", "ille-et-vilaine", "bretagne", "35"],
-        lat: 48.1173,
-        lon: -1.6778,
+        name: "Soubré",
+        aliases: ["soubre", "soubré"],
+        lat: 5.7856,
+        lon: -6.6083,
     },
     {
-        name: "Reims",
-        aliases: ["reims", "marne", "51"],
-        lat: 49.2583,
-        lon: 4.0317,
+        name: "Bondoukou",
+        aliases: ["bondoukou"],
+        lat: 8.0402,
+        lon: -2.8,
     },
     {
-        name: "Le Havre",
-        aliases: ["le havre", "seine-maritime", "normandie", "76"],
-        lat: 49.4944,
-        lon: 0.1079,
-    },
-    {
-        name: "Saint-Étienne",
-        aliases: ["saint-etienne", "saint-étienne", "loire", "42"],
-        lat: 45.4397,
-        lon: 4.3872,
-    },
-    {
-        name: "Toulon",
-        aliases: ["toulon", "var", "83"],
-        lat: 43.1242,
-        lon: 5.928,
-    },
-    {
-        name: "Grenoble",
-        aliases: ["grenoble", "isere", "isère", "38"],
-        lat: 45.1885,
-        lon: 5.7245,
-    },
-    {
-        name: "Dijon",
-        aliases: ["dijon", "cote-d-or", "côte-d-or", "21"],
-        lat: 47.322,
-        lon: 5.0415,
-    },
-    {
-        name: "Angers",
-        aliases: ["angers", "maine-et-loire", "49"],
-        lat: 47.4784,
-        lon: -0.5632,
-    },
-    {
-        name: "Clermont-Ferrand",
-        aliases: ["clermont", "clermont-ferrand", "puy-de-dome", "63"],
-        lat: 45.7772,
-        lon: 3.087,
+        name: "Ferkessédougou",
+        aliases: ["ferke", "ferkessedougou", "ferkessédougou"],
+        lat: 9.5928,
+        lon: -5.1945,
     },
 ];
 
-function findCityCoord(text: string): FrenchCityCoord | null {
+function findCityCoord(text: string): LogisticsCityCoord | null {
     const lower = text.toLowerCase();
     for (const city of NOTABLE_CITIES) {
         if (city.aliases.some((alias) => lower.includes(alias))) {
@@ -311,56 +281,58 @@ export function calculateHeuristicEstimate(
     }
 
     const lowerType = type.toLowerCase();
-    let baseFee = 160;
-    let ratePerKm = 2.1;
+    let baseFee = 120000;
+    let ratePerKm = 1400;
     let vehicleLabel = "Semi-remorque standard";
 
     if (lowerType.includes("grue") || lowerType.includes("manutention")) {
-        baseFee = 280;
-        ratePerKm = 2.8;
+        baseFee = 220000;
+        ratePerKm = 1900;
         vehicleLabel = "Camion avec bras de grue";
     } else if (
         lowerType.includes("convoi") ||
         lowerType.includes("lourd") ||
         lowerType.includes("porte-char")
     ) {
-        baseFee = 420;
-        ratePerKm = 3.8;
+        baseFee = 350000;
+        ratePerKm = 2600;
         vehicleLabel = "Convoi exceptionnel / Porte-char";
     } else if (
         lowerType.includes("container") ||
         lowerType.includes("conteneur")
     ) {
-        baseFee = 220;
-        ratePerKm = 2.4;
+        baseFee = 180000;
+        ratePerKm = 1650;
         vehicleLabel = "Porte-conteneur";
     } else if (lowerType.includes("benne") || lowerType.includes("vrac")) {
-        baseFee = 140;
-        ratePerKm = 1.9;
+        baseFee = 100000;
+        ratePerKm = 1250;
         vehicleLabel = "Camion benne TP";
     } else if (
         lowerType.includes("plateau") ||
         lowerType.includes("charpente")
     ) {
-        baseFee = 190;
-        ratePerKm = 2.2;
+        baseFee = 150000;
+        ratePerKm = 1500;
         vehicleLabel = "Plateau bâché / extensible";
     }
 
     const calculatedTotal = baseFee + distanceKm * ratePerKm;
-    const minPrice = Math.round((calculatedTotal * 0.92) / 10) * 10;
-    const maxPrice = Math.round((calculatedTotal * 1.08) / 10) * 10;
+    const minPrice = Math.round((calculatedTotal * 0.92) / 5000) * 5000;
+    const maxPrice = Math.round((calculatedTotal * 1.08) / 5000) * 5000;
+    const formatFcfa = (amount: number) =>
+        amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 
-    const drivingHours = distanceKm / 70;
+    const drivingHours = distanceKm / 65;
     const totalHours = Math.floor(drivingHours + 1); // 1h forfait chargement/déchargement
     const minutes = Math.round((drivingHours % 1) * 60);
 
     return {
-        price: `${minPrice} - ${maxPrice} € HT`,
+        price: `${formatFcfa(minPrice)} - ${formatFcfa(maxPrice)} FCFA HT`,
         distance: `Approx. ${distanceKm} km`,
         duration: `Approx. ${totalHours}h${minutes.toString().padStart(2, "0")}`,
         confidence: "Moyenne (Moteur heuristique de secours)",
-        reasoning: `Estimation calculée par l'algorithme résilient : barème ${vehicleLabel} (${baseFee}€ forfait fixe + ${ratePerKm.toFixed(2)}€/km) pour un trajet routier estimé de ${distanceKm} km.`,
+        reasoning: `Estimation indicative (Côte d'Ivoire) : barème ${vehicleLabel} (${formatFcfa(baseFee)} FCFA forfait + ${formatFcfa(ratePerKm)} FCFA/km) pour un trajet estimé de ${distanceKm} km.`,
         source: "heuristic",
     };
 }
@@ -408,17 +380,17 @@ export const geminiService = {
         type: string
     ): Promise<EstimationResult> {
         const prompt = `
-                Agis comme un expert en logistique et transport routier pour l'entreprise HBC Logistique.
-                Estime le coût, la distance et la durée pour un transport avec les détails suivants :
+                Agis comme un expert en logistique et transport routier pour l'entreprise HBC Logistique en Côte d'Ivoire.
+                Estime le coût indicatif en FCFA (XOF), la distance et la durée pour un transport avec les détails suivants :
                 - Départ : ${pickup}
                 - Arrivée : ${dropoff}
                 - Véhicule / Matériel : ${type}
                 
                 Réponds UNIQUEMENT au format JSON strict suivant :
                 {
-                    "price": "Fourchette de prix en euros ex: 480 - 580€ HT",
-                    "distance": "Distance en km ex: Approx. 380 km",
-                    "duration": "Durée estimée ex: Approx. 4h45",
+                    "price": "Fourchette de prix en FCFA ex: 450 000 - 550 000 FCFA HT",
+                    "distance": "Distance en km ex: Approx. 240 km",
+                    "duration": "Durée estimée ex: Approx. 4h30",
                     "reasoning": "Brève explication du calcul logistique (1 à 2 phrases max)"
                 }
             `;
@@ -654,16 +626,15 @@ export async function generateSupportAiResponse(
         )
         .join("\n");
 
+    const companyInfoResult = await getCompanyInfoTool();
+    const dynamicContext = companyInfoResult.success
+        ? `Coordonnées actives en base : ${companyInfoResult.data.companyName} | Tél: ${companyInfoResult.data.phone} | Email: ${companyInfoResult.data.email} | Horaires: ${companyInfoResult.data.hours}`
+        : undefined;
+
+    const systemKnowledge = buildCompliantSupportSystemPrompt(dynamicContext);
+
     const prompt = `
-            Tu es l'assistant virtuel intelligent de HBC Service Cash Logistique Immobilière ("Votre sécurité, Notre priorité").
-            Spécialités : transport routier lourd, containers maritimes, charpentes, machines industrielles, convois exceptionnels, modules préfabriqués.
-            
-            Règles strictes :
-            - Langue : Français impeccable, concis, professionnel et rassurant (max 2 à 3 phrases).
-            - Ne jamais inventer de prix exacts : pour toute demande de devis/prix/tarif, invite le client à utiliser le formulaire ou le wizard devis interactif.
-            - Pour tout suivi de transport ou de commande : indique que le suivi s'effectue via la référence de dossier (format HBC-XXXXX) communiquée par email ou en contactant notre service d'exploitation logistique. Règle la catégorie sur "transport".
-            - Si l'utilisateur exprime de la colère ou une réclamation, réponds poliment et indique qu'un conseiller humain prendra le relais.
-            - N'utilise aucun émoji brut dans le message afin de maintenir une charte graphique épurée.
+            ${systemKnowledge}
             
             Historique récent :
             ${historySnippet}
@@ -673,7 +644,7 @@ export async function generateSupportAiResponse(
             
             Réponds UNIQUEMENT au format JSON strict :
             {
-                "message": "Ta réponse au client en 2-3 phrases",
+                "message": "Ta réponse au client en 2-4 phrases",
                 "category": "technical" | "billing" | "quote" | "transport" | "general",
                 "sentiment": "positive" | "neutral" | "negative",
                 "shouldEscalate": true | false

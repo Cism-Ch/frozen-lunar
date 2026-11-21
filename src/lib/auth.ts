@@ -70,9 +70,15 @@ export const auth = betterAuth({
                         `📧 [RESET PASSWORD] Email envoyé avec succès à ${user.email} (rôle: ${userRole})`,
                         { email: user.email, role: userRole }
                     );
-                } else {
+                } else if (process.env.NODE_ENV !== "production") {
                     logger.warn(
                         `⚠️ [DEV RESET PASSWORD] Clé Resend absente. Lien généré pour ${user.email} (${userRole}) : ${resetUrl}`,
+                        { email: user.email, role: userRole }
+                    );
+                } else {
+                    logger.error(
+                        "❌ [RESET PASSWORD] RESEND_KEY absente en production : impossible d'envoyer l'email de réinitialisation",
+                        undefined,
                         { email: user.email, role: userRole }
                     );
                 }
@@ -92,6 +98,7 @@ export const auth = betterAuth({
             role: {
                 type: "string",
                 defaultValue: "user", // Valeur par défaut pour les nouveaux utilisateurs
+                input: false, // CRIT-01: Empêche toute auto-attribution de rôle à l'inscription
             },
         },
     },

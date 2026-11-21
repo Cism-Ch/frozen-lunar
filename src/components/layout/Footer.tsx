@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { COMPANY_CONFIG } from "@/lib/company-config";
 
 export function Footer() {
     const currentYear = new Date().getFullYear();
@@ -156,27 +157,28 @@ export function Footer() {
                             <li className="flex items-start justify-center gap-2 sm:justify-start">
                                 <MapPin className="text-primary mt-0.5 h-4 w-4 flex-shrink-0" />
                                 <span>
-                                    123 Rue de la Logistique
+                                    {COMPANY_CONFIG.address.street}
                                     <br />
-                                    75000 Paris, France
+                                    {COMPANY_CONFIG.address.city},{" "}
+                                    {COMPANY_CONFIG.address.country}
                                 </span>
                             </li>
                             <li className="flex items-center justify-center gap-2 sm:justify-start">
                                 <Mail className="text-primary h-4 w-4 flex-shrink-0" />
                                 <a
-                                    href="mailto:contact@hbc-logistique.com"
+                                    href={`mailto:${COMPANY_CONFIG.contact.email}`}
                                     className="hover:text-primary transition-colors"
                                 >
-                                    contact@hbc-logistique.com
+                                    {COMPANY_CONFIG.contact.email}
                                 </a>
                             </li>
                             <li className="flex items-center justify-center gap-2 sm:justify-start">
                                 <Phone className="text-primary h-4 w-4 flex-shrink-0" />
                                 <a
-                                    href="tel:+33123456789"
+                                    href={`tel:${COMPANY_CONFIG.contact.phoneRaw}`}
                                     className="hover:text-primary transition-colors"
                                 >
-                                    +33 1 23 45 67 89
+                                    {COMPANY_CONFIG.contact.phoneDisplay}
                                 </a>
                             </li>
                         </ul>

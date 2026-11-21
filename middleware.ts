@@ -68,17 +68,20 @@ export async function middleware(request: NextRequest) {
     // PROTECTION DES ROUTES ADMIN
     // =========================================================================
     if (pathname.startsWith("/admin")) {
-        // Permettre l'accès aux routes de login et d'initialisation
-        // Ces routes sont nécessaires pour la configuration initiale et l'authentification
-        if (pathname === "/admin/login" || pathname === "/admin/init") {
+        // Permettre l'accès aux routes publiques d'authentification et d'initialisation admin
+        if (
+            pathname === "/admin/login" ||
+            pathname === "/admin/init" ||
+            pathname === "/admin/forgot-password" ||
+            pathname === "/admin/reset-password"
+        ) {
             return NextResponse.next();
         }
 
-        // Vérifier la présence du cookie de session Better Auth
-        // Le token est créé lors de la connexion et vérifié ici
-        const sessionToken = request.cookies.get(
-            "better-auth.session_token"
-        )?.value;
+        // Vérifier la présence du cookie de session Better Auth (HTTP dev et HTTPS __Secure- prod)
+        const sessionToken =
+            request.cookies.get("better-auth.session_token")?.value ||
+            request.cookies.get("__Secure-better-auth.session_token")?.value;
 
         if (!sessionToken) {
             // Pas de session : rediriger vers la page de login

@@ -64,37 +64,37 @@ describe("AI Resilience & Fail-Safe Engine", () => {
     });
 
     describe("Tier 2 Heuristic Transport Estimator (Fail-Safe)", () => {
-        it("should calculate realistic distance and pricing for major French hubs", () => {
+        it("should calculate realistic distance and pricing for major Côte d'Ivoire hubs", () => {
             const estimate = calculateHeuristicEstimate(
-                "Paris (75)",
-                "Lyon (69)",
+                "Abidjan (Yopougon)",
+                "Yamoussoukro",
                 "Plateau semi-remorque"
             );
 
             expect(estimate.source).toBe("heuristic");
             expect(estimate.confidence).toContain("Moyenne");
             expect(estimate.distance).toMatch(/\d+\s*km/);
-            expect(estimate.price).toMatch(/\d+.*€ HT/);
+            expect(estimate.price).toMatch(/\d+.*FCFA HT/);
             expect(estimate.duration).toMatch(/\d+h\d+/);
             expect(estimate.reasoning).toContain("barème");
         });
 
         it("should adapt pricing based on vehicle specialization (grue vs standard)", () => {
             const standardEstimate = calculateHeuristicEstimate(
-                "Paris",
-                "Marseille",
+                "Abidjan",
+                "Bouaké",
                 "Semi standard"
             );
             const craneEstimate = calculateHeuristicEstimate(
-                "Paris",
-                "Marseille",
+                "Abidjan",
+                "Bouaké",
                 "Camion avec bras de grue"
             );
 
-            // Extract numeric price
+            // Extract numeric price (supports space-separated FCFA amounts like "540 000")
             const getPriceVal = (p: string) => {
-                const match = p.match(/(\d+)/);
-                return match ? parseInt(match[1], 10) : 0;
+                const match = p.match(/^([\d\s]+)/);
+                return match ? parseInt(match[1].replace(/\s+/g, ""), 10) : 0;
             };
 
             expect(getPriceVal(craneEstimate.price)).toBeGreaterThan(
@@ -157,13 +157,13 @@ describe("AI Resilience & Fail-Safe Engine", () => {
             delete process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
             const estimate = await geminiService.estimateTransport(
-                "Bordeaux",
-                "Toulouse",
+                "Abidjan",
+                "San-Pédro",
                 "Container 40ft"
             );
             expect(estimate).toBeDefined();
             expect(estimate.source).toBe("heuristic");
-            expect(estimate.price).toContain("€ HT");
+            expect(estimate.price).toContain("FCFA HT");
 
             const email = await geminiService.draftEmail(
                 "validation",

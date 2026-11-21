@@ -16,8 +16,10 @@ const ALLOWED_MIME_TYPES = [
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 Mo
 
+const ALLOWED_UPLOAD_FOLDERS = ["attachments", "quotes-uploads"] as const;
+
 const presignedUrlSchema = z.object({
-    fileName: z.string().min(1, "Nom du fichier requis"),
+    fileName: z.string().min(1, "Nom du fichier requis").max(200),
     fileType: z
         .string()
         .refine(
@@ -26,11 +28,12 @@ const presignedUrlSchema = z.object({
         ),
     fileSize: z
         .number()
+        .positive("Taille de fichier invalide")
         .max(
             MAX_FILE_SIZE_BYTES,
             "La taille du fichier ne doit pas dépasser 10 Mo"
         ),
-    folder: z.string().optional().default("attachments"),
+    folder: z.enum(ALLOWED_UPLOAD_FOLDERS).optional().default("attachments"),
 });
 
 /**
@@ -40,11 +43,10 @@ export async function getPresignedUploadUrlAction(input: unknown) {
     try {
         const validated = presignedUrlSchema.parse(input);
 
-        // Sanitiniser le nom du fichier et générer une clé S3 unique
-        const sanitizedName = validated.fileName.replace(
-            /[^a-zA-Z0-9.-]/g,
-            "_"
-        );
+        // Assainir strictement le nom du fichier (aucune traversée de répertoire possible)
+        const sanitizedName = validated.fileName
+            .replace(/\.\./g, "_")
+            .replace(/[^a-zA-Z0-9.-]/g, "_");
         const uniqueKey = `${validated.folder}/${Date.now()}_${sanitizedName}`;
 
         const uploadUrl = await getUploadUrl(

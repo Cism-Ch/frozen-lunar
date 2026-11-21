@@ -5,8 +5,8 @@ import { QuickReply, QueryCategory } from "./types";
  * Optimized for token efficiency and intuitive SaaS integration
  */
 export const AGENT_CONFIG = {
-    // Model settings (for Phase 2 Gemini integration)
-    model: "gemini-1.5-flash", // Fast & cost-effective
+    // Model settings (Google Gemini 2.5 Flash + OpenRouter fallback)
+    model: "gemini-2.5-flash", // Fast & cost-effective
     maxInputTokens: 500, // Limit user input to control costs
     maxOutputTokens: 300, // Concise responses
     temperature: 0.3, // Focused, consistent responses
@@ -84,7 +84,11 @@ export const CATEGORY_KEYWORDS: Record<QueryCategory, string[]> = {
         "paiement",
         "facturation",
         "montant",
-        "euros",
+        "fcfa",
+        "xof",
+        "francs",
+        "mobile money",
+        "wave",
         "règlement",
     ],
     quote: [

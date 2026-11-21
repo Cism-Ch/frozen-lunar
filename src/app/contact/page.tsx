@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Mail, Phone, MapPin, Send, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { sendContactMessageAction } from "@/app/actions/contact";
+import { COMPANY_CONFIG } from "@/lib/company-config";
 import { logger } from "@/lib/logger";
 import {
     FadeIn,
@@ -37,17 +38,17 @@ export default function ContactPage() {
         {
             icon: MapPin,
             title: "Adresse",
-            content: "123 Avenue de la Logistique\n75000 Paris, France",
+            content: COMPANY_CONFIG.address.multiline,
         },
         {
             icon: Phone,
             title: "Téléphone",
-            content: "+33 1 23 45 67 89",
+            content: COMPANY_CONFIG.contact.phoneDisplay,
         },
         {
             icon: Mail,
             title: "Email",
-            content: "contact@hbc-logistique.com",
+            content: COMPANY_CONFIG.contact.email,
         },
     ];
 
