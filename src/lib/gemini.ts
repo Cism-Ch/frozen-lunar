@@ -1,6 +1,26 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { QueryCategory, Sentiment } from "./support-agent/types";
 import { logger } from "@/lib/logger";
+import {
+    callOpenRouterChat,
+    extractJsonFromAiText,
+    isOpenRouterAvailable,
+} from "@/lib/openrouter";
+
+/**
+ * Modèle Google Gemini par défaut (configurable via GEMINI_MODEL).
+ */
+export const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash";
+
+/**
+ * Retourne le nom du modèle Gemini configuré (défaut : gemini-2.5-flash).
+ */
+export function getGeminiModel(): string {
+    const configured = process.env.GEMINI_MODEL?.trim();
+    return configured && configured.length > 0
+        ? configured
+        : DEFAULT_GEMINI_MODEL;
+}
 
 /**
  * Récupère et valide la clé API Gemini depuis les variables d'environnement.
@@ -88,7 +108,7 @@ export interface EstimationResult {
     duration: string;
     confidence: string;
     reasoning: string;
-    source?: "gemini" | "heuristic";
+    source?: "gemini" | "openrouter" | "heuristic";
 }
 
 interface FrenchCityCoord {
@@ -380,30 +400,15 @@ export function generateFallbackEmail(
 export const geminiService = {
     /**
      * Estime le coût, la distance et la durée d'un transport.
-     * En cas d'absence de clé ou d'indisponibilité du service Google, bascule
-     * automatiquement et silencieusement sur le moteur heuristique sans jamais planter.
+     * Chaîne de résilience : Google AI (Gemini 2.5 Flash) -> OpenRouter -> Moteur heuristique local.
      */
     async estimateTransport(
         pickup: string,
         dropoff: string,
         type: string
     ): Promise<EstimationResult> {
-        const key = getGeminiApiKey();
-        if (!key) {
-            return calculateHeuristicEstimate(pickup, dropoff, type);
-        }
-
-        try {
-            const client = getGeminiClient();
-            if (!client) {
-                return calculateHeuristicEstimate(pickup, dropoff, type);
-            }
-
-            const model = client.getGenerativeModel({
-                model: "gemini-1.5-flash",
-            });
-            const prompt = `
-                Agis comme un expert en logistique et transport routier pour l'entreprise HBC Logistique en France.
+        const prompt = `
+                Agis comme un expert en logistique et transport routier pour l'entreprise HBC Logistique.
                 Estime le coût, la distance et la durée pour un transport avec les détails suivants :
                 - Départ : ${pickup}
                 - Arrivée : ${dropoff}
@@ -418,66 +423,98 @@ export const geminiService = {
                 }
             `;
 
-            const call = async () => {
-                const result = await model.generateContent(prompt);
-                const response = await result.response;
-                const text = response.text();
-                const jsonStr = text
-                    .replace(/```json/g, "")
-                    .replace(/```/g, "")
-                    .trim();
-                return JSON.parse(jsonStr) as EstimationResult;
-            };
+        // Niveau 1 : Google AI (Gemini 2.5 Flash)
+        const key = getGeminiApiKey();
+        if (key) {
+            try {
+                const client = getGeminiClient();
+                if (client) {
+                    const model = client.getGenerativeModel({
+                        model: getGeminiModel(),
+                    });
 
-            const parsed = await withTimeout(call(), 6000);
-            if (parsed && parsed.price && parsed.distance) {
-                return {
-                    price: parsed.price,
-                    distance: parsed.distance,
-                    duration: parsed.duration || "Non spécifiée",
-                    confidence: "Élevée (Gemini 1.5)",
-                    reasoning:
-                        parsed.reasoning ||
-                        "Estimation calculée via le modèle logistique Gemini.",
-                    source: "gemini",
-                };
+                    const call = async () => {
+                        const result = await model.generateContent(prompt);
+                        const response = await result.response;
+                        return extractJsonFromAiText<EstimationResult>(
+                            response.text()
+                        );
+                    };
+
+                    const parsed = await withTimeout(call(), 7000);
+                    if (parsed && parsed.price && parsed.distance) {
+                        return {
+                            price: parsed.price,
+                            distance: parsed.distance,
+                            duration: parsed.duration || "Non spécifiée",
+                            confidence: "Élevée (Gemini 2.5)",
+                            reasoning:
+                                parsed.reasoning ||
+                                "Estimation calculée via le modèle logistique Gemini 2.5.",
+                            source: "gemini",
+                        };
+                    }
+                }
+            } catch (error: unknown) {
+                logger.warn(
+                    "Gemini estimateTransport warning (basculement OpenRouter / Fail-Safe)",
+                    {
+                        error:
+                            error instanceof Error
+                                ? error.message
+                                : String(error),
+                    }
+                );
             }
-            return calculateHeuristicEstimate(pickup, dropoff, type);
-        } catch (error: unknown) {
-            logger.warn("Gemini estimateTransport warning (Fail-Safe activé)", {
-                error: error instanceof Error ? error.message : String(error),
+        }
+
+        // Niveau 2 : OpenRouter (fallback multi-modèles)
+        if (isOpenRouterAvailable()) {
+            const orResult = await callOpenRouterChat({
+                userPrompt: prompt,
+                maxTokens: 350,
+                temperature: 0.2,
+                timeoutMs: 7000,
             });
-            const fallback = calculateHeuristicEstimate(pickup, dropoff, type);
+
+            if (orResult.success) {
+                const parsed = extractJsonFromAiText<EstimationResult>(
+                    orResult.data.content
+                );
+                if (parsed && parsed.price && parsed.distance) {
+                    return {
+                        price: parsed.price,
+                        distance: parsed.distance,
+                        duration: parsed.duration || "Non spécifiée",
+                        confidence: "Élevée (OpenRouter)",
+                        reasoning:
+                            parsed.reasoning ||
+                            `Estimation calculée via OpenRouter (${orResult.data.model}).`,
+                        source: "openrouter",
+                    };
+                }
+            }
+        }
+
+        // Niveau 3 : Moteur heuristique déterministe local
+        const fallback = calculateHeuristicEstimate(pickup, dropoff, type);
+        if (key || isOpenRouterAvailable()) {
             fallback.reasoning +=
                 " (Fail-safe activé : calcul heuristique appliqué)";
-            return fallback;
         }
+        return fallback;
     },
 
     /**
      * Rédige un email professionnel pour les administrateurs.
-     * Bascule sur les modèles métier si l'API est absente ou défaillante.
+     * Chaîne de résilience : Google AI (Gemini 2.5 Flash) -> OpenRouter -> Modèles métier locaux.
      */
     async draftEmail(
         type: "validation" | "refusal" | "question",
         clientName: string,
         quoteId: string
     ): Promise<{ subject: string; body: string }> {
-        const key = getGeminiApiKey();
-        if (!key) {
-            return generateFallbackEmail(type, clientName, quoteId);
-        }
-
-        try {
-            const client = getGeminiClient();
-            if (!client) {
-                return generateFallbackEmail(type, clientName, quoteId);
-            }
-
-            const model = client.getGenerativeModel({
-                model: "gemini-1.5-flash",
-            });
-            const prompt = `
+        const prompt = `
                 Rédige un email professionnel et courtois pour un client transport.
                 Contexte : ${type === "validation" ? "Devis validé" : type === "refusal" ? "Devis refusé (capacité ou faisabilité)" : "Demande de précision"}
                 Client : ${clientName}
@@ -488,35 +525,111 @@ export const geminiService = {
                 Réponds UNIQUEMENT au format JSON : { "subject": "Objet de l'email", "body": "Corps du message" }
             `;
 
-            const call = async () => {
-                const result = await model.generateContent(prompt);
-                const response = await result.response;
-                const text = response.text();
-                const jsonStr = text
-                    .replace(/```json/g, "")
-                    .replace(/```/g, "")
-                    .trim();
-                return JSON.parse(jsonStr) as { subject: string; body: string };
-            };
+        // Niveau 1 : Google AI (Gemini 2.5 Flash)
+        const key = getGeminiApiKey();
+        if (key) {
+            try {
+                const client = getGeminiClient();
+                if (client) {
+                    const model = client.getGenerativeModel({
+                        model: getGeminiModel(),
+                    });
 
-            const result = await withTimeout(call(), 6000);
-            if (result && result.subject && result.body) {
-                return result;
+                    const call = async () => {
+                        const result = await model.generateContent(prompt);
+                        const response = await result.response;
+                        return extractJsonFromAiText<{
+                            subject: string;
+                            body: string;
+                        }>(response.text());
+                    };
+
+                    const result = await withTimeout(call(), 7000);
+                    if (result && result.subject && result.body) {
+                        return result;
+                    }
+                }
+            } catch (error: unknown) {
+                logger.warn(
+                    "Gemini draftEmail warning (basculement OpenRouter / Fail-Safe)",
+                    {
+                        error:
+                            error instanceof Error
+                                ? error.message
+                                : String(error),
+                    }
+                );
             }
-            return generateFallbackEmail(type, clientName, quoteId);
-        } catch (error: unknown) {
-            logger.warn("Gemini draftEmail warning (Fail-Safe activé)", {
-                error: error instanceof Error ? error.message : String(error),
-            });
-            return generateFallbackEmail(type, clientName, quoteId);
         }
+
+        // Niveau 2 : OpenRouter
+        if (isOpenRouterAvailable()) {
+            const orResult = await callOpenRouterChat({
+                userPrompt: prompt,
+                maxTokens: 450,
+                temperature: 0.3,
+                timeoutMs: 7000,
+            });
+            if (orResult.success) {
+                const parsed = extractJsonFromAiText<{
+                    subject: string;
+                    body: string;
+                }>(orResult.data.content);
+                if (parsed && parsed.subject && parsed.body) {
+                    return parsed;
+                }
+            }
+        }
+
+        // Niveau 3 : Modèle métier local déterministe
+        return generateFallbackEmail(type, clientName, quoteId);
     },
 };
 
 /**
+ * Normalise la réponse JSON structurée du support IA.
+ */
+function parseSupportAiPayload(
+    raw: unknown,
+    source: "gemini" | "openrouter"
+): {
+    message: string;
+    category: QueryCategory;
+    sentiment: Sentiment;
+    shouldEscalate: boolean;
+    source: "gemini" | "openrouter";
+} | null {
+    if (!raw || typeof raw !== "object") return null;
+    const record = raw as Record<string, unknown>;
+    if (typeof record.message !== "string" || !record.message.trim()) {
+        return null;
+    }
+
+    const validCategories: QueryCategory[] = [
+        "technical",
+        "billing",
+        "quote",
+        "transport",
+        "general",
+    ];
+    const validSentiments: Sentiment[] = ["positive", "neutral", "negative"];
+
+    return {
+        message: record.message.trim(),
+        category: validCategories.includes(record.category as QueryCategory)
+            ? (record.category as QueryCategory)
+            : "general",
+        sentiment: validSentiments.includes(record.sentiment as Sentiment)
+            ? (record.sentiment as Sentiment)
+            : "neutral",
+        shouldEscalate: Boolean(record.shouldEscalate),
+        source,
+    };
+}
+
+/**
  * Génération de réponse IA pour le support conversationnel.
- * Retourne null si aucune clé n'est configurée ou en cas d'erreur API,
- * permettant un repli direct sur l'arbre de décision local.
+ * Chaîne de résilience : Google AI (Gemini 2.5 Flash) -> OpenRouter -> null (arbre de décision local).
  */
 export async function generateSupportAiResponse(
     userMessage: string,
@@ -526,32 +639,22 @@ export async function generateSupportAiResponse(
     category: QueryCategory;
     sentiment: Sentiment;
     shouldEscalate: boolean;
-    source: "gemini" | "resilient_local";
+    source: "gemini" | "openrouter" | "resilient_local";
 } | null> {
-    const key = getGeminiApiKey();
-    if (!key) return null;
+    const hasGemini = isGeminiAvailable();
+    const hasOpenRouter = isOpenRouterAvailable();
 
-    try {
-        const client = getGeminiClient();
-        if (!client) return null;
+    if (!hasGemini && !hasOpenRouter) return null;
 
-        const model = client.getGenerativeModel({
-            model: "gemini-1.5-flash",
-            generationConfig: {
-                maxOutputTokens: 350,
-                temperature: 0.3,
-            },
-        });
+    const historySnippet = history
+        .slice(-4)
+        .map(
+            (h) =>
+                `${h.role === "user" ? "Client" : "Assistant HBC"}: ${h.content}`
+        )
+        .join("\n");
 
-        const historySnippet = history
-            .slice(-4)
-            .map(
-                (h) =>
-                    `${h.role === "user" ? "Client" : "Assistant HBC"}: ${h.content}`
-            )
-            .join("\n");
-
-        const prompt = `
+    const prompt = `
             Tu es l'assistant virtuel intelligent de HBC Service Cash Logistique Immobilière ("Votre sécurité, Notre priorité").
             Spécialités : transport routier lourd, containers maritimes, charpentes, machines industrielles, convois exceptionnels, modules préfabriqués.
             
@@ -577,49 +680,57 @@ export async function generateSupportAiResponse(
             }
         `;
 
-        const call = async () => {
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            const text = response.text();
-            const jsonStr = text
-                .replace(/```json/g, "")
-                .replace(/```/g, "")
-                .trim();
-            return JSON.parse(jsonStr);
-        };
+    // Niveau 1 : Google AI (Gemini 2.5 Flash)
+    if (hasGemini) {
+        try {
+            const client = getGeminiClient();
+            if (client) {
+                const model = client.getGenerativeModel({
+                    model: getGeminiModel(),
+                    generationConfig: {
+                        maxOutputTokens: 350,
+                        temperature: 0.3,
+                    },
+                });
 
-        const parsed = await withTimeout(call(), 6000);
-        if (parsed && typeof parsed.message === "string") {
-            const validCategories: QueryCategory[] = [
-                "technical",
-                "billing",
-                "quote",
-                "transport",
-                "general",
-            ];
-            const validSentiments: Sentiment[] = [
-                "positive",
-                "neutral",
-                "negative",
-            ];
+                const call = async () => {
+                    const result = await model.generateContent(prompt);
+                    const response = await result.response;
+                    return extractJsonFromAiText<unknown>(response.text());
+                };
 
-            return {
-                message: parsed.message,
-                category: validCategories.includes(parsed.category)
-                    ? parsed.category
-                    : "general",
-                sentiment: validSentiments.includes(parsed.sentiment)
-                    ? parsed.sentiment
-                    : "neutral",
-                shouldEscalate: Boolean(parsed.shouldEscalate),
-                source: "gemini",
-            };
+                const parsed = await withTimeout(call(), 7000);
+                const normalized = parseSupportAiPayload(parsed, "gemini");
+                if (normalized) return normalized;
+            }
+        } catch (error: unknown) {
+            logger.warn(
+                "Gemini support response warning (basculement OpenRouter / Fail-Safe)",
+                {
+                    error:
+                        error instanceof Error ? error.message : String(error),
+                }
+            );
         }
-        return null;
-    } catch (error: unknown) {
-        logger.warn("Gemini support response warning (Fail-Safe activé)", {
-            error: error instanceof Error ? error.message : String(error),
-        });
-        return null;
     }
+
+    // Niveau 2 : OpenRouter (fallback multi-modèles)
+    if (hasOpenRouter) {
+        const orResult = await callOpenRouterChat({
+            userPrompt: prompt,
+            maxTokens: 350,
+            temperature: 0.3,
+            timeoutMs: 7000,
+        });
+
+        if (orResult.success) {
+            const parsed = extractJsonFromAiText<unknown>(
+                orResult.data.content
+            );
+            const normalized = parseSupportAiPayload(parsed, "openrouter");
+            if (normalized) return normalized;
+        }
+    }
+
+    return null;
 }

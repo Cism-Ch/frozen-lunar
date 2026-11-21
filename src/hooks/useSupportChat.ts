@@ -51,9 +51,9 @@ export function useSupportChat(onClose: () => void) {
         },
     ]);
     const [isLoading, setIsLoading] = useState(false);
-    const [aiMode, setAiMode] = useState<"gemini" | "resilient_local">(
-        "resilient_local"
-    );
+    const [aiMode, setAiMode] = useState<
+        "gemini" | "openrouter" | "resilient_local"
+    >("resilient_local");
     const [currentQuickReplies, setCurrentQuickReplies] = useState<
         QuickReply[]
     >(AGENT_CONFIG.quickReplies);
@@ -68,7 +68,7 @@ export function useSupportChat(onClose: () => void) {
         getAiStatusAction()
             .then((res) => {
                 if (isMounted && res.data?.isAvailable) {
-                    setAiMode("gemini");
+                    setAiMode(res.data.mode);
                 } else if (isMounted) {
                     setAiMode("resilient_local");
                 }

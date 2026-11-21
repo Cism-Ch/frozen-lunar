@@ -4,6 +4,7 @@
  * sur un moteur de modèles paramétriques (Fail-Safe 100% autonome).
  */
 import { logger } from "@/lib/logger";
+import { callOpenRouterChat, isOpenRouterAvailable } from "@/lib/openrouter";
 
 export interface WhatsAppQuotePayload {
     id: string;
@@ -21,7 +22,7 @@ export interface WhatsAppQuotePayload {
 export interface GeneratedWhatsAppMessage {
     text: string;
     url: string;
-    source: "huggingface" | "template_local";
+    source: "openrouter" | "huggingface" | "template_local";
     model?: string;
 }
 
@@ -116,20 +117,7 @@ export async function generateWhatsAppMessage(
     customContext?: string
 ): Promise<GeneratedWhatsAppMessage> {
     const cleanPhone = normalizePhoneForWhatsApp(payload.phone);
-    const apiKey = getHuggingFaceApiKey();
-    const model = "mistralai/Mistral-7B-Instruct-v0.3";
-
-    if (!apiKey) {
-        const text = formatLocalWhatsAppMessage(payload, customContext);
-        return {
-            text,
-            url: `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`,
-            source: "template_local",
-        };
-    }
-
-    try {
-        const prompt = `<s>[INST] Tu es le chargé de clientèle de l'entreprise HBC Logistique.
+    const whatsappInstructions = `Tu es le chargé de clientèle de l'entreprise HBC Logistique.
 Formate un message WhatsApp professionnel, chaleureux et concis pour ce client :
 Client : ${payload.client}
 Devis : ${payload.id.slice(0, 8)}
@@ -144,7 +132,42 @@ Règles strictes :
 - Utilise la mise en forme WhatsApp (*gras* pour les mots clés, emojis de transport).
 - Court et lisible sur smartphone (max 10-12 lignes).
 - Termine par la signature HBC Logistique ("Votre sécurité, Notre priorité").
-- Rédige UNIQUEMENT le texte du message, sans explications ni guillemets d'introduction. [/INST]`;
+- Rédige UNIQUEMENT le texte du message, sans explications ni guillemets d'introduction.`;
+
+    // Niveau 1 : OpenRouter (si configuré)
+    if (isOpenRouterAvailable()) {
+        const orResult = await callOpenRouterChat({
+            userPrompt: whatsappInstructions,
+            maxTokens: 320,
+            temperature: 0.3,
+            timeoutMs: 6000,
+        });
+
+        if (orResult.success && orResult.data.content.length > 30) {
+            return {
+                text: orResult.data.content,
+                url: `https://wa.me/${cleanPhone}?text=${encodeURIComponent(orResult.data.content)}`,
+                source: "openrouter",
+                model: orResult.data.model,
+            };
+        }
+    }
+
+    // Niveau 2 : Hugging Face Inference API (si configuré)
+    const apiKey = getHuggingFaceApiKey();
+    const model = "mistralai/Mistral-7B-Instruct-v0.3";
+
+    if (!apiKey) {
+        const text = formatLocalWhatsAppMessage(payload, customContext);
+        return {
+            text,
+            url: `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`,
+            source: "template_local",
+        };
+    }
+
+    try {
+        const prompt = `<s>[INST] ${whatsappInstructions} [/INST]`;
 
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 6000);

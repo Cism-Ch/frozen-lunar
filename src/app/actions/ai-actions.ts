@@ -5,9 +5,15 @@ import {
     geminiService,
     generateSupportAiResponse,
     getGeminiApiKey,
+    getGeminiModel,
     isGeminiAvailable,
     EstimationResult,
 } from "@/lib/gemini";
+import {
+    getOpenRouterApiKey,
+    getOpenRouterModel,
+    isOpenRouterAvailable,
+} from "@/lib/openrouter";
 import { requireAdmin } from "@/lib/auth-guard";
 import { logger } from "@/lib/logger";
 
@@ -38,28 +44,52 @@ const supportChatSchema = z.object({
 
 export type AiSystemStatus = {
     isAvailable: boolean;
-    mode: "gemini" | "resilient_local";
+    mode: "gemini" | "openrouter" | "resilient_local";
     model: string;
     hasKey: boolean;
 };
 
 /**
- * Récupère le statut opérationnel du sous-système IA et de son fail-safe.
+ * Récupère le statut opérationnel du sous-système IA (Gemini 2.5 / OpenRouter / fail-safe).
  */
 export async function getAiStatusAction(): Promise<{
     data: AiSystemStatus | null;
     error: string | null;
 }> {
     try {
-        const available = isGeminiAvailable();
+        const geminiReady = isGeminiAvailable();
+        const openRouterReady = isOpenRouterAvailable();
+
+        if (geminiReady) {
+            return {
+                data: {
+                    isAvailable: true,
+                    mode: "gemini",
+                    model: getGeminiModel(),
+                    hasKey: getGeminiApiKey() !== null,
+                },
+                error: null,
+            };
+        }
+
+        if (openRouterReady) {
+            return {
+                data: {
+                    isAvailable: true,
+                    mode: "openrouter",
+                    model: getOpenRouterModel(),
+                    hasKey: getOpenRouterApiKey() !== null,
+                },
+                error: null,
+            };
+        }
+
         return {
             data: {
-                isAvailable: available,
-                mode: available ? "gemini" : "resilient_local",
-                model: available
-                    ? "gemini-1.5-flash"
-                    : "moteur-local-heuristique",
-                hasKey: getGeminiApiKey() !== null,
+                isAvailable: false,
+                mode: "resilient_local",
+                model: "moteur-local-heuristique",
+                hasKey: false,
             },
             error: null,
         };
@@ -154,7 +184,7 @@ export async function generateSupportAiAction(input: unknown): Promise<{
         category: "technical" | "billing" | "quote" | "transport" | "general";
         sentiment: "positive" | "neutral" | "negative";
         shouldEscalate: boolean;
-        source: "gemini" | "resilient_local";
+        source: "gemini" | "openrouter" | "resilient_local";
     } | null;
     error: string | null;
 }> {

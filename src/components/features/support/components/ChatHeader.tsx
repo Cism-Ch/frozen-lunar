@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 
 interface ChatHeaderProps {
     quoteFlowState: QuoteFlowState;
-    aiMode?: "gemini" | "resilient_local";
+    aiMode?: "gemini" | "openrouter" | "resilient_local";
     onRestart: () => void;
     onClose: () => void;
 }
@@ -79,14 +79,17 @@ export function ChatHeader({
                                         Création de devis
                                     </span>
                                 </>
-                            ) : aiMode === "gemini" ? (
+                            ) : aiMode === "gemini" ||
+                              aiMode === "openrouter" ? (
                                 <>
                                     <span className="relative flex h-2 w-2 shrink-0">
                                         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
                                         <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400"></span>
                                     </span>
                                     <span className="truncate text-[11px] font-medium text-emerald-200 sm:text-xs">
-                                        IA Gemini Active
+                                        {aiMode === "gemini"
+                                            ? "IA Gemini Active"
+                                            : "IA OpenRouter Active"}
                                     </span>
                                 </>
                             ) : (
