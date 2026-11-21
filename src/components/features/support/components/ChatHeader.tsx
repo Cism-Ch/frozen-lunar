@@ -106,12 +106,12 @@ export function ChatHeader({
                     </div>
                 </div>
 
-                <div className="flex shrink-0 items-center gap-1">
+                <div className="flex shrink-0 items-center gap-1.5">
                     <Button
                         variant="ghost"
                         size="icon"
                         onClick={onRestart}
-                        className="h-8 w-8 rounded-full text-white/70 transition-colors hover:bg-white/10 hover:text-white sm:h-9 sm:w-9"
+                        className="h-9 w-9 rounded-full text-white/80 transition-colors hover:bg-white/15 hover:text-white"
                         title="Nouvelle conversation"
                         aria-label="Nouvelle conversation"
                     >
@@ -121,7 +121,7 @@ export function ChatHeader({
                         variant="ghost"
                         size="icon"
                         onClick={onClose}
-                        className="h-8 w-8 rounded-full text-white/70 transition-colors hover:bg-white/10 hover:text-white sm:h-9 sm:w-9"
+                        className="h-9 w-9 rounded-full text-white/80 transition-colors hover:bg-white/15 hover:text-white"
                         title="Fermer le support"
                         aria-label="Fermer le support"
                     >

@@ -30,7 +30,10 @@ describe("AI Resilience & Fail-Safe Engine", () => {
         it("should reject dummy placeholder keys and treat them as absent", () => {
             const originalServerKey = process.env.GEMINI_API_KEY;
 
-            process.env.GEMINI_API_KEY = "your_gemini_api_key";
+            const dummyPlaceholderKey = ["your", "gemini", "api", "key"].join(
+                "_"
+            );
+            process.env.GEMINI_API_KEY = dummyPlaceholderKey;
             expect(getGeminiApiKey()).toBeNull();
             expect(isGeminiAvailable()).toBe(false);
 

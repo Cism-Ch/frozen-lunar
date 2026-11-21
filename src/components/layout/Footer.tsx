@@ -39,17 +39,30 @@ export function Footer() {
                             particuliers.
                         </p>
                         {/* Social Links */}
-                        <div className="flex gap-2">
+                        <div className="flex justify-center gap-2 sm:justify-start">
                             {[
-                                { icon: Facebook, href: "#" },
-                                { icon: Twitter, href: "#" },
-                                { icon: Linkedin, href: "#" },
-                                { icon: Instagram, href: "#" },
-                            ].map((social, index) => (
+                                {
+                                    icon: Facebook,
+                                    href: "#",
+                                    label: "Facebook",
+                                },
+                                { icon: Twitter, href: "#", label: "Twitter" },
+                                {
+                                    icon: Linkedin,
+                                    href: "#",
+                                    label: "LinkedIn",
+                                },
+                                {
+                                    icon: Instagram,
+                                    href: "#",
+                                    label: "Instagram",
+                                },
+                            ].map((social) => (
                                 <Link
-                                    key={index}
+                                    key={social.label}
                                     href={social.href}
-                                    className="bg-muted hover:bg-primary/10 hover:text-primary group rounded-lg p-2 transition-all"
+                                    aria-label={`Suivez-nous sur ${social.label}`}
+                                    className="bg-muted hover:bg-primary/10 hover:text-primary group border-border/50 flex h-11 min-h-[44px] w-11 min-w-[44px] items-center justify-center rounded-lg border transition-all focus-visible:ring-2 focus-visible:outline-none"
                                 >
                                     <social.icon className="h-4 w-4 transition-transform group-hover:scale-110" />
                                 </Link>
@@ -171,14 +184,15 @@ export function Footer() {
                         {/* Newsletter */}
                         <div className="space-y-2 pt-4">
                             <p className="text-sm font-medium">Newsletter</p>
-                            <div className="flex justify-center gap-2 sm:justify-start">
+                            <div className="flex flex-col justify-center gap-2 sm:flex-row sm:justify-start">
                                 <Input
                                     type="email"
                                     placeholder="Votre email"
-                                    className="h-9 text-sm"
+                                    className="h-11 text-sm sm:h-10"
+                                    aria-label="Adresse email pour la newsletter"
                                 />
-                                <Button size="sm" className="font-semibold">
-                                    OK
+                                <Button className="h-11 w-full px-5 font-semibold sm:h-10 sm:w-auto">
+                                    S&apos;inscrire
                                 </Button>
                             </div>
                         </div>

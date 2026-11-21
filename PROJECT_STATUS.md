@@ -154,20 +154,18 @@
 - ✅ Export PDF côté client (jsPDF) et export tabulaire Excel CSV UTF-8 BOM.
 - ✅ Mode Démo en 1-clic avec injection/purge de données de test sans corrompre la production.
 - ✅ SEO dynamique : sitemap XML, robots.txt et données structurées JSON-LD Schema.org.
-- ✅ Suite de 79 tests automatisés Vitest validée à 100% sans aucun échec.
+- ✅ Suite de 81 tests automatisés Vitest validée à 100% sur 13 suites sans aucun échec.
 - ✅ Pipeline GitHub Actions CI/CD (Prettier, ESLint, `tsc --noEmit`, Vitest, `next build`).
 
 ---
 
 ## Ce Qui Reste à Faire (Reel Restant) 🎯
 
-| Feature / Tâche                                    | Priorité | Description / Dépendance                                                  |
-| -------------------------------------------------- | -------- | ------------------------------------------------------------------------- |
-| **DT-008** : Migration `console.*` vers `logger`   | P2       | Migrer les 68 appels `console.error/log` vers le singleton Pino structuré |
-| **TASK-003** : Monitoring d'erreurs Sentry         | P2       | Intégration SDK Sentry Next.js pour capturer les exceptions de prod       |
-| **TASK-014** : Documentation OpenAPI / Swagger     | P3       | Spécification des routes publiques et webhooks pour développeurs tiers    |
-| **TASK-015** : Intégration passerelle de paiement  | P3       | Paiement d'acomptes en ligne (Stripe / agrégateur régional)               |
-| **TASK-016** : Analytics de navigation respectueux | P3       | Vercel Analytics ou Plausible sans cookies intrusifs                      |
+| Feature / Tâche                                    | Priorité | Description / Dépendance                                               |
+| -------------------------------------------------- | -------- | ---------------------------------------------------------------------- |
+| **TASK-003** : Monitoring d'erreurs Sentry         | P2       | Intégration SDK Sentry Next.js pour capturer les exceptions de prod    |
+| **TASK-015** : Intégration passerelle de paiement  | P3       | Paiement d'acomptes en ligne (Stripe / agrégateur régional)            |
+| **TASK-016** : Analytics de navigation respectueux | P3       | Vercel Analytics ou Plausible sans cookies intrusifs                   |
 
 ---
 
@@ -175,7 +173,7 @@
 
 ### P0 — Critique (Infrastructure & Qualité Fondamentale)
 
-- [x] **TASK-001** : Mettre en place les tests automatisés avec Vitest (79 tests validés sur 12 suites)
+- [x] **TASK-001** : Mettre en place les tests automatisés avec Vitest (81 tests validés sur 13 suites)
     - Fichiers : `vitest.config.ts`, `tests/setup.ts`, `tests/unit/*.test.ts`, `tests/integration/*.test.ts`
     - Statut : ✅ Terminé (100% pass)
 
@@ -193,6 +191,18 @@
 - [x] **TASK-006** : Implémenter l'upload de fichiers via Tigris S3
     - Fichiers : `src/lib/storage.ts`, `src/app/actions/upload-management.ts`, `src/components/features/FileUpload.tsx`
     - Statut : ✅ Terminé
+- [x] **TASK-027** : Refonte Responsivité & Alignement Normes UI/UX 2026 Espace Public & Partagé
+    - Fichiers : [docs/PLAN_SUIVI_RESPONSIVITE_PUBLIC_2026.md](file:///c:/Users/hanok/Dev/Personal-Project/frozen-lunar/docs/PLAN_SUIVI_RESPONSIVITE_PUBLIC_2026.md), [ISSUES.md](file:///c:/Users/hanok/Dev/Personal-Project/frozen-lunar/ISSUES.md) (`ISSUE-005` à `ISSUE-012`)
+    - Chantiers :
+        - `UI-RESP-01` (`ISSUE-005`) : LocationPicker adaptatif (résolution compression mobile 320px)
+        - `UI-RESP-02` (`ISSUE-006`) : Header Drawer auto-dismiss & dimensionnement adaptatif
+        - `UI-RESP-03` (`ISSUE-007`) : Contact form grille fluide (`sm:grid-cols-2`)
+        - `UI-RESP-04` (`ISSUE-008`) : WizardFooter thumb zone & boutons pleine largeur
+        - `UI-RESP-05` (`ISSUE-009`) : Footer cibles tactiles WCAG 2.5.5 ($\ge 44\text{px}$) & newsletter
+        - `UI-RESP-06` (`ISSUE-010`) : StepDate popover centré & calendrier mobile fluide
+        - `UI-RESP-07` (`ISSUE-011`) : QuoteSummaryDialog puces timeline standardisées & scroll sécurisé
+        - `UI-RESP-08` (`ISSUE-012`) : Support Chat IA quick-replies tactiles & `100dvh`
+    - Statut : ✅ Terminé (8 chantiers validés : LocationPicker adaptatif, Header Drawer auto-dismiss, Contact form grille fluide, WizardFooter thumb zone, Footer 44px, StepDate popover, QuoteSummaryDialog timeline & Chat IA quick-replies)
 
 ### P2 — Souhaitable (Améliorations, Temps Réel & Finitions)
 
@@ -226,10 +236,12 @@
     - Fichiers : `docs/PLAN_SUIVI_RESPONSIVITE_ADMIN_2026.md`, `src/app/admin/*`, `src/components/features/admin/*`
     - Statut : ✅ Terminé (8 chantiers RESP-01 à RESP-08 validés : dual pattern mobile/desktop, auto-dismiss sheet, sticky bar, toolbar adaptative)
 
-### P3 — Évolutions Futures
+### P3 — Évolutions Futures & Documentation
 
+- [x] **TASK-014** : Spécification OpenAPI 3.1.0, Swagger & Référence API Développeurs
+    - Fichiers : `public/openapi.json`, `docs/openapi.yaml`, `src/app/api/openapi/route.ts`, `docs/API_REFERENCE.md`, `tests/unit/openapi.test.ts`
+    - Statut : ✅ Terminé (Spécification OpenAPI 3.1.0 JSON & YAML, route de découverte CORS `/api/openapi`, documentation exhaustive des Route Handlers, webhooks QStash et Server Actions)
 - [ ] **TASK-003** : Monitoring Sentry
-- [ ] **TASK-014** : Spécification OpenAPI / Swagger
 - [ ] **TASK-015** : Intégration paiement d'acompte
 - [ ] **TASK-016** : Analytics de visite
 

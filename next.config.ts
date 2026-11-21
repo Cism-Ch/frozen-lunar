@@ -6,7 +6,7 @@ const ContentSecurityPolicy = `
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
     img-src 'self' blob: data: https:;
     font-src 'self' data: https://fonts.gstatic.com;
-    connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.upstash.io https://fly.storage.tigris.dev https://generativelanguage.googleapis.com;
+    connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.upstash.io https://fly.storage.tigris.dev https://generativelanguage.googleapis.com https://photon.komoot.io https://nominatim.openstreetmap.org;
     frame-ancestors 'self';
     form-action 'self';
     base-uri 'self';

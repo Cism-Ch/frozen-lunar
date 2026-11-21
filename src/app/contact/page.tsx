@@ -253,7 +253,7 @@ export default function ContactPage() {
                                                 className="space-y-4"
                                             >
                                                 <motion.div
-                                                    className="grid grid-cols-2 gap-4"
+                                                    className="grid grid-cols-1 gap-4 sm:grid-cols-2"
                                                     initial={{
                                                         opacity: 0,
                                                         y: 10,

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ export function Header() {
     const pathname = usePathname();
     const isMounted = useHasMounted();
     const prefersReducedMotion = usePrefersReducedMotion();
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const navItems = [
         { name: "Accueil", href: "/", icon: Home },
@@ -154,13 +156,16 @@ export function Header() {
 
                 {/* Mobile Nav */}
                 {isMounted && (
-                    <Sheet>
+                    <Sheet
+                        open={mobileMenuOpen}
+                        onOpenChange={setMobileMenuOpen}
+                    >
                         <SheetTrigger asChild>
                             <Button
                                 variant="ghost"
                                 size="icon"
                                 aria-label="Ouvrir le menu de navigation"
-                                className="hover:bg-primary/10 md:hidden"
+                                className="hover:bg-primary/10 min-h-[44px] min-w-[44px] md:hidden"
                             >
                                 <Menu className="h-6 w-6" />
                                 <span className="sr-only">
@@ -171,26 +176,30 @@ export function Header() {
 
                         <SheetContent
                             side="right"
-                            className="flex w-[300px] flex-col p-0 sm:w-[400px]"
+                            className="flex w-[min(calc(100vw-1.5rem),340px)] flex-col p-0 sm:w-[380px]"
                         >
                             <SheetTitle className="sr-only">
                                 Menu de navigation
                             </SheetTitle>
 
                             {/* Mobile Header */}
-                            <div className="bg-muted/30 border-b p-6">
-                                <div className="flex items-center gap-2">
+                            <div className="bg-muted/30 border-b p-5 sm:p-6">
+                                <Link
+                                    href="/"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="flex items-center gap-2"
+                                >
                                     <div className="bg-primary/10 rounded-lg p-2">
                                         <Truck className="text-primary h-6 w-6" />
                                     </div>
                                     <span className="text-lg font-bold tracking-tight">
                                         HBC LOGISTIQUE
                                     </span>
-                                </div>
+                                </Link>
                             </div>
 
                             {/* Mobile Links */}
-                            <div className="flex-1 overflow-y-auto px-6 py-6">
+                            <div className="flex-1 overflow-y-auto px-5 py-6 sm:px-6">
                                 <div className="flex flex-col gap-2">
                                     <AnimatePresence>
                                         {navItems.map((item, index) => (
@@ -206,8 +215,11 @@ export function Header() {
                                             >
                                                 <Link
                                                     href={item.href}
+                                                    onClick={() =>
+                                                        setMobileMenuOpen(false)
+                                                    }
                                                     className={cn(
-                                                        "hover:bg-muted group flex items-center gap-4 rounded-lg p-3 transition-all",
+                                                        "hover:bg-muted group active:bg-muted/80 flex min-h-[48px] items-center gap-4 rounded-lg p-3 transition-all",
                                                         pathname === item.href
                                                             ? "bg-primary/10 text-primary"
                                                             : "text-muted-foreground"
@@ -268,16 +280,21 @@ export function Header() {
                             </div>
 
                             {/* Mobile Footer */}
-                            <div className="bg-muted/30 mt-auto border-t p-6">
+                            <div className="bg-muted/30 mt-auto border-t p-5 sm:p-6">
                                 <motion.div
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
                                 >
                                     <Button
-                                        className="group h-12 w-full text-lg font-semibold shadow-lg"
+                                        className="group h-12 w-full text-base font-semibold shadow-lg sm:text-lg"
                                         asChild
                                     >
-                                        <Link href="/devis">
+                                        <Link
+                                            href="/devis"
+                                            onClick={() =>
+                                                setMobileMenuOpen(false)
+                                            }
+                                        >
                                             <Phone className="mr-2 h-5 w-5 transition-transform group-hover:rotate-12" />
                                             Demander un devis
                                         </Link>

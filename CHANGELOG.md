@@ -7,6 +7,44 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
 ## [Unreleased]
 
+### Added & Documented (TASK-014 : Spécification OpenAPI 3.1.0, Swagger & Référence API Développeurs)
+
+- **Spécification OpenAPI 3.1.0 Exhaustive (JSON & YAML)** :
+    - Publication de la spécification standardisée au format JSON (`public/openapi.json`) et YAML (`docs/openapi.yaml`).
+    - Couverture intégrale des Route Handlers REST, de l'authentification et des webhooks asynchrones :
+        - `/api/admin/check` (GET : vérification de l'existence d'un administrateur).
+        - `/api/admin/init` (POST : initialisation du premier compte administrateur à usage unique).
+        - `/api/workflow/email` (POST : webhook asynchrone signé QStash / Resend pour notifications admin et confirmations client).
+        - `/api/workflow/pdf` (POST : webhook asynchrone signé QStash / Tigris S3 pour génération de devis PDF).
+        - `/api/seed` (POST : injection contrôlée d'utilisateurs de test avec protection stricte hors production).
+        - `/api/auth/[...all]` (Better-Auth : sign-in, sign-up, sign-out, get-session, forget-password, reset-password, change-password).
+    - Définition formelle des schémas de sécurité (`SessionCookieAuth` via cookie `better-auth.session_token`, `QStashSignatureAuth` via header HMAC `Upstash-Signature`).
+    - Modélisation de tous les schémas de données d'entrée et de sortie (`AdminCheckResponse`, `AdminInitRequest`, `EmailWorkflowPayload`, `PdfWorkflowPayload`, `ErrorResponse`, `RateLimitErrorResponse`...).
+- **Route de Découverte OpenAPI & Support CORS (`/api/openapi`)** :
+    - Route Next.js App Router dynamique (`src/app/api/openapi/route.ts`) exposant la spécification JSON avec en-têtes CORS (`Access-Control-Allow-Origin: *`) et gestion de cache (`Cache-Control: public, s-maxage=3600`).
+    - Handler OPTIONS pré-vol (preflight CORS) pour intégration transparente avec Swagger UI, Redoc, Postman et Insomnia.
+- **Référence Technique Développeurs Complète (`docs/API_REFERENCE.md`)** :
+    - Guide technique détaillé pour intégrateurs et développeurs tiers selon les standards du skill `doc-writer`.
+    - Documentation des architectures REST et Server Actions (contrat de retour systématique `{ data, error }`).
+    - Règles de Rate Limiting Edge Middleware (20 req / 10s API, 5 req / 60s Auth), formats d'en-têtes et codes d'erreur centralisés (`DBxxx`, `AUTHxxx`, `VALxxx`, `EMAILxxx`, `SYSxxx`).
+- **Tests Automatisés Vitest (`tests/unit/openapi.test.ts`)** :
+    - 2 nouveaux tests unitaires automatisés validant la validité du schéma OpenAPI 3.1.0, la présence de toutes les routes requises, et le comportement des handlers GET et OPTIONS (total de la suite porté à 81 tests réussis sur 13 suites).
+
+### Added & Improved (TASK-027 : Refonte Responsivité & Normes UI/UX 2026 Espace Public & Partagé)
+
+- **Audit Spécialisé Multi-Agents UI/UX (Standards SaaS / Web 2026 & WCAG 2.1 AA/AAA)** :
+    - Audit statique exhaustif conduit par `ui-ux-pro-max`, `project-tracker` et `issue-resolver` sur l'ensemble des composants publics, du tunnel de conversion (Wizard de devis), du module de chat de support et des composants interactifs partagés.
+    - Élaboration du plan de référence [docs/PLAN_SUIVI_RESPONSIVITE_PUBLIC_2026.md](file:///c:/Users/hanok/Dev/Personal-Project/frozen-lunar/docs/PLAN_SUIVI_RESPONSIVITE_PUBLIC_2026.md) détaillant la grille d'évaluation, les critères d'acceptation, les cotes d'espacement 8pt et les dimensions cibles tactiles ($\ge 44\text{px}$).
+- **Résolution Intégrale des 8 Chantiers de Responsivité (`ISSUE-005` à `ISSUE-012`)** :
+    - `UI-RESP-01` (`ISSUE-005` — `LocationPicker.tsx`) : Champ d'adresse pleine largeur sur mobile avec barre d'action tactile ergonomique ($\ge 44\text{px}$) pour GPS et carte interactive ; alignement desktop préservé ; dialogue de carte responsive.
+    - `UI-RESP-02` (`ISSUE-006` — `Header.tsx`) : Tiroir mobile contrôlé avec fermeture automatique immédiate (_auto-dismiss_) au clic sur tout lien de navigation ou CTA ; largeur adaptative `w-[min(calc(100vw-1.5rem),340px)]` ; cibles tactiles $\ge 44\text{px}$.
+    - `UI-RESP-03` (`ISSUE-007` — `contact/page.tsx`) : Grille fluide `grid-cols-1 sm:grid-cols-2` pour Prénom et Nom supprimant l'écrasement sur viewport mobile.
+    - `UI-RESP-04` (`ISSUE-008` — `WizardFooter.tsx`) : Pied de carte adaptatif `flex-col-reverse sm:flex-row` plaçant le CTA principal en pleine largeur dans la Thumb Zone et prévenant les collisions de boutons.
+    - `UI-RESP-05` (`ISSUE-009` — `Footer.tsx`) : Cibles tactiles des réseaux sociaux agrandies à $44\text{px}$ (WCAG 2.5.5 Target Size) avec `aria-label` ; formulaire newsletter adaptatif `flex-col sm:flex-row`.
+    - `UI-RESP-06` (`ISSUE-010` — `StepDate.tsx`) : Popover calendrier centré avec bornage dynamique de largeur (`max-w-[calc(100vw-2rem)]`) empêchant tout débordement latéral sur smartphone.
+    - `UI-RESP-07` (`ISSUE-011` — `QuoteSummaryDialog.tsx`) : Puces de timeline mathématiquement centrées sur l'axe vertical sans marges arbitraires désaxées ; grille 2 colonnes adaptative ; modale scrollable bornée (`max-h-[85vh]`).
+    - `UI-RESP-08` (`ISSUE-012` — `ChatInput.tsx` & `ChatHeader.tsx`) : Pilules de quick-replies portées à `min-h-[38px]` avec défilement fluide `no-scrollbar` ; boutons de contrôle d'en-tête agrandis à $36-40\text{px}$.
+
 ### Improved & Fixed (DT-008 : Éradication Totale des `console.*` et Migration vers Pino `logger`)
 
 - **Migration Complète vers le Singleton Pino (`@/lib/logger`)** :

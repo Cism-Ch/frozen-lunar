@@ -39,7 +39,7 @@ export function StepDate() {
                                     <Button
                                         variant={"outline"}
                                         className={cn(
-                                            "bg-muted/20 border-muted-foreground/20 hover:bg-muted/30 h-14 w-full pl-4 text-left text-lg font-normal",
+                                            "bg-muted/20 border-muted-foreground/20 hover:bg-muted/30 h-12 w-full pl-4 text-left text-sm font-normal sm:h-14 sm:text-base",
                                             !field.value &&
                                                 "text-muted-foreground"
                                         )}
@@ -51,13 +51,14 @@ export function StepDate() {
                                         ) : (
                                             <span>Sélectionnez une date</span>
                                         )}
-                                        <CalendarIcon className="ml-auto h-5 w-5 opacity-50" />
+                                        <CalendarIcon className="ml-auto h-5 w-5 shrink-0 opacity-50" />
                                     </Button>
                                 </FormControl>
                             </PopoverTrigger>
                             <PopoverContent
-                                className="w-auto p-0"
-                                align="start"
+                                className="border-border/60 w-auto max-w-[calc(100vw-2rem)] rounded-xl p-0 shadow-xl"
+                                align="center"
+                                sideOffset={8}
                             >
                                 <Calendar
                                     mode="single"

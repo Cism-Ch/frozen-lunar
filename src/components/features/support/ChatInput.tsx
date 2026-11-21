@@ -115,7 +115,7 @@ export function ChatInput({
         <div className={cn("space-y-3", className)}>
             {/* Quick Replies (Boutons de suggestion épurés avec icônes Lucide) */}
             {quickReplies.length > 0 && (
-                <div className="flex touch-pan-x scrollbar-none items-center gap-1.5 overflow-x-auto py-1">
+                <div className="no-scrollbar flex touch-pan-x items-center gap-2 overflow-x-auto py-1.5">
                     {quickReplies.map((reply) => (
                         <Button
                             key={reply.id}
@@ -124,9 +124,9 @@ export function ChatInput({
                             onClick={() => handleQuickReply(reply)}
                             disabled={isLoading}
                             className={cn(
-                                "h-8 shrink-0 rounded-full px-3 text-xs font-medium whitespace-nowrap transition-all",
+                                "min-h-[38px] shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium whitespace-nowrap transition-all",
                                 "bg-muted/60 hover:bg-primary/10 hover:text-primary hover:border-primary/40",
-                                "border-border/60 shadow-2xs active:scale-95"
+                                "border-border/60 shadow-xs active:scale-95"
                             )}
                         >
                             {renderReplyIcon(reply)}

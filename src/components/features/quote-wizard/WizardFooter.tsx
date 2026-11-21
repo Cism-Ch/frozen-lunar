@@ -22,18 +22,18 @@ export function WizardFooter({
     onSubmit,
 }: WizardFooterProps) {
     return (
-        <CardFooter className="bg-muted/10 flex justify-between border-t p-6">
+        <CardFooter className="bg-muted/10 flex flex-col-reverse gap-3 border-t p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
             {step > 1 ? (
                 <Button
                     type="button"
                     variant="ghost"
                     onClick={onPrev}
-                    className="text-muted-foreground hover:text-foreground"
+                    className="text-muted-foreground hover:text-foreground min-h-[44px] w-full sm:w-auto"
                 >
                     <ArrowLeft className="mr-2 h-4 w-4" /> Retour
                 </Button>
             ) : (
-                <div />
+                <div className="hidden sm:block" />
             )}
 
             {step < totalSteps ? (
@@ -41,7 +41,7 @@ export function WizardFooter({
                     type="button"
                     onClick={onNext}
                     size="lg"
-                    className="hover:shadow-primary/25 px-8 font-semibold shadow-lg transition-all"
+                    className="hover:shadow-primary/25 h-12 w-full px-8 text-base font-semibold shadow-lg transition-all sm:h-11 sm:w-auto sm:text-sm"
                 >
                     Continuer <ChevronRight className="ml-2 h-5 w-5" />
                 </Button>
@@ -50,7 +50,7 @@ export function WizardFooter({
                     onClick={onSubmit}
                     disabled={isSubmitting}
                     size="lg"
-                    className="hover:shadow-primary/25 px-8 font-semibold shadow-lg transition-all"
+                    className="hover:shadow-primary/25 h-12 w-full px-8 text-base font-semibold shadow-lg transition-all sm:h-11 sm:w-auto sm:text-sm"
                 >
                     {isSubmitting ? (
                         <>
