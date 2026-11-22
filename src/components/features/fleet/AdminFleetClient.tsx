@@ -69,6 +69,7 @@ interface VehicleFormState {
     totalQuantity: string;
     availableQuantity: string;
     dailyRateFcfa: string;
+    imageUrl: string;
     specsText: string;
     isActive: boolean;
     sortOrder: string;
@@ -83,6 +84,7 @@ const EMPTY_FORM: VehicleFormState = {
     totalQuantity: "2",
     availableQuantity: "2",
     dailyRateFcfa: "",
+    imageUrl: "",
     specsText: "",
     isActive: true,
     sortOrder: "10",
@@ -140,6 +142,7 @@ export function AdminFleetClient({ initialVehicles }: AdminFleetClientProps) {
             availableQuantity: String(v.availableQuantity),
             dailyRateFcfa:
                 v.dailyRateFcfa !== null ? String(v.dailyRateFcfa) : "",
+            imageUrl: v.imageUrl || "",
             specsText: v.specs.join("\n"),
             isActive: v.isActive,
             sortOrder: String(v.sortOrder),
@@ -204,7 +207,7 @@ export function AdminFleetClient({ initialVehicles }: AdminFleetClientProps) {
             dailyRateFcfa: form.dailyRateFcfa.trim()
                 ? Number(form.dailyRateFcfa)
                 : null,
-            imageUrl: null,
+            imageUrl: form.imageUrl.trim() || null,
             specs: form.specsText
                 .split("\n")
                 .map((s) => s.trim())
@@ -653,6 +656,24 @@ export function AdminFleetClient({ initialVehicles }: AdminFleetClientProps) {
                                     placeholder="Sur devis"
                                 />
                             </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <Label htmlFor="v-image">
+                                URL de l&apos;image d&apos;illustration (https://...)
+                            </Label>
+                            <Input
+                                id="v-image"
+                                type="url"
+                                value={form.imageUrl}
+                                onChange={(e) =>
+                                    setForm((prev) => ({
+                                        ...prev,
+                                        imageUrl: e.target.value,
+                                    }))
+                                }
+                                placeholder="https://upload.wikimedia.org/..."
+                            />
                         </div>
 
                         <div className="space-y-1.5">

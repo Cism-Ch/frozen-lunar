@@ -3,10 +3,11 @@ import {
     AFRICAN_FLEET_CATALOG,
     formatFcfaRate,
     formatQuantityBadge,
+    resolveVehicleImageUrl,
 } from "@/lib/fleet-catalog";
 
 describe("African Fleet Catalog & Formatting", () => {
-    it("includes required West African fleet models including Bus 64 places and Porte-char", () => {
+    it("includes required West African fleet models including Bus 64 places and Porte-char with online illustrations", () => {
         const names = AFRICAN_FLEET_CATALOG.map((v) => v.name.toLowerCase());
         expect(AFRICAN_FLEET_CATALOG.length).toBeGreaterThanOrEqual(10);
         expect(names.some((n) => n.includes("bus 64 places"))).toBe(true);
@@ -14,6 +15,17 @@ describe("African Fleet Catalog & Formatting", () => {
         expect(names.some((n) => n.includes("porte-conteneur"))).toBe(true);
         expect(names.some((n) => n.includes("benne"))).toBe(true);
         expect(names.some((n) => n.includes("hiab"))).toBe(true);
+
+        for (const v of AFRICAN_FLEET_CATALOG) {
+            expect(v.imageUrl).toMatch(/^https:\/\//);
+            expect(
+                resolveVehicleImageUrl({
+                    slug: v.slug,
+                    category: v.category,
+                    imageUrl: null,
+                })
+            ).toBe(v.imageUrl);
+        }
     });
 
     it("ensures availableQuantity never exceeds totalQuantity in default catalog", () => {

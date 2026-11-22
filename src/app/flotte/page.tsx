@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
 import { getPublicFleetAction } from "@/app/actions/fleet-actions";
 import { FleetPortfolioClient } from "@/components/features/fleet/FleetPortfolioClient";
 
@@ -14,8 +16,12 @@ export default async function FleetPage() {
     const { data: vehicles } = await getPublicFleetAction();
 
     return (
-        <div className="container mx-auto max-w-7xl px-4 py-10 md:px-6 md:py-14 lg:px-8">
-            <FleetPortfolioClient vehicles={vehicles} />
+        <div className="flex min-h-screen flex-col">
+            <Header />
+            <main className="flex-1">
+                <FleetPortfolioClient vehicles={vehicles} />
+            </main>
+            <Footer />
         </div>
     );
 }

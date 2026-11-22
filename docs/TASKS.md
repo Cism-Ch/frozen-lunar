@@ -106,6 +106,12 @@
   - **Acceptance criteria:**
     - [x] Added Step 2 vehicle selector displaying live available stock, disabled/on-request state for `0` stock, `?vehicle=<slug>` URL pre-selection, and atomic server-side Zod + availability validation (`109/109` Vitest, `100/100` RSI PASS).
 
+- [x] **`TASK-FLT-04` - Fleet Page Design System Alignment, Vehicle Illustrations & Public Layout Compliance**
+  - **Priority:** HIGH
+  - **Target files:** `src/lib/fleet-catalog.ts`, `src/components/features/fleet/FleetPortfolioClient.tsx`, `src/app/flotte/page.tsx`, `src/app/partenaires/page.tsx`, `src/app/status/page.tsx`, `src/app/espace-client/page.tsx`
+  - **Acceptance criteria:**
+    - [x] Aligned `/flotte` (and public portals) with site-wide layout (`Header`, `Footer`, `SectionContainer`, `FadeIn`, `ScrollReveal`, `AnimatedCard`, `border-2 hover:border-primary/50`, `/devis?vehicle=` CTA) and added verified online illustration photos for all 10 fleet vehicles (`100/100` RSI PASS).
+
 ---
 
 ## Completed Sprint 10: Africa Partner Onboarding Portal

@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
+import { SectionContainer } from "@/components/layout/SectionContainer";
 import { getSystemHealthReport } from "@/lib/health-check";
 import { StatusDashboard } from "@/components/features/status/StatusDashboard";
 
@@ -17,8 +20,19 @@ export default async function PublicStatusPage() {
     });
 
     return (
-        <section className="container mx-auto max-w-5xl px-4 py-12 md:px-6 md:py-16">
-            <StatusDashboard mode="public" initialReport={initialReport} />
-        </section>
+        <div className="flex min-h-screen flex-col">
+            <Header />
+            <main className="flex-1">
+                <SectionContainer className="bg-background pt-12 md:pt-16">
+                    <div className="mx-auto max-w-5xl">
+                        <StatusDashboard
+                            mode="public"
+                            initialReport={initialReport}
+                        />
+                    </div>
+                </SectionContainer>
+            </main>
+            <Footer />
+        </div>
     );
 }

@@ -8,6 +8,7 @@ import { requireAdmin } from "@/lib/auth-guard";
 import { logger } from "@/lib/logger";
 import {
     AFRICAN_FLEET_CATALOG,
+    resolveVehicleImageUrl,
     type FleetVehicleCategory,
     type FleetVehicleItem,
 } from "@/lib/fleet-catalog";
@@ -99,7 +100,11 @@ function toFleetVehicleItem(v: Vehicle): FleetVehicleItem {
         totalQuantity: v.totalQuantity,
         availableQuantity: v.availableQuantity,
         dailyRateFcfa: v.dailyRateFcfa,
-        imageUrl: v.imageUrl,
+        imageUrl: resolveVehicleImageUrl({
+            slug: v.slug,
+            category: v.category as FleetVehicleCategory,
+            imageUrl: v.imageUrl,
+        }),
         specs: specsArray,
         recommendedFor: v.recommendedFor ?? [],
         isActive: v.isActive,

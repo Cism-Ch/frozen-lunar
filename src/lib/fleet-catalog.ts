@@ -73,7 +73,8 @@ export const AFRICAN_FLEET_CATALOG: Omit<FleetVehicleItem, "id">[] = [
         totalQuantity: 3,
         availableQuantity: 2,
         dailyRateFcfa: 250000,
-        imageUrl: null,
+        imageUrl:
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Yutong_T15E%2C_Busworld_Europe_2023%2C_Brussels_%28P1140391%29.jpg/960px-Yutong_T15E%2C_Busworld_Europe_2023%2C_Brussels_%28P1140391%29.jpg",
         specs: [
             "64 sièges inclinables",
             "Climatisation tropicalisée",
@@ -94,7 +95,8 @@ export const AFRICAN_FLEET_CATALOG: Omit<FleetVehicleItem, "id">[] = [
         totalQuantity: 4,
         availableQuantity: 3,
         dailyRateFcfa: 135000,
-        imageUrl: null,
+        imageUrl:
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/TOYOTA_COASTER_%28B40_B50%29_China_%284%29.jpg/960px-TOYOTA_COASTER_%28B40_B50%29_China_%284%29.jpg",
         specs: [
             "30 places climatisées",
             "Accès facile zones industrielles",
@@ -115,7 +117,8 @@ export const AFRICAN_FLEET_CATALOG: Omit<FleetVehicleItem, "id">[] = [
         totalQuantity: 3,
         availableQuantity: 2,
         dailyRateFcfa: 650000,
-        imageUrl: null,
+        imageUrl:
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Globe_Trailers_detachable_gooseneck_trailer.jpg/960px-Globe_Trailers_detachable_gooseneck_trailer.jpg",
         specs: [
             "Charge utile jusqu'à 70T",
             "Rampes hydrauliques renforcées",
@@ -136,7 +139,8 @@ export const AFRICAN_FLEET_CATALOG: Omit<FleetVehicleItem, "id">[] = [
         totalQuantity: 5,
         availableQuantity: 4,
         dailyRateFcfa: 320000,
-        imageUrl: null,
+        imageUrl:
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/CSX_Intermodal_container_with_truck_and_trailer%2C_Denver%2C_CO_2021-03-24.jpg/960px-CSX_Intermodal_container_with_truck_and_trailer%2C_Denver%2C_CO_2021-03-24.jpg",
         specs: [
             "Compatible 20 pieds & 40 pieds HC",
             "Badge d'accès Port Autonome d'Abidjan",
@@ -157,7 +161,8 @@ export const AFRICAN_FLEET_CATALOG: Omit<FleetVehicleItem, "id">[] = [
         totalQuantity: 4,
         availableQuantity: 3,
         dailyRateFcfa: 290000,
-        imageUrl: null,
+        imageUrl:
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Flatbed_semi-trailer_truck%2C_Russia.jpg/960px-Flatbed_semi-trailer_truck%2C_Russia.jpg",
         specs: [
             "Longueur utile 12,5 mètres",
             "Arrimage renforcé & bâchage",
@@ -178,7 +183,8 @@ export const AFRICAN_FLEET_CATALOG: Omit<FleetVehicleItem, "id">[] = [
         totalQuantity: 6,
         availableQuantity: 4,
         dailyRateFcfa: 220000,
-        imageUrl: null,
+        imageUrl:
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/Howo_Sinotruk_Mining_Dump_Truck_%28Mining_Indonesia_2026%29.jpg/960px-Howo_Sinotruk_Mining_Dump_Truck_%28Mining_Indonesia_2026%29.jpg",
         specs: [
             "Benne basculante hydraulique",
             "Châssis renforcé pistes & chantiers",
@@ -199,7 +205,8 @@ export const AFRICAN_FLEET_CATALOG: Omit<FleetVehicleItem, "id">[] = [
         totalQuantity: 3,
         availableQuantity: 2,
         dailyRateFcfa: 380000,
-        imageUrl: null,
+        imageUrl:
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/2000_Foden_truck_with_tipper_trailer%2C_3_February_2009.jpg/960px-2000_Foden_truck_with_tipper_trailer%2C_3_February_2009.jpg",
         specs: [
             "Grand volume jusqu'à 50 m³",
             "Bâchage sécurisé anti-poussière",
@@ -220,7 +227,8 @@ export const AFRICAN_FLEET_CATALOG: Omit<FleetVehicleItem, "id">[] = [
         totalQuantity: 2,
         availableQuantity: 1,
         dailyRateFcfa: 340000,
-        imageUrl: null,
+        imageUrl:
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Dornbirn-HIAB_truck-mounted_crane_145Z-01ASD.jpg/960px-Dornbirn-HIAB_truck-mounted_crane_145Z-01ASD.jpg",
         specs: [
             "Autonomie chargement/déchargement",
             "Portée flèche jusqu'à 12 m",
@@ -241,7 +249,8 @@ export const AFRICAN_FLEET_CATALOG: Omit<FleetVehicleItem, "id">[] = [
         totalQuantity: 6,
         availableQuantity: 5,
         dailyRateFcfa: 85000,
-        imageUrl: null,
+        imageUrl:
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/2025_Toyota_Hilux_Travo_Prerunner_Double-Cab_2.8_Premium.jpg/960px-2025_Toyota_Hilux_Travo_Prerunner_Double-Cab_2.8_Premium.jpg",
         specs: [
             "Transmission intégrale 4x4",
             "Benne arrière 1,2 Tonne",
@@ -262,7 +271,8 @@ export const AFRICAN_FLEET_CATALOG: Omit<FleetVehicleItem, "id">[] = [
         totalQuantity: 5,
         availableQuantity: 4,
         dailyRateFcfa: 75000,
-        imageUrl: null,
+        imageUrl:
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/2024_Mercedes-Benz_Sprinter_311_CDI_%28Argentina%29.jpg/960px-2024_Mercedes-Benz_Sprinter_311_CDI_%28Argentina%29.jpg",
         specs: [
             "Volume utile 14 m³ fermé",
             "Accès centre-ville sans restriction",
@@ -296,6 +306,40 @@ export const PARTNER_OPERATING_ZONES = [
     "Corridor Abidjan – Ouagadougou (Burkina)",
     "Corridor Abidjan – Accra – Lomé",
 ] as const;
+
+const CATEGORY_FALLBACK_IMAGES: Record<FleetVehicleCategory, string> = {
+    PASSENGER:
+        "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Yutong_T15E%2C_Busworld_Europe_2023%2C_Brussels_%28P1140391%29.jpg/960px-Yutong_T15E%2C_Busworld_Europe_2023%2C_Brussels_%28P1140391%29.jpg",
+    HEAVY_HAUL:
+        "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Globe_Trailers_detachable_gooseneck_trailer.jpg/960px-Globe_Trailers_detachable_gooseneck_trailer.jpg",
+    CONTAINERS:
+        "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/CSX_Intermodal_container_with_truck_and_trailer%2C_Denver%2C_CO_2021-03-24.jpg/960px-CSX_Intermodal_container_with_truck_and_trailer%2C_Denver%2C_CO_2021-03-24.jpg",
+    MATERIALS:
+        "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/Howo_Sinotruk_Mining_Dump_Truck_%28Mining_Indonesia_2026%29.jpg/960px-Howo_Sinotruk_Mining_Dump_Truck_%28Mining_Indonesia_2026%29.jpg",
+    UTILITY:
+        "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/2025_Toyota_Hilux_Travo_Prerunner_Double-Cab_2.8_Premium.jpg/960px-2025_Toyota_Hilux_Travo_Prerunner_Double-Cab_2.8_Premium.jpg",
+};
+
+/**
+ * Résout l'URL de photo d'illustration d'un véhicule (même si la ligne DB existante avait imageUrl à null).
+ */
+export function resolveVehicleImageUrl(vehicle: {
+    slug: string;
+    category: FleetVehicleCategory;
+    imageUrl?: string | null;
+}): string {
+    const raw = vehicle.imageUrl?.trim();
+    if (raw && (raw.startsWith("https://") || raw.startsWith("http://"))) {
+        return raw;
+    }
+    const catalogMatch = AFRICAN_FLEET_CATALOG.find(
+        (item) => item.slug === vehicle.slug
+    );
+    if (catalogMatch?.imageUrl) {
+        return catalogMatch.imageUrl;
+    }
+    return CATEGORY_FALLBACK_IMAGES[vehicle.category];
+}
 
 /**
  * Formate le badge de stock au format métier demandé (ex: "Qté: 02 disponibles").

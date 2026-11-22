@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
 import {
     ArrowLeft,
     Calendar,
@@ -109,7 +111,10 @@ export default function ClientQuoteDetailPage() {
     };
 
     return (
-        <div className="container mx-auto max-w-6xl space-y-6 px-4 py-10 md:px-6">
+        <div className="flex min-h-screen flex-col">
+            <Header />
+            <main className="flex-1">
+                <div className="container mx-auto max-w-6xl space-y-6 px-4 py-10 md:px-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                     <Button asChild variant="outline" size="icon">
@@ -235,6 +240,9 @@ export default function ClientQuoteDetailPage() {
                     <OrderChat quoteId={quote.id} viewerRole="client" />
                 </div>
             </div>
+                </div>
+            </main>
+            <Footer />
         </div>
     );
 }
