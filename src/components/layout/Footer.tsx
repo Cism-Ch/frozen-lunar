@@ -136,6 +136,10 @@ export function Footer() {
                         <ul className="space-y-3 text-sm">
                             {[
                                 { name: "À propos", href: "/about" },
+                                {
+                                    name: "Devenir Partenaire",
+                                    href: "/partenaires",
+                                },
                                 { name: "Contact", href: "/contact" },
                                 {
                                     name: "Mentions légales",

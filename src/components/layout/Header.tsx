@@ -4,7 +4,16 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Truck, Menu, Phone, Home, Info, Mail, Package } from "lucide-react";
+import {
+    Truck,
+    Menu,
+    Phone,
+    Home,
+    Info,
+    Mail,
+    Package,
+    Handshake,
+} from "lucide-react";
 import {
     Sheet,
     SheetContent,
@@ -33,6 +42,7 @@ export function Header() {
         { name: "Accueil", href: "/", icon: Home },
         { name: "Services", href: "/services", icon: Package },
         { name: "Notre Flotte", href: "/flotte", icon: Truck },
+        { name: "Partenaires", href: "/partenaires", icon: Handshake },
         { name: "Pourquoi nous", href: "/about", icon: Info },
         { name: "Contact", href: "/contact", icon: Mail },
     ];

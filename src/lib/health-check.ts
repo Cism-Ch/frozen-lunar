@@ -59,10 +59,9 @@ const ALERT_LOCK_TTL_SECONDS = 1800; // 30 minutes
 const memoryAlertLocks = new Map<string, number>();
 
 export function isRedisConfigured(): boolean {
-    return Boolean(
-        process.env.UPSTASH_REDIS_REST_URL?.trim() &&
-            process.env.UPSTASH_REDIS_REST_TOKEN?.trim()
-    );
+    const url = process.env.UPSTASH_REDIS_REST_URL?.trim() || "";
+    const token = process.env.UPSTASH_REDIS_REST_TOKEN?.trim() || "";
+    return url.startsWith("https://") && token.length > 0;
 }
 
 function isTigrisConfigured(): boolean {

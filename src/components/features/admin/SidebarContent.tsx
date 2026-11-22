@@ -12,6 +12,7 @@ import {
     Users,
     Home,
     Activity,
+    Handshake,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -43,6 +44,11 @@ const navItems = [
         title: "Flotte & Stocks",
         href: "/admin/fleet",
         icon: Truck,
+    },
+    {
+        title: "Partenaires KYC",
+        href: "/admin/partners",
+        icon: Handshake,
     },
     {
         title: "Contacts",

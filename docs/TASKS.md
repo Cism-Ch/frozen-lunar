@@ -9,13 +9,14 @@
 
 ```
 +-------------------------+  +-------------------------+  +-------------------------+
-| [>] NEXT UP (SP 10)     |  |  [?] ROADMAP (SP 11)    |  |       [X] ARCHIVES      |
+| [>] NEXT UP (SP 11)     |  |  [?] ROADMAP            |  |       [X] ARCHIVES      |
 +-------------------------+  +-------------------------+  +-------------------------+
-| [ ] TASK-PRT-01..02     |  | [ ] TASK-USR-01..03     |  | [x] SP 01..05 (Archived)|
+| [ ] TASK-USR-01..03     |  |                         |  | [x] SP 01..05 (Archived)|
 |                         |  |                         |  | [x] TASK-LOC2-01..03    |
 |                         |  |                         |  | [x] TASK-BOT-01..03     |
 |                         |  |                         |  | [x] TASK-UPT-01..02     |
 |                         |  |                         |  | [x] TASK-FLT-01..03     |
+|                         |  |                         |  | [x] TASK-PRT-01..02     |
 +-------------------------+  +-------------------------+  +-------------------------+
 ```
 
@@ -106,19 +107,19 @@
 
 ---
 
-## Planned Sprint 10: Africa Partner Onboarding Portal
+## Completed Sprint 10: Africa Partner Onboarding Portal
 
-- [ ] **`TASK-PRT-01` - Prisma `PartnerApplication` Model, KYC S3 Uploads & Server Actions**
+- [x] **`TASK-PRT-01` - Prisma `PartnerApplication` Model, KYC S3 Uploads & Server Actions**
   - **Priority:** HIGH
-  - **Target files:** `prisma/schema.prisma`, `src/app/actions/partner-actions.ts`, `src/app/actions/upload-management.ts`
+  - **Target files:** `prisma/schema.prisma`, `prisma/migrations/20261122_add_partner_application/migration.sql`, `src/app/actions/partner-actions.ts`, `src/app/actions/upload-management.ts`, `src/lib/storage.ts`, `src/lib/redis.ts`
   - **Acceptance criteria:**
-    - [ ] Add `PartnerApplication` schema (UEMOA/CEDEAO country, city, RCCM/NCC, fleet inventory, private KYC documents in S3 folder `partners-kyc` accessible only via 300s signed URLs behind `requireAdmin()`), Zod validation, and rate limiting.
+    - [x] Added `PartnerApplication` schema (UEMOA/CEDEAO country, city, RCCM/NCC, fleet inventory, private KYC documents in S3 folder `partners-kyc` with `publicUrl: null` and 300s signed URLs behind `requireAdmin()`), Supabase RLS policies (public INSERT only), Zod validation, and rate limiting.
 
-- [ ] **`TASK-PRT-02` - Partner Application Page (`/partenaires`) & Admin Approval (`/admin/partners`)**
+- [x] **`TASK-PRT-02` - Partner Application Page (`/partenaires`) & Admin Approval (`/admin/partners`)**
   - **Priority:** HIGH
-  - **Target files:** `src/app/partenaires/page.tsx`, `src/app/admin/partners/page.tsx`
+  - **Target files:** `src/app/partenaires/page.tsx`, `src/app/admin/partners/page.tsx`, `src/components/features/partners/`, `tests/unit/partner-actions.test.ts`
   - **Acceptance criteria:**
-    - [ ] Multi-step shadcn Mobile-First form + Resend confirmation/alert emails + admin KYC review workflow.
+    - [x] Multi-step 3-stage shadcn Mobile-First form + Resend confirmation/alert emails + admin KYC review workflow (`113/113` Vitest, `100/100` RSI PASS).
 
 ---
 

@@ -1,4 +1,8 @@
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import {
+    S3Client,
+    PutObjectCommand,
+    GetObjectCommand,
+} from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { logger } from "@/lib/logger";
 
@@ -70,4 +74,27 @@ export function getPublicUrl(key: string): string {
         process.env.TIGRIS_STORAGE_ENDPOINT ||
         "https://fly.storage.tigris.dev";
     return `${publicUrlBase}/${S3_BUCKET_NAME}/${key}`;
+}
+
+/**
+ * Génère une URL pré-signée temporaire en lecture (GET) pour les documents privés (ex: KYC partenaires).
+ * @param key Clé S3 du document privé
+ * @param expiresIn Durée de validité en secondes (défaut : 300s)
+ */
+export async function getPrivateDownloadUrl(
+    key: string,
+    expiresIn = 300
+): Promise<string> {
+    if (!hasTigrisConfig) {
+        logger.info(
+            "ℹ️ Tigris non configuré. URL de lecture KYC signée simulée pour dev."
+        );
+        return `http://localhost:3000/api/mock-kyc-download?key=${encodeURIComponent(key)}&expires=${expiresIn}`;
+    }
+
+    const command = new GetObjectCommand({
+        Bucket: S3_BUCKET_NAME,
+        Key: key,
+    });
+    return await getSignedUrl(s3Client, command, { expiresIn });
 }

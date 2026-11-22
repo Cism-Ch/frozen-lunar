@@ -209,4 +209,38 @@ model SystemSettings {
   @@map("system_settings")
 }
 
+// --- Modèle Portail Partenaires Afrique (UEMOA / CEDEAO) ---
+
+enum PartnerApplicationStatus {
+  PENDING  // En étude conformité
+  APPROVED // Partenaire agréé
+  REJECTED // Candidature refusée
+}
+
+model PartnerApplication {
+  id              String                   @id @default(cuid())
+  companyName     String
+  rccmNumber      String
+  nccNumber       String?
+  country         String                   @default("Côte d'Ivoire")
+  city            String
+  contactName     String
+  email           String
+  phone           String
+  whatsapp        String?
+  fleetCategories String[]                 @default([])
+  fleetSummary    String                   @db.Text
+  totalVehicles   Int                      @default(1)
+  operatingZones  String[]                 @default([])
+  kycDocumentKeys String[]                 @default([])
+  status          PartnerApplicationStatus @default(PENDING)
+  adminNotes      String?                  @db.Text
+  reviewedAt      DateTime?
+  reviewedBy      String?
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+
+  @@map("partner_application")
+}
+
 
