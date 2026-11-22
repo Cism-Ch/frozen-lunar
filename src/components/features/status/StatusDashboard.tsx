@@ -2,6 +2,9 @@
 
 import { useState, useCallback } from "react";
 import Link from "next/link";
+import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
+import { SectionContainer } from "@/components/layout/SectionContainer";
 import {
     Activity,
     AlertTriangle,
@@ -262,7 +265,7 @@ export function StatusDashboard({
     const banner = OVERALL_BANNER[report.overallStatus];
     const BannerIcon = banner.icon;
 
-    return (
+    const dashboardContent = (
         <div className="space-y-6">
             {/* En-tête */}
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -595,4 +598,22 @@ export function StatusDashboard({
             )}
         </div>
     );
+
+    if (mode === "public") {
+        return (
+            <div className="flex min-h-screen flex-col">
+                <Header />
+                <main className="flex-1">
+                    <SectionContainer className="bg-background pt-12 md:pt-16">
+                        <div className="mx-auto max-w-5xl">
+                            {dashboardContent}
+                        </div>
+                    </SectionContainer>
+                </main>
+                <Footer />
+            </div>
+        );
+    }
+
+    return dashboardContent;
 }

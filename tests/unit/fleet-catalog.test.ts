@@ -18,6 +18,10 @@ describe("African Fleet Catalog & Formatting", () => {
 
         for (const v of AFRICAN_FLEET_CATALOG) {
             expect(v.imageUrl).toMatch(/^https:\/\//);
+            expect(v.description).not.toMatch(/ohada|cedeao|mali|burkina|ghana/i);
+            for (const spec of v.specs) {
+                expect(spec).not.toMatch(/ohada|cedeao|mali|burkina|ghana/i);
+            }
             expect(
                 resolveVehicleImageUrl({
                     slug: v.slug,

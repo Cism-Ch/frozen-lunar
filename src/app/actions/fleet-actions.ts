@@ -68,11 +68,11 @@ const vehicleInputSchema = z
         imageUrl: z
             .string()
             .trim()
-            .url("URL d'image invalide")
+            .url("URL d'image invalide (doit commencer par https://)")
             .nullable()
             .optional()
             .or(z.literal("")),
-        specs: z.array(z.string().trim().min(1).max(120)).max(10).default([]),
+        specs: z.array(z.string().trim().min(1).max(160)).max(10).default([]),
         recommendedFor: z.array(z.string().trim().min(1).max(60)).default([]),
         isActive: z.boolean().default(true),
         sortOrder: z.coerce.number().int().min(0).max(999).default(0),
@@ -122,40 +122,80 @@ function getFallbackCatalog(): FleetVehicleItem[] {
 function revalidateFleetPaths() {
     revalidatePath("/flotte");
     revalidatePath("/admin/fleet");
+    revalidatePath("/devis");
     revalidatePath("/");
 }
 
 /**
+ * S'assure que les 10 cartes pré-existantes par défaut sont présentes en base
+ * et nettoie automatiquement les anciennes descriptions contenant OHADA / CEDEAO
+ * tout en préservant les prix, stocks et images personnalisés par l'admin.
+ */
+async function ensureDefaultFleetInDb(): Promise<void> {
+    const existing = await prisma.vehicle.findMany();
+
+    if (existing.length === 0) {
+        await prisma.vehicle.createMany({
+            data: AFRICAN_FLEET_CATALOG.map((item) => ({
+                slug: item.slug,
+                name: item.name,
+                category: item.category as VehicleCategory,
+                capacityLabel: item.capacityLabel,
+                description: item.description,
+                totalQuantity: item.totalQuantity,
+                availableQuantity: item.availableQuantity,
+                dailyRateFcfa: item.dailyRateFcfa,
+                imageUrl: item.imageUrl,
+                specs: item.specs as Prisma.InputJsonValue,
+                recommendedFor: item.recommendedFor,
+                isActive: item.isActive,
+                sortOrder: item.sortOrder,
+            })),
+            skipDuplicates: true,
+        });
+        return;
+    }
+
+    // Met à jour automatiquement les anciennes cartes par défaut qui contenaient encore OHADA/CEDEAO
+    for (const row of existing) {
+        const catalogDefault = AFRICAN_FLEET_CATALOG.find(
+            (c) => c.slug === row.slug
+        );
+        if (!catalogDefault) continue;
+
+        const rawSpecs = JSON.stringify(row.specs ?? []);
+        const hasLegacyTerms =
+            /ohada|cedeao|mali|burkina|soutes bagages 10/i.test(
+                row.description
+            ) ||
+            /ohada|cedeao|soutes bagages 10|badge d'accès port/i.test(rawSpecs);
+
+        if (hasLegacyTerms || !row.imageUrl) {
+            await prisma.vehicle.update({
+                where: { id: row.id },
+                data: {
+                    description: hasLegacyTerms
+                        ? catalogDefault.description
+                        : row.description,
+                    specs: (hasLegacyTerms
+                        ? catalogDefault.specs
+                        : row.specs) as Prisma.InputJsonValue,
+                    imageUrl: row.imageUrl || catalogDefault.imageUrl,
+                },
+            });
+        }
+    }
+}
+
+/**
  * Récupère la flotte active pour la vitrine `/flotte` et le `QuoteWizard`.
- * En cas de table vide, initialise automatiquement le catalogue Afrique de référence.
- * En cas d'absence de migration sur une base locale, retourne le catalogue statique de secours sans crash.
  */
 export async function getPublicFleetAction(): Promise<{
     data: FleetVehicleItem[];
     error: string | null;
 }> {
     try {
-        const count = await prisma.vehicle.count();
-        if (count === 0) {
-            await prisma.vehicle.createMany({
-                data: AFRICAN_FLEET_CATALOG.map((item) => ({
-                    slug: item.slug,
-                    name: item.name,
-                    category: item.category as VehicleCategory,
-                    capacityLabel: item.capacityLabel,
-                    description: item.description,
-                    totalQuantity: item.totalQuantity,
-                    availableQuantity: item.availableQuantity,
-                    dailyRateFcfa: item.dailyRateFcfa,
-                    imageUrl: item.imageUrl,
-                    specs: item.specs as Prisma.InputJsonValue,
-                    recommendedFor: item.recommendedFor,
-                    isActive: item.isActive,
-                    sortOrder: item.sortOrder,
-                })),
-                skipDuplicates: true,
-            });
-        }
+        await ensureDefaultFleetInDb();
 
         const vehicles = await prisma.vehicle.findMany({
             where: { isActive: true },
@@ -181,7 +221,8 @@ export async function getPublicFleetAction(): Promise<{
 }
 
 /**
- * Récupère tous les véhicules (actifs et inactifs) pour la console d'administration `/admin/fleet`.
+ * Récupère tous les véhicules (y compris les cartes pré-existantes par défaut) pour `/admin/fleet`
+ * afin que l'administrateur puisse affiner librement leurs descriptions, tarifs, images et stocks.
  */
 export async function getAdminFleetAction(): Promise<{
     data: FleetVehicleItem[] | null;
@@ -189,6 +230,7 @@ export async function getAdminFleetAction(): Promise<{
 }> {
     try {
         await requireAdmin();
+        await ensureDefaultFleetInDb();
 
         const vehicles = await prisma.vehicle.findMany({
             orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
@@ -201,17 +243,14 @@ export async function getAdminFleetAction(): Promise<{
     } catch (error: unknown) {
         logger.error("getAdminFleetAction error", error);
         return {
-            data: null,
-            error:
-                error instanceof Error
-                    ? error.message
-                    : "Impossible de charger la flotte.",
+            data: getFallbackCatalog(),
+            error: null,
         };
     }
 }
 
 /**
- * Initialise ou complète la base avec le catalogue de flotte Afrique de référence.
+ * Réinitialise ou synchronise les 10 cartes par défaut du catalogue Côte d'Ivoire.
  */
 export async function seedDefaultFleetAction(): Promise<{
     data: { seededCount: number } | null;
@@ -220,29 +259,38 @@ export async function seedDefaultFleetAction(): Promise<{
     try {
         await requireAdmin();
 
-        const result = await prisma.vehicle.createMany({
-            data: AFRICAN_FLEET_CATALOG.map((item) => ({
-                slug: item.slug,
-                name: item.name,
-                category: item.category as VehicleCategory,
-                capacityLabel: item.capacityLabel,
-                description: item.description,
-                totalQuantity: item.totalQuantity,
-                availableQuantity: item.availableQuantity,
-                dailyRateFcfa: item.dailyRateFcfa,
-                imageUrl: item.imageUrl,
-                specs: item.specs as Prisma.InputJsonValue,
-                recommendedFor: item.recommendedFor,
-                isActive: item.isActive,
-                sortOrder: item.sortOrder,
-            })),
-            skipDuplicates: true,
-        });
+        let count = 0;
+        for (const item of AFRICAN_FLEET_CATALOG) {
+            await prisma.vehicle.upsert({
+                where: { slug: item.slug },
+                create: {
+                    slug: item.slug,
+                    name: item.name,
+                    category: item.category as VehicleCategory,
+                    capacityLabel: item.capacityLabel,
+                    description: item.description,
+                    totalQuantity: item.totalQuantity,
+                    availableQuantity: item.availableQuantity,
+                    dailyRateFcfa: item.dailyRateFcfa,
+                    imageUrl: item.imageUrl,
+                    specs: item.specs as Prisma.InputJsonValue,
+                    recommendedFor: item.recommendedFor,
+                    isActive: item.isActive,
+                    sortOrder: item.sortOrder,
+                },
+                update: {
+                    description: item.description,
+                    specs: item.specs as Prisma.InputJsonValue,
+                    imageUrl: item.imageUrl,
+                },
+            });
+            count++;
+        }
 
         revalidateFleetPaths();
 
         return {
-            data: { seededCount: result.count },
+            data: { seededCount: count },
             error: null,
         };
     } catch (error: unknown) {
@@ -252,7 +300,7 @@ export async function seedDefaultFleetAction(): Promise<{
             error:
                 error instanceof Error
                     ? error.message
-                    : "Impossible d'initialiser le catalogue flotte.",
+                    : "Impossible de synchroniser les cartes par défaut.",
         };
     }
 }
@@ -311,7 +359,8 @@ export async function createVehicleAction(
 }
 
 /**
- * Met à jour les caractéristiques et stocks d'un véhicule existant.
+ * Met à jour les caractéristiques (description, tarif FCFA, image, utilités, stock)
+ * d'un véhicule existant ou d'une carte pré-existante par défaut.
  */
 export async function updateVehicleAction(
     id: string,
@@ -335,24 +384,33 @@ export async function updateVehicleAction(
         }
 
         const v = parsed.data;
-        const updated = await prisma.vehicle.update({
-            where: { id },
-            data: {
-                slug: v.slug,
-                name: v.name,
-                category: v.category as VehicleCategory,
-                capacityLabel: v.capacityLabel,
-                description: v.description,
-                totalQuantity: v.totalQuantity,
-                availableQuantity: v.availableQuantity,
-                dailyRateFcfa: v.dailyRateFcfa ?? null,
-                imageUrl: v.imageUrl || null,
-                specs: v.specs as Prisma.InputJsonValue,
-                recommendedFor: v.recommendedFor,
-                isActive: v.isActive,
-                sortOrder: v.sortOrder,
-            },
-        });
+        const dataPayload = {
+            slug: v.slug,
+            name: v.name,
+            category: v.category as VehicleCategory,
+            capacityLabel: v.capacityLabel,
+            description: v.description,
+            totalQuantity: v.totalQuantity,
+            availableQuantity: v.availableQuantity,
+            dailyRateFcfa: v.dailyRateFcfa ?? null,
+            imageUrl: v.imageUrl || null,
+            specs: v.specs as Prisma.InputJsonValue,
+            recommendedFor: v.recommendedFor,
+            isActive: v.isActive,
+            sortOrder: v.sortOrder,
+        };
+
+        // Si l'admin modifie une carte par défaut issue du fallback ("catalog-X"), on fait un upsert par slug
+        const updated = id.startsWith("catalog-")
+            ? await prisma.vehicle.upsert({
+                  where: { slug: v.slug },
+                  create: dataPayload,
+                  update: dataPayload,
+              })
+            : await prisma.vehicle.update({
+                  where: { id },
+                  data: dataPayload,
+              });
 
         revalidateFleetPaths();
 
@@ -379,9 +437,16 @@ export async function adjustVehicleStockAction(
     try {
         await requireAdmin();
 
+        if (id.startsWith("catalog-")) {
+            await ensureDefaultFleetInDb();
+        }
+
         const existing = await prisma.vehicle.findUnique({ where: { id } });
         if (!existing) {
-            return { data: null, error: "Véhicule introuvable." };
+            return {
+                data: null,
+                error: "Véhicule introuvable. Actualisez la page.",
+            };
         }
 
         const nextAvailable = Math.max(

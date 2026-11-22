@@ -280,8 +280,8 @@ export function PartnerApplicationWizard() {
                         className="bg-background/80 gap-1.5 px-3 py-1 text-xs"
                     >
                         <Handshake className="text-primary h-3.5 w-3.5" />
-                        Réseau Transporteurs &amp; Loueurs Agréés • UEMOA /
-                        CEDEAO
+                        Réseau Transporteurs &amp; Loueurs Agréés • Côte
+                        d&apos;Ivoire
                     </Badge>
                     <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
                         Devenez Partenaire Transporteur HBC Logistique
@@ -289,9 +289,8 @@ export function PartnerApplicationWizard() {
                     <p className="text-muted-foreground text-base leading-relaxed">
                         Rentabilisez vos camions, bennes, porte-chars, bus et
                         utilitaires en rejoignant notre réseau d&apos;affrètement
-                        sur Abidjan, San-Pédro et les corridors régionaux.
-                        Paiements sécurisés (Virement UEMOA / Mobile Money Pro)
-                        et missions régulières.
+                        à Abidjan, San-Pédro, Yamoussoukro, Bouaké et partout en
+                        Côte d&apos;Ivoire.
                     </p>
                 </div>
             </section>
@@ -311,7 +310,7 @@ export function PartnerApplicationWizard() {
                                         : "text-muted-foreground"
                                 }
                             >
-                                1. Identité OHADA
+                                1. Entreprise
                             </span>
                             <span>→</span>
                             <span
@@ -321,7 +320,7 @@ export function PartnerApplicationWizard() {
                                         : "text-muted-foreground"
                                 }
                             >
-                                2. Parc &amp; Corridors
+                                2. Parc &amp; Zones CI
                             </span>
                             <span>→</span>
                             <span
@@ -331,7 +330,7 @@ export function PartnerApplicationWizard() {
                                         : "text-muted-foreground"
                                 }
                             >
-                                3. KYC &amp; Charte
+                                3. Pièces &amp; Charte
                             </span>
                         </div>
                     </div>
@@ -339,9 +338,9 @@ export function PartnerApplicationWizard() {
                         {step === 1 &&
                             "Identification de l'entreprise & Contact"}
                         {step === 2 &&
-                            "Capacités matérielles & Zones d'intervention"}
+                            "Capacités matérielles & Zones en Côte d'Ivoire"}
                         {step === 3 &&
-                            "Pièces justificatives KYC & Engagement OHADA"}
+                            "Pièces justificatives & Engagement Qualité"}
                     </CardTitle>
                     <CardDescription>
                         {step === 1 &&
@@ -716,13 +715,13 @@ export function PartnerApplicationWizard() {
                                         <strong>
                                             {companyName || "candidate"}
                                         </strong>{" "}
-                                        est régulièrement immatriculée au RCCM,
-                                        dispose d&apos;assurances RC Circulation
-                                        et Marchandises en cours de validité, et
-                                        s&apos;engage à respecter l&apos;Acte
-                                        Uniforme OHADA (AUCTMR) ainsi que le
-                                        traitement de ses données conformément à
-                                        la Loi ARTCI n° 2013-450.
+                                        est régulièrement immatriculée en Côte
+                                        d&apos;Ivoire (RCCM), dispose
+                                        d&apos;assurances et visites techniques
+                                        (SICTA) en cours de validité, et
+                                        s&apos;engage à respecter la charte de
+                                        qualité et de sécurité routière HBC
+                                        Logistique.
                                     </Label>
                                 </div>
                             </div>

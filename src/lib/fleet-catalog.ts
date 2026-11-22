@@ -59,8 +59,9 @@ export const VEHICLE_CATEGORY_META: Record<
 };
 
 /**
- * Catalogue de référence de la flotte adaptée aux opérations logistiques,
- * BTP, portuaires et transport de personnel en Côte d'Ivoire et Afrique de l'Ouest (CEDEAO).
+ * Catalogue par défaut de la flotte HBC Logistique en Côte d'Ivoire.
+ * - Les descriptions portent exclusivement sur la catégorie du véhicule et son usage en Côte d'Ivoire.
+ * - Les éléments `specs` listent uniquement les utilités concrètes du véhicule.
  */
 export const AFRICAN_FLEET_CATALOG: Omit<FleetVehicleItem, "id">[] = [
     {
@@ -69,17 +70,17 @@ export const AFRICAN_FLEET_CATALOG: Omit<FleetVehicleItem, "id">[] = [
         category: "PASSENGER",
         capacityLabel: "64 places assises • Climatisé",
         description:
-            "Autocar grand confort (type Yutong / Zhongtong) idéal pour les navettes d'entreprises, chantiers miniers, délégations et liaisons interurbaines Abidjan – Yamoussoukro – San-Pédro.",
+            "Autocar de transport collectif grande capacité conçu pour le déplacement confortable de groupes, collaborateurs et passagers à Abidjan et vers les villes de l'intérieur de la Côte d'Ivoire.",
         totalQuantity: 3,
         availableQuantity: 2,
         dailyRateFcfa: 250000,
         imageUrl:
             "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Yutong_T15E%2C_Busworld_Europe_2023%2C_Brussels_%28P1140391%29.jpg/960px-Yutong_T15E%2C_Busworld_Europe_2023%2C_Brussels_%28P1140391%29.jpg",
         specs: [
-            "64 sièges inclinables",
-            "Climatisation tropicalisée",
-            "Soutes bagages 10 m³",
-            "Suivi GPS temps réel",
+            "Transport de personnel et navettes d'entreprise",
+            "Voyages de groupe, séminaires et excursions",
+            "Liaisons interurbaines longue distance en Côte d'Ivoire",
+            "Transferts aéroport, événements et délégations",
         ],
         recommendedFor: ["autre"],
         isActive: true,
@@ -91,17 +92,17 @@ export const AFRICAN_FLEET_CATALOG: Omit<FleetVehicleItem, "id">[] = [
         category: "PASSENGER",
         capacityLabel: "30 places assises • Urbain & Interurbain",
         description:
-            "Navette professionnelle robuste (Toyota Coaster climatisé) adaptée au transport quotidien d'équipes techniques, cadres et visites de sites industriels.",
+            "Minibus de transport de passagers intermédiaire, maniable et climatisé, dédié aux liaisons quotidiennes d'équipes et aux déplacements de groupes moyens partout en Côte d'Ivoire.",
         totalQuantity: 4,
         availableQuantity: 3,
         dailyRateFcfa: 135000,
         imageUrl:
             "https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/TOYOTA_COASTER_%28B40_B50%29_China_%284%29.jpg/960px-TOYOTA_COASTER_%28B40_B50%29_China_%284%29.jpg",
         specs: [
-            "30 places climatisées",
-            "Accès facile zones industrielles",
-            "Chauffeur dédié certifié",
-            "Ceintures 3 points",
+            "Navettes quotidiennes d'équipes et collaborateurs",
+            "Visites de chantiers et déplacements professionnels",
+            "Transport d'établissements, séminaires et événements",
+            "Déplacements urbains et interurbains en Côte d'Ivoire",
         ],
         recommendedFor: ["autre"],
         isActive: true,
@@ -113,17 +114,17 @@ export const AFRICAN_FLEET_CATALOG: Omit<FleetVehicleItem, "id">[] = [
         category: "HEAVY_HAUL",
         capacityLabel: "40 à 70 Tonnes • 3 à 4 essieux",
         description:
-            "Ensemble tracteur 6x4 + semi-remorque surbaissée avec rampes hydrauliques pour le transfert d'engins de chantier (pelles, bulldozers, foreuses, groupes électrogènes) sur toute la CEDEAO.",
+            "Ensemble de transport lourd surbaissé avec rampes d'accès, destiné au déplacement sécurisé d'engins de travaux publics et de machines industrielles sur l'ensemble du réseau routier ivoirien.",
         totalQuantity: 3,
         availableQuantity: 2,
         dailyRateFcfa: 650000,
         imageUrl:
             "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Globe_Trailers_detachable_gooseneck_trailer.jpg/960px-Globe_Trailers_detachable_gooseneck_trailer.jpg",
         specs: [
-            "Charge utile jusqu'à 70T",
-            "Rampes hydrauliques renforcées",
-            "Escorte & autorisation convoi",
-            "Assurance Ad Valorem OHADA",
+            "Transfert d'engins de chantier (pelles, bulldozers, chargeuses)",
+            "Transport de machines industrielles et groupes électrogènes",
+            "Acheminement d'équipements lourds et hors gabarit",
+            "Mobilisation d'engins sur les chantiers de Côte d'Ivoire",
         ],
         recommendedFor: ["machines", "modules"],
         isActive: true,
@@ -135,17 +136,17 @@ export const AFRICAN_FLEET_CATALOG: Omit<FleetVehicleItem, "id">[] = [
         category: "CONTAINERS",
         capacityLabel: "1×40' ou 2×20' • 35 Tonnes",
         description:
-            "Tracteur routier avec châssis squelette à verrous tournants (Twist-Lock) pour l'enlèvement au Port Autonome d'Abidjan (PAA) et Port de San-Pédro vers les entrepôts ou corridors Mali / Burkina.",
+            "Ensemble routier porte-conteneur équipé d'un châssis dédié à la prise en charge, au transfert et à la livraison de conteneurs maritimes entre les zones portuaires et les sites logistiques de Côte d'Ivoire.",
         totalQuantity: 5,
         availableQuantity: 4,
         dailyRateFcfa: 320000,
         imageUrl:
             "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/CSX_Intermodal_container_with_truck_and_trailer%2C_Denver%2C_CO_2021-03-24.jpg/960px-CSX_Intermodal_container_with_truck_and_trailer%2C_Denver%2C_CO_2021-03-24.jpg",
         specs: [
-            "Compatible 20 pieds & 40 pieds HC",
-            "Badge d'accès Port Autonome d'Abidjan",
-            "Verrous Twist-Lock certifiés",
-            "Lettre de voiture OHADA",
+            "Traction de conteneurs maritimes 20 pieds et 40 pieds",
+            "Enlèvement et livraison aux ports d'Abidjan et de San-Pédro",
+            "Approvisionnement d'entrepôts et zones industrielles",
+            "Positionnement et retour de conteneurs vides ou pleins",
         ],
         recommendedFor: ["containers", "modules"],
         isActive: true,
@@ -157,17 +158,17 @@ export const AFRICAN_FLEET_CATALOG: Omit<FleetVehicleItem, "id">[] = [
         category: "CONTAINERS",
         capacityLabel: "Longueur 12,5 m • 32 Tonnes",
         description:
-            "Plateau nu équipé de ranchers et sangles haute résistance pour fers à béton, charpentes métalliques, tuyauteries industrielles, bois débité et palettes volumineuses.",
+            "Véhicule articulé à plateau ouvert offrant une grande surface de chargement plane pour les marchandises longues, lourdes ou palettisées à travers toute la Côte d'Ivoire.",
         totalQuantity: 4,
         availableQuantity: 3,
         dailyRateFcfa: 290000,
         imageUrl:
             "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Flatbed_semi-trailer_truck%2C_Russia.jpg/960px-Flatbed_semi-trailer_truck%2C_Russia.jpg",
         specs: [
-            "Longueur utile 12,5 mètres",
-            "Arrimage renforcé & bâchage",
-            "Idéal charpentes & acier",
-            "Corridors nationaux & CEDEAO",
+            "Transport de fers à béton, charpentes et profilés métalliques",
+            "Acheminement de charges palettisées, sacs de ciment et bois",
+            "Livraison de tuyauteries et structures préfabriquées",
+            "Approvisionnement de dépôts et chantiers en Côte d'Ivoire",
         ],
         recommendedFor: ["charpentes", "materiaux", "modules"],
         isActive: true,
@@ -179,17 +180,17 @@ export const AFRICAN_FLEET_CATALOG: Omit<FleetVehicleItem, "id">[] = [
         category: "MATERIALS",
         capacityLabel: "16 à 22 m³ • 25–30 Tonnes",
         description:
-            "Camion benne tout-terrain (Sinotruk Howo / Shacman) conçu pour les chantiers BTP, terrassements, évacuation de déblais et livraison de sable, gravier et latérite.",
+            "Camion porteur à benne basculante robuste adapté aux opérations de chantier, au transport de matériaux de construction en vrac et aux travaux de terrassement en Côte d'Ivoire.",
         totalQuantity: 6,
         availableQuantity: 4,
         dailyRateFcfa: 220000,
         imageUrl:
             "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/Howo_Sinotruk_Mining_Dump_Truck_%28Mining_Indonesia_2026%29.jpg/960px-Howo_Sinotruk_Mining_Dump_Truck_%28Mining_Indonesia_2026%29.jpg",
         specs: [
-            "Benne basculante hydraulique",
-            "Châssis renforcé pistes & chantiers",
-            "Capacité 16 à 22 m³",
-            "Rotation rapide Abidjan & intérieur",
+            "Livraison de sable, gravier, concassé et latérite",
+            "Évacuation de terre, déblais et gravats de chantier",
+            "Approvisionnement direct des travaux de bâtiment et voirie",
+            "Rotations sur chantiers urbains et routiers en Côte d'Ivoire",
         ],
         recommendedFor: ["materiaux"],
         isActive: true,
@@ -201,17 +202,17 @@ export const AFRICAN_FLEET_CATALOG: Omit<FleetVehicleItem, "id">[] = [
         category: "MATERIALS",
         capacityLabel: "35 à 50 m³ • 45 Tonnes",
         description:
-            "Semi-remorque benne grand volume pour approvisionnement massif en granulats, clinker, minerais et produits agricoles en vrac sur longues distances.",
+            "Ensemble semi-remorque benne grand volume conçu pour le transport massif d'agrégats, de matériaux de carrière et de pondéreux sur les axes routiers de Côte d'Ivoire.",
         totalQuantity: 3,
         availableQuantity: 2,
         dailyRateFcfa: 380000,
         imageUrl:
             "https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/2000_Foden_truck_with_tipper_trailer%2C_3_February_2009.jpg/960px-2000_Foden_truck_with_tipper_trailer%2C_3_February_2009.jpg",
         specs: [
-            "Grand volume jusqu'à 50 m³",
-            "Bâchage sécurisé anti-poussière",
-            "Pesage certifié pont-bascule",
-            "Adapté carrières & grands travaux",
+            "Transport grand volume de granulats et roches de carrière",
+            "Approvisionnement massif de centrales à béton et cimenteries",
+            "Acheminement de matières premières et récoltes en vrac",
+            "Soutien logistique aux grands chantiers d'infrastructures",
         ],
         recommendedFor: ["materiaux"],
         isActive: true,
@@ -223,17 +224,17 @@ export const AFRICAN_FLEET_CATALOG: Omit<FleetVehicleItem, "id">[] = [
         category: "HEAVY_HAUL",
         capacityLabel: "Plateau 12T + Grue auxiliaire 10T/m",
         description:
-            "Camion plateau autonome équipé d'un bras de grue hydraulique pour charger, transporter et décharger directement sur chantier sans moyen de levage externe.",
+            "Camion porteur plateau doté d'une grue hydraulique embarquée permettant de combiner en une seule mission le transport, le levage et la dépose précise de charges lourdes en Côte d'Ivoire.",
         totalQuantity: 2,
         availableQuantity: 1,
         dailyRateFcfa: 340000,
         imageUrl:
             "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Dornbirn-HIAB_truck-mounted_crane_145Z-01ASD.jpg/960px-Dornbirn-HIAB_truck-mounted_crane_145Z-01ASD.jpg",
         specs: [
-            "Autonomie chargement/déchargement",
-            "Portée flèche jusqu'à 12 m",
-            "Stabilisateurs hydrauliques",
-            "Idéal transformateurs & bungalows",
+            "Chargement et déchargement autonome sans grue externe",
+            "Pose de bungalows de chantier, cabines et groupes électrogènes",
+            "Manutention de transformateurs et équipements industriels",
+            "Levage et mise en place directe sur site en Côte d'Ivoire",
         ],
         recommendedFor: ["machines", "charpentes", "modules"],
         isActive: true,
@@ -245,17 +246,17 @@ export const AFRICAN_FLEET_CATALOG: Omit<FleetVehicleItem, "id">[] = [
         category: "UTILITY",
         capacityLabel: "1,2 Tonne • 5 places • 4x4",
         description:
-            "Véhicule tout-terrain (Toyota Hilux / Mitsubishi L200) pour missions de supervision chantier, zones rurales difficilement accessibles, livraison de pièces urgentes et escorte technique.",
+            "Véhicule utilitaire tout-terrain à double cabine alliant transport d'équipe et benne arrière pour les interventions techniques sur routes et pistes en Côte d'Ivoire.",
         totalQuantity: 6,
         availableQuantity: 5,
         dailyRateFcfa: 85000,
         imageUrl:
             "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/2025_Toyota_Hilux_Travo_Prerunner_Double-Cab_2.8_Premium.jpg/960px-2025_Toyota_Hilux_Travo_Prerunner_Double-Cab_2.8_Premium.jpg",
         specs: [
-            "Transmission intégrale 4x4",
-            "Benne arrière 1,2 Tonne",
-            "Climatisation & GPS",
-            "Idéal pistes & sites miniers",
+            "Accès aux chantiers, plantations et pistes difficiles",
+            "Transport simultané d'une équipe (5 places) et d'outillage",
+            "Livraison rapide de pièces détachées et matériel urgent",
+            "Supervision de travaux et liaisons terrain en Côte d'Ivoire",
         ],
         recommendedFor: ["materiaux", "autre"],
         isActive: true,
@@ -267,17 +268,17 @@ export const AFRICAN_FLEET_CATALOG: Omit<FleetVehicleItem, "id">[] = [
         category: "UTILITY",
         capacityLabel: "14 m³ • 3,5 Tonnes • Fermé",
         description:
-            "Utilitaire tôlé sécurisé pour la distribution urbaine à Abidjan (Plateau, Marcory, Zone 4, Yopougon, Cocody), colis fragiles, équipements informatiques et fournitures.",
+            "Fourgon utilitaire tôlé conçu pour le transport protégé de marchandises, cartons et équipements sensibles en milieu urbain et interurbain en Côte d'Ivoire.",
         totalQuantity: 5,
         availableQuantity: 4,
         dailyRateFcfa: 75000,
         imageUrl:
             "https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/2024_Mercedes-Benz_Sprinter_311_CDI_%28Argentina%29.jpg/960px-2024_Mercedes-Benz_Sprinter_311_CDI_%28Argentina%29.jpg",
         specs: [
-            "Volume utile 14 m³ fermé",
-            "Accès centre-ville sans restriction",
-            "Livraison express J+0",
-            "Protection pluie & poussière",
+            "Distribution urbaine et livraisons express à Abidjan",
+            "Transport fermé à l'abri de la pluie et de la poussière",
+            "Déménagements de bureaux, mobilier et matériel informatique",
+            "Approvisionnement de commerces, pharmacies et agences",
         ],
         recommendedFor: ["materiaux", "autre"],
         isActive: true,
@@ -285,26 +286,16 @@ export const AFRICAN_FLEET_CATALOG: Omit<FleetVehicleItem, "id">[] = [
     },
 ];
 
-export const UEMOA_CEDEAO_COUNTRIES = [
-    "Côte d'Ivoire",
-    "Sénégal",
-    "Mali",
-    "Burkina Faso",
-    "Ghana",
-    "Bénin",
-    "Togo",
-    "Guinée",
-    "Niger",
-] as const;
+export const UEMOA_CEDEAO_COUNTRIES = ["Côte d'Ivoire"] as const;
 
 export const PARTNER_OPERATING_ZONES = [
     "Grand Abidjan & Zones Industrielles",
     "Port Autonome d'Abidjan (PAA)",
     "Port de San-Pédro & Sud-Ouest",
-    "Yamoussoukro • Bouaké • Korhogo",
-    "Corridor Abidjan – Bamako (Mali)",
-    "Corridor Abidjan – Ouagadougou (Burkina)",
-    "Corridor Abidjan – Accra – Lomé",
+    "Yamoussoukro & Centre",
+    "Bouaké & Gbêkê",
+    "Korhogo & Grand Nord",
+    "Daloa • Man & Grand Ouest",
 ] as const;
 
 const CATEGORY_FALLBACK_IMAGES: Record<FleetVehicleCategory, string> = {

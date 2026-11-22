@@ -43,6 +43,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
     formatFcfaRate,
     formatQuantityBadge,
+    resolveVehicleImageUrl,
     VEHICLE_CATEGORY_META,
     type FleetVehicleCategory,
     type FleetVehicleItem,
@@ -183,9 +184,7 @@ export function AdminFleetClient({ initialVehicles }: AdminFleetClientProps) {
             }
             await reloadVehicles();
             toast.success(
-                res.data.seededCount > 0
-                    ? `${res.data.seededCount} véhicules ajoutés au catalogue.`
-                    : "Le catalogue Afrique de référence est déjà complet."
+                "Les cartes par défaut (Côte d'Ivoire) ont été synchronisées."
             );
         } finally {
             setIsSeeding(false);
@@ -294,7 +293,7 @@ export function AdminFleetClient({ initialVehicles }: AdminFleetClientProps) {
                         ) : (
                             <Database className="h-4 w-4" />
                         )}
-                        Catalogue Afrique
+                        Réinitialiser cartes par défaut
                     </Button>
                     <Button
                         onClick={openCreateDialog}
@@ -367,22 +366,44 @@ export function AdminFleetClient({ initialVehicles }: AdminFleetClientProps) {
                     {vehicles.map((vehicle) => {
                         const catMeta = VEHICLE_CATEGORY_META[vehicle.category];
                         const isBusy = busyId === vehicle.id;
+                        const imgUrl = resolveVehicleImageUrl(vehicle);
 
                         return (
                             <Card
                                 key={vehicle.id}
-                                className={
+                                className={`overflow-hidden ${
                                     vehicle.isActive ? "" : "opacity-65"
-                                }
+                                }`}
                             >
-                                <CardHeader className="pb-3">
+                                {/* Aperçu visuel de la carte */}
+                                <div className="bg-muted relative h-36 w-full overflow-hidden border-b">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                        src={imgUrl}
+                                        alt={vehicle.name}
+                                        loading="lazy"
+                                        className="h-full w-full object-cover"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+                                    <div className="absolute right-3 bottom-2.5 left-3 flex items-center justify-between text-white">
+                                        <span className="rounded bg-black/60 px-2 py-0.5 text-xs font-medium">
+                                            {catMeta.shortLabel}
+                                        </span>
+                                        <span className="rounded bg-black/65 px-2.5 py-0.5 font-mono text-xs font-bold">
+                                            {formatFcfaRate(
+                                                vehicle.dailyRateFcfa
+                                            )}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <CardHeader className="pb-2">
                                     <div className="flex items-start justify-between gap-3">
                                         <div>
                                             <CardTitle className="text-base">
                                                 {vehicle.name}
                                             </CardTitle>
                                             <CardDescription className="mt-0.5 text-xs">
-                                                {catMeta.shortLabel} •{" "}
                                                 {vehicle.capacityLabel}
                                             </CardDescription>
                                         </div>
@@ -409,6 +430,10 @@ export function AdminFleetClient({ initialVehicles }: AdminFleetClientProps) {
                                     </div>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
+                                    <p className="text-muted-foreground line-clamp-2 text-xs leading-relaxed">
+                                        {vehicle.description}
+                                    </p>
+
                                     <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
                                         <div className="text-xs">
                                             <span className="text-muted-foreground block">
@@ -473,18 +498,18 @@ export function AdminFleetClient({ initialVehicles }: AdminFleetClientProps) {
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center justify-end gap-2">
+                                    <div className="flex items-center justify-between gap-2">
                                         <Button
                                             type="button"
-                                            variant="outline"
+                                            variant="default"
                                             size="sm"
                                             onClick={() =>
                                                 openEditDialog(vehicle)
                                             }
-                                            className="min-h-[40px] gap-1.5"
+                                            className="min-h-[40px] flex-1 gap-1.5"
                                         >
                                             <Edit className="h-3.5 w-3.5" />
-                                            Modifier
+                                            Affiner (Description / Prix / Image)
                                         </Button>
                                         <Button
                                             type="button"
@@ -677,7 +702,10 @@ export function AdminFleetClient({ initialVehicles }: AdminFleetClientProps) {
                         </div>
 
                         <div className="space-y-1.5">
-                            <Label htmlFor="v-desc">Description</Label>
+                            <Label htmlFor="v-desc">
+                                Description (catégorie &amp; usage en Côte
+                                d&apos;Ivoire)
+                            </Label>
                             <Textarea
                                 id="v-desc"
                                 rows={3}
@@ -694,11 +722,12 @@ export function AdminFleetClient({ initialVehicles }: AdminFleetClientProps) {
 
                         <div className="space-y-1.5">
                             <Label htmlFor="v-specs">
-                                Points forts (un par ligne)
+                                Utilités cochées sur la carte (une utilité par
+                                ligne)
                             </Label>
                             <Textarea
                                 id="v-specs"
-                                rows={3}
+                                rows={4}
                                 value={form.specsText}
                                 onChange={(e) =>
                                     setForm((prev) => ({
@@ -706,7 +735,7 @@ export function AdminFleetClient({ initialVehicles }: AdminFleetClientProps) {
                                         specsText: e.target.value,
                                     }))
                                 }
-                                placeholder="Climatisation tropicalisée&#10;Suivi GPS temps réel"
+                                placeholder="Transport de personnel et navettes d'entreprise&#10;Liaisons interurbaines en Côte d'Ivoire"
                             />
                         </div>
 

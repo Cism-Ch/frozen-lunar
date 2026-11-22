@@ -7,9 +7,13 @@ const rawRedisToken = process.env.UPSTASH_REDIS_REST_TOKEN?.trim() || "";
 export const hasValidUpstashRedisRestConfig =
     rawRedisUrl.startsWith("https://") && rawRedisToken.length > 0;
 
-if (!hasValidUpstashRedisRestConfig) {
-    logger.warn(
-        "⚠️ Upstash Redis REST configuration is missing or invalid (UPSTASH_REDIS_REST_URL must start with https://)."
+if (
+    !hasValidUpstashRedisRestConfig &&
+    process.env.NODE_ENV !== "production" &&
+    process.env.NODE_ENV !== "test"
+) {
+    logger.info(
+        "ℹ️ Upstash Redis REST non configuré en local (repli mémoire actif)."
     );
 }
 
