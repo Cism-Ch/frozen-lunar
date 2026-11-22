@@ -92,6 +92,8 @@ const createQuoteSchema = z.object({
     transportDate: z.union([z.string(), z.date()]),
     userNotes: z.string().optional(),
     source: z.enum(["form", "chat"]).default("form"),
+    vehicleId: z.string().min(1).optional(),
+    vehicleQuantity: z.number().int().min(1).max(50).optional().default(1),
     supplementaryInfo: supplementaryInfoSchema.optional(),
 });
 
@@ -155,7 +157,7 @@ function enumToSource(source: QuoteSource): string {
  * Create a new quote
  */
 export async function createQuoteAction(
-    data: z.infer<typeof createQuoteSchema>
+    data: z.input<typeof createQuoteSchema>
 ) {
     try {
         const validated = createQuoteSchema.parse(data);
@@ -165,6 +167,32 @@ export async function createQuoteAction(
             typeof validated.transportDate === "string"
                 ? new Date(validated.transportDate)
                 : validated.transportDate;
+
+        // Validation atomique de la disponibilité du véhicule si sélectionné
+        let validatedVehicleId: string | null = null;
+        const requestedVehicleQty = validated.vehicleQuantity ?? 1;
+
+        if (validated.vehicleId) {
+            const vehicle = await prisma.vehicle.findUnique({
+                where: { id: validated.vehicleId },
+            });
+
+            if (!vehicle || !vehicle.isActive) {
+                return {
+                    success: false,
+                    error: "Le véhicule sélectionné n'est plus disponible dans notre catalogue.",
+                };
+            }
+
+            if (vehicle.availableQuantity < requestedVehicleQty) {
+                return {
+                    success: false,
+                    error: `Stock insuffisant pour ${vehicle.name} (${vehicle.availableQuantity} disponible(s)).`,
+                };
+            }
+
+            validatedVehicleId = vehicle.id;
+        }
 
         // Create the quote in database
         const quote = await prisma.quote.create({
@@ -178,6 +206,8 @@ export async function createQuoteAction(
                 transportDate: transportDate,
                 userNotes: validated.userNotes || null,
                 source: sourceToEnum(validated.source),
+                vehicleId: validatedVehicleId,
+                vehicleQuantity: validatedVehicleId ? requestedVehicleQty : 1,
                 supplementaryInfo: validated.supplementaryInfo
                     ? (validated.supplementaryInfo as Prisma.InputJsonValue)
                     : Prisma.JsonNull,

@@ -9,12 +9,13 @@
 
 ```
 +-------------------------+  +-------------------------+  +-------------------------+
-| [>] NEXT UP (SP 09)     |  |  [?] ROADMAP (SP 10-11) |  |       [X] ARCHIVES      |
+| [>] NEXT UP (SP 10)     |  |  [?] ROADMAP (SP 11)    |  |       [X] ARCHIVES      |
 +-------------------------+  +-------------------------+  +-------------------------+
-| [ ] TASK-FLT-01..03     |  | [ ] TASK-PRT-01..02     |  | [x] SP 01..05 (Archived)|
-|                         |  | [ ] TASK-USR-01..03     |  | [x] TASK-LOC2-01..03    |
+| [ ] TASK-PRT-01..02     |  | [ ] TASK-USR-01..03     |  | [x] SP 01..05 (Archived)|
+|                         |  |                         |  | [x] TASK-LOC2-01..03    |
 |                         |  |                         |  | [x] TASK-BOT-01..03     |
 |                         |  |                         |  | [x] TASK-UPT-01..02     |
+|                         |  |                         |  | [x] TASK-FLT-01..03     |
 +-------------------------+  +-------------------------+  +-------------------------+
 ```
 
@@ -83,25 +84,25 @@
 
 ---
 
-## Planned Sprint 09: African Fleet Portfolio, Stock Management & Quote Vehicle Step
+## Completed Sprint 09: African Fleet Portfolio, Stock Management & Quote Vehicle Step
 
-- [ ] **`TASK-FLT-01` - Prisma `Vehicle` Schema, RLS & West Africa Seed Catalog**
+- [x] **`TASK-FLT-01` - Prisma `Vehicle` Schema, RLS & West Africa Seed Catalog**
   - **Priority:** HIGH
-  - **Target files:** `prisma/schema.prisma`, `prisma/migrations/`, `src/lib/fleet-catalog.ts`
+  - **Target files:** `prisma/schema.prisma`, `prisma/migrations/20261122_add_vehicle_fleet/migration.sql`, `src/lib/fleet-catalog.ts`
   - **Acceptance criteria:**
-    - [ ] Add `Vehicle` model (`slug`, `name`, `category`, `capacityLabel`, `totalQuantity`, `availableQuantity`, `dailyRateFcfa`, `imageUrl`, `specs`, `isActive`) + `Quote.vehicleId` & `Quote.vehicleQuantity` + Supabase RLS policies.
+    - [x] Added `Vehicle` model + `VehicleCategory` enum + `Quote.vehicleId` & `Quote.vehicleQuantity` + Supabase RLS policies + 10-vehicle West African seed catalog.
 
-- [ ] **`TASK-FLT-02` - Styled Fleet Portfolio (`/flotte`) & Admin Fleet Manager (`/admin/fleet`)**
+- [x] **`TASK-FLT-02` - Styled Fleet Portfolio (`/flotte`) & Admin Fleet Manager (`/admin/fleet`)**
   - **Priority:** HIGH
-  - **Target files:** `src/app/flotte/page.tsx`, `src/app/admin/fleet/page.tsx`, `src/app/actions/fleet-actions.ts`
+  - **Target files:** `src/app/flotte/page.tsx`, `src/app/admin/fleet/page.tsx`, `src/app/actions/fleet-actions.ts`, `src/components/features/fleet/`
   - **Acceptance criteria:**
-    - [ ] Showcase African fleet (Bus 64 places, Coaster 30 places, Pick-up 4x4, Porte-char 40-70T, Porte-conteneur 20'/40', Plateau 12m, Bennes 6x4/8x4, Semi-benne 35-50m3, Camion-grue Hiab, Fourgon 3.5T) with live stock badges (`Qte: 02 disponibles`) & admin CRUD.
+    - [x] Showcased African fleet (Bus 64 places, Coaster 30 places, Pick-up 4x4, Porte-char 40-70T, Porte-conteneur 20'/40', Plateau 12m, Bennes 6x4/8x4, Semi-benne 35-50m3, Camion-grue Hiab, Fourgon 3.5T) with live `Qté: 02 disponibles` badges & full admin CRUD + quick stock controls.
 
-- [ ] **`TASK-FLT-03` - `QuoteWizard` Vehicle Selection Step (`StepVehicle`)**
+- [x] **`TASK-FLT-03` - `QuoteWizard` Vehicle Selection Step (`StepVehicle`)**
   - **Priority:** HIGH
-  - **Target files:** `src/components/features/quote-wizard/steps/StepVehicle.tsx`, `src/components/features/QuoteWizard.tsx`
+  - **Target files:** `src/components/features/quote-wizard/steps/StepVehicle.tsx`, `src/components/features/QuoteWizard.tsx`, `src/app/actions/quote-management.ts`, `tests/unit/fleet-catalog.test.ts`
   - **Acceptance criteria:**
-    - [ ] Add vehicle selector step displaying live available stock, disabled/on-request state for `0` stock, and atomic server-side Zod + availability validation.
+    - [x] Added Step 2 vehicle selector displaying live available stock, disabled/on-request state for `0` stock, `?vehicle=<slug>` URL pre-selection, and atomic server-side Zod + availability validation (`109/109` Vitest, `100/100` RSI PASS).
 
 ---
 

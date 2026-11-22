@@ -85,6 +85,37 @@ enum QuoteSource {
   CHAT
 }
 
+enum VehicleCategory {
+  HEAVY_HAUL // Transport lourd & Engins (Porte-char, Grue)
+  CONTAINERS // Porte-conteneurs & Plateaux
+  MATERIALS  // Bennes & Matériaux BTP
+  PASSENGER  // Transport de personnel & Navettes (Bus, Coaster)
+  UTILITY    // Utilitaires & Tout-terrain (Pick-up 4x4, Fourgon)
+}
+
+model Vehicle {
+  id                String          @id @default(cuid())
+  slug              String          @unique
+  name              String
+  category          VehicleCategory
+  capacityLabel     String
+  description       String          @db.Text
+  totalQuantity     Int             @default(1)
+  availableQuantity Int             @default(1)
+  dailyRateFcfa     Int?
+  imageUrl          String?
+  specs             Json?
+  recommendedFor    String[]        @default([])
+  isActive          Boolean         @default(true)
+  sortOrder         Int             @default(0)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  quotes Quote[]
+
+  @@map("vehicle")
+}
+
 model Quote {
   id              String      @id @default(cuid())
   date            DateTime    @default(now())
@@ -99,6 +130,11 @@ model Quote {
   amount          String      @default("À calculer")
   userNotes       String?
   source          QuoteSource @default(FORM)
+
+  // Optional vehicle selection & requested quantity
+  vehicleId       String?
+  vehicle         Vehicle?    @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  vehicleQuantity Int         @default(1)
 
   // Storage for specific questions or details
   supplementaryInfo Json?

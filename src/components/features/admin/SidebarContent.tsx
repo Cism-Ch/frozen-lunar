@@ -40,6 +40,11 @@ const navItems = [
         icon: FileText,
     },
     {
+        title: "Flotte & Stocks",
+        href: "/admin/fleet",
+        icon: Truck,
+    },
+    {
         title: "Contacts",
         href: "/admin/contacts",
         icon: User,

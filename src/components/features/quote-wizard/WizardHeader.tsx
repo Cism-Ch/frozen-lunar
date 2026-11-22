@@ -9,6 +9,7 @@ import {
     CalendarIcon,
     User,
     MessageSquare,
+    Bus,
 } from "lucide-react";
 
 interface WizardHeaderProps {
@@ -26,21 +27,24 @@ export function WizardHeader({ step, totalSteps }: WizardHeaderProps) {
                     </Badge>
                     <CardTitle className="text-2xl font-bold">
                         {step === 1 && "Que transportez-vous ?"}
-                        {step === 2 && "Lieu de départ"}
-                        {step === 3 && "Lieu d'arrivée"}
-                        {step === 4 && "Date du transport"}
-                        {step === 5 && "Vos coordonnées"}
-                        {step === 6 && "Notes (optionnel)"}
+                        {step === 2 && "Choix du véhicule"}
+                        {step === 3 && "Lieu de départ"}
+                        {step === 4 && "Lieu d'arrivée"}
+                        {step === 5 && "Date du transport"}
+                        {step === 6 && "Vos coordonnées"}
+                        {step === 7 && "Notes (optionnel)"}
                     </CardTitle>
                     <CardDescription className="mt-1">
                         {step === 1 && "Sélectionnez le type de marchandise"}
                         {step === 2 &&
+                            "Sélectionnez un véhicule disponible ou laissez HBC choisir"}
+                        {step === 3 &&
                             "Où devons-nous récupérer la marchandise ?"}
-                        {step === 3 && "Où devons-nous livrer la marchandise ?"}
-                        {step === 4 && "Quand souhaitez-vous être livré ?"}
-                        {step === 5 &&
-                            "Pour vous envoyer votre devis personnalisé"}
+                        {step === 4 && "Où devons-nous livrer la marchandise ?"}
+                        {step === 5 && "Quand souhaitez-vous être livré ?"}
                         {step === 6 &&
+                            "Pour vous envoyer votre devis personnalisé"}
+                        {step === 7 &&
                             "Ajoutez des informations complémentaires si besoin"}
                     </CardDescription>
                 </div>
@@ -49,19 +53,20 @@ export function WizardHeader({ step, totalSteps }: WizardHeaderProps) {
                         {step === 1 && (
                             <Package className="text-primary h-8 w-8" />
                         )}
-                        {step === 2 && (
+                        {step === 2 && <Bus className="text-primary h-8 w-8" />}
+                        {step === 3 && (
                             <MapPin className="text-primary h-8 w-8" />
                         )}
-                        {step === 3 && (
+                        {step === 4 && (
                             <Truck className="text-primary h-8 w-8" />
                         )}
-                        {step === 4 && (
+                        {step === 5 && (
                             <CalendarIcon className="text-primary h-8 w-8" />
                         )}
-                        {step === 5 && (
+                        {step === 6 && (
                             <User className="text-primary h-8 w-8" />
                         )}
-                        {step === 6 && (
+                        {step === 7 && (
                             <MessageSquare className="text-primary h-8 w-8" />
                         )}
                     </div>

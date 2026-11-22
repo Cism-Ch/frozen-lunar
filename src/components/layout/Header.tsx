@@ -32,6 +32,7 @@ export function Header() {
     const navItems = [
         { name: "Accueil", href: "/", icon: Home },
         { name: "Services", href: "/services", icon: Package },
+        { name: "Notre Flotte", href: "/flotte", icon: Truck },
         { name: "Pourquoi nous", href: "/about", icon: Info },
         { name: "Contact", href: "/contact", icon: Mail },
     ];

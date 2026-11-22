@@ -103,6 +103,10 @@ export function Footer() {
                                     href: "/services",
                                 },
                                 {
+                                    name: "Notre Flotte",
+                                    href: "/flotte",
+                                },
+                                {
                                     name: "Tous nos services",
                                     href: "/services",
                                 },

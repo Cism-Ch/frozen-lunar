@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, type FieldPath } from "react-hook-form";
 import * as z from "zod";
@@ -14,12 +14,15 @@ import {
     type QuoteSummaryData,
 } from "./QuoteSummaryDialog";
 import { createQuoteAction } from "@/app/actions/quote-management";
+import { getPublicFleetAction } from "@/app/actions/fleet-actions";
+import type { FleetVehicleItem } from "@/lib/fleet-catalog";
 import { logger } from "@/lib/logger";
 
 // Sub-components
 import { WizardHeader } from "./quote-wizard/WizardHeader";
 import { WizardFooter } from "./quote-wizard/WizardFooter";
 import { StepItemType } from "./quote-wizard/steps/StepItemType";
+import { StepVehicle } from "./quote-wizard/steps/StepVehicle";
 import { StepLocation } from "./quote-wizard/steps/StepLocation";
 import { StepDate } from "./quote-wizard/steps/StepDate";
 import { StepContact } from "./quote-wizard/steps/StepContact";
@@ -29,6 +32,8 @@ const formSchema = z.object({
     itemType: z.string().min(2, {
         message: "Veuillez sélectionner un type de transport.",
     }),
+    vehicleId: z.string().optional(),
+    vehicleQuantity: z.number().int().min(1).max(50).optional(),
     pickupLocation: z.string().min(5, {
         message: "L'adresse de départ doit contenir au moins 5 caractères.",
     }),
@@ -44,12 +49,14 @@ const formSchema = z.object({
     userNotes: z.string().optional(),
 });
 
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 7;
 type QuoteFormValues = z.infer<typeof formSchema>;
 
 export function QuoteWizard() {
     const [step, setStep] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [vehicles, setVehicles] = useState<FleetVehicleItem[]>([]);
+    const [isLoadingFleet, setIsLoadingFleet] = useState(true);
     const [summaryData, setSummaryData] = useState<QuoteSummaryData | null>(
         null
     );
@@ -58,6 +65,8 @@ export function QuoteWizard() {
         resolver: zodResolver(formSchema),
         defaultValues: {
             itemType: "",
+            vehicleId: "",
+            vehicleQuantity: 1,
             pickupLocation: "",
             dropoffLocation: "",
             fullName: "",
@@ -67,9 +76,55 @@ export function QuoteWizard() {
         },
     });
 
+    // Charge la flotte active et pré-sélectionne un véhicule si `?vehicle=<slug>` est dans l'URL
+    useEffect(() => {
+        let active = true;
+        async function loadFleet() {
+            try {
+                const res = await getPublicFleetAction();
+                if (!active) return;
+                const list = res.data || [];
+                setVehicles(list);
+
+                if (typeof window !== "undefined") {
+                    const params = new URLSearchParams(window.location.search);
+                    const preselectedSlug = params.get("vehicle");
+                    if (preselectedSlug) {
+                        const match = list.find(
+                            (v) =>
+                                v.slug === preselectedSlug &&
+                                v.availableQuantity > 0
+                        );
+                        if (match) {
+                            form.setValue("vehicleId", match.id);
+                            form.setValue("vehicleQuantity", 1);
+                        }
+                    }
+                }
+            } catch (error: unknown) {
+                logger.warn("Fleet load error in QuoteWizard", {
+                    error:
+                        error instanceof Error ? error.message : String(error),
+                });
+            } finally {
+                if (active) setIsLoadingFleet(false);
+            }
+        }
+        void loadFleet();
+        return () => {
+            active = false;
+        };
+    }, [form]);
+
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsSubmitting(true);
         try {
+            const selectedVehicle = vehicles.find(
+                (v) => v.id === values.vehicleId
+            );
+            const hasDbVehicleId =
+                selectedVehicle && !selectedVehicle.id.startsWith("catalog-");
+
             const result = await createQuoteAction({
                 clientName: values.fullName,
                 email: values.email,
@@ -80,6 +135,10 @@ export function QuoteWizard() {
                 transportDate: values.transportDate.toISOString(),
                 userNotes: values.userNotes,
                 source: "form",
+                vehicleId: hasDbVehicleId ? selectedVehicle.id : undefined,
+                vehicleQuantity: hasDbVehicleId
+                    ? values.vehicleQuantity || 1
+                    : 1,
             });
 
             if (!result.success || !result.quote) {
@@ -90,7 +149,9 @@ export function QuoteWizard() {
 
             setSummaryData({
                 id: result.quote.id,
-                itemType: values.itemType,
+                itemType: selectedVehicle
+                    ? `${values.itemType} (${values.vehicleQuantity || 1}× ${selectedVehicle.name})`
+                    : values.itemType,
                 pickupLocation: values.pickupLocation,
                 dropoffLocation: values.dropoffLocation,
                 transportDate: values.transportDate,
@@ -120,13 +181,16 @@ export function QuoteWizard() {
     const nextStep = async () => {
         let fieldsToValidate: FieldPath<QuoteFormValues>[] = [];
         if (step === 1) fieldsToValidate = ["itemType"];
-        if (step === 2) fieldsToValidate = ["pickupLocation"];
-        if (step === 3) fieldsToValidate = ["dropoffLocation"];
-        if (step === 4) fieldsToValidate = ["transportDate"];
-        if (step === 5) fieldsToValidate = ["fullName", "email", "phone"];
-        // Step 6 (notes) is optional, no validation needed
+        // Step 2 (vehicleId) is optional
+        if (step === 3) fieldsToValidate = ["pickupLocation"];
+        if (step === 4) fieldsToValidate = ["dropoffLocation"];
+        if (step === 5) fieldsToValidate = ["transportDate"];
+        if (step === 6) fieldsToValidate = ["fullName", "email", "phone"];
 
-        const isValid = await form.trigger(fieldsToValidate);
+        const isValid =
+            fieldsToValidate.length > 0
+                ? await form.trigger(fieldsToValidate)
+                : true;
         if (isValid) setStep(step + 1);
     };
 
@@ -145,6 +209,13 @@ export function QuoteWizard() {
                         {step === 1 && <StepItemType />}
 
                         {step === 2 && (
+                            <StepVehicle
+                                vehicles={vehicles}
+                                isLoading={isLoadingFleet}
+                            />
+                        )}
+
+                        {step === 3 && (
                             <StepLocation
                                 name="pickupLocation"
                                 label="Adresse complète de départ"
@@ -155,7 +226,7 @@ export function QuoteWizard() {
                             />
                         )}
 
-                        {step === 3 && (
+                        {step === 4 && (
                             <StepLocation
                                 name="dropoffLocation"
                                 label="Adresse complète d'arrivée"
@@ -166,11 +237,11 @@ export function QuoteWizard() {
                             />
                         )}
 
-                        {step === 4 && <StepDate />}
+                        {step === 5 && <StepDate />}
 
-                        {step === 5 && <StepContact />}
+                        {step === 6 && <StepContact />}
 
-                        {step === 6 && <StepNotes />}
+                        {step === 7 && <StepNotes />}
                     </form>
                 </Form>
             </CardContent>
