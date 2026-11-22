@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { buildCompliantSupportSystemPrompt } from "@/lib/support-agent/knowledge";
 import { COMPANY_CONFIG } from "@/lib/company-config";
+import {
+    generateMockResponse,
+    isOffTopicForRobot,
+    resetConversation,
+} from "@/lib/support-agent/mock-responses";
 
 vi.mock("@/lib/prisma", () => ({
     default: {
@@ -26,9 +31,10 @@ import {
 describe("Compliant Support Agent (Côte d'Ivoire - ARTCI / OHADA)", () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        resetConversation();
     });
 
-    it("injecte les coordonnées Côte d'Ivoire, la devise FCFA et les garde-fous ARTCI/OHADA", () => {
+    it("injecte les coordonnées Côte d'Ivoire, la devise FCFA, les garde-fous ARTCI/OHADA et anti-injection", () => {
         const prompt = buildCompliantSupportSystemPrompt();
 
         expect(prompt).toContain("Côte d'Ivoire");
@@ -36,6 +42,8 @@ describe("Compliant Support Agent (Côte d'Ivoire - ARTCI / OHADA)", () => {
         expect(prompt).toContain("ARTCI");
         expect(prompt).toContain("OHADA");
         expect(prompt).toContain("2013-450");
+        expect(prompt).toContain("anti-bavardage");
+        expect(prompt).toContain("anti-injection");
         expect(prompt).toContain(COMPANY_CONFIG.address.city);
     });
 
@@ -89,10 +97,34 @@ describe("Compliant Support Agent (Côte d'Ivoire - ARTCI / OHADA)", () => {
         );
 
         const info = await getCompanyInfoTool();
+        expect(prisma.systemSettings.findUnique).toHaveBeenCalledWith(
+            expect.objectContaining({ where: { id: "default" } })
+        );
         expect(info.success).toBe(true);
         if (info.success) {
             expect(info.data.currency).toContain("FCFA");
             expect(info.data.phone).toContain("+225");
+        }
+    });
+
+    it("recadre poliment les questions hors-sujet en Mode Robot sans émojis bruts", async () => {
+        expect(isOffTopicForRobot("Quelle est la recette du garba ?")).toBe(
+            true
+        );
+        expect(isOffTopicForRobot("Bonjour")).toBe(false);
+
+        const response = await generateMockResponse(
+            "Quelle est la recette du garba ?"
+        );
+        expect(response.message).toContain("Mode Robot");
+        expect(response.options).toBeDefined();
+        expect(response.options!.length).toBeGreaterThanOrEqual(2);
+
+        const emojiRegex =
+            /[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu;
+        expect(response.message).not.toMatch(emojiRegex);
+        for (const opt of response.options || []) {
+            expect(opt.label).not.toMatch(emojiRegex);
         }
     });
 

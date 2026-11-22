@@ -153,7 +153,7 @@ export async function getCompanyInfoTool(): Promise<
 > {
     try {
         const settings = await prisma.systemSettings.findUnique({
-            where: { id: "global" },
+            where: { id: "default" },
             select: {
                 companyName: true,
                 contactEmail: true,

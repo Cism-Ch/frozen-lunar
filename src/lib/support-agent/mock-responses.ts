@@ -137,7 +137,55 @@ function detectSentiment(message: string): Sentiment {
 }
 
 /**
- * Generate enhanced response with guided flows
+ * Vérifie si un message sort du périmètre HBC Logistique en Mode Robot
+ * (hors salutations simples et hors mots-clés logistiques/transport/devis/suivi).
+ */
+export function isOffTopicForRobot(message: string): boolean {
+    const lower = message.toLowerCase().trim();
+    if (!lower) return false;
+
+    const category = detectCategory(lower);
+    if (category !== "general") {
+        return false;
+    }
+
+    const inScopeGeneralTerms = [
+        "bonjour",
+        "bonsoir",
+        "salut",
+        "hello",
+        "coucou",
+        "merci",
+        "aide",
+        "aider",
+        "info",
+        "information",
+        "renseignement",
+        "contact",
+        "humain",
+        "conseiller",
+        "horaire",
+        "adresse",
+        "abidjan",
+        "côte d'ivoire",
+        "cote d'ivoire",
+        "service",
+        "prestation",
+        "camion",
+        "véhicule",
+        "vehicule",
+        "bus",
+        "whatsapp",
+        "devis",
+        "transport",
+        "hbc",
+    ];
+
+    return !inScopeGeneralTerms.some((term) => lower.includes(term));
+}
+
+/**
+ * Generate enhanced response with guided flows (Mode Robot cadré)
  */
 export async function generateMockResponse(userMessage: string): Promise<
     SupportApiResponse & {
@@ -323,6 +371,38 @@ export async function generateMockResponse(userMessage: string): Promise<
         } else {
             quickReplyContext = "initial";
         }
+    } else if (isOffTopicForRobot(userMessage)) {
+        // Mode Robot strict : recadrage poli et droit au but pour les questions hors base de connaissances
+        const redirectOptions: FlowOption[] = [
+            {
+                id: "robot-quote",
+                label: "Configurer un devis",
+                response:
+                    "Parfait ! Indiquez-moi votre besoin (matériaux, container, machine ou transport) ou utilisez le configurateur de devis.",
+                action: "quote_form",
+            },
+            {
+                id: "robot-track",
+                label: "Suivre un transport (HBC-XXXXX)",
+                response:
+                    "Merci d'indiquer votre référence de dossier (format HBC-XXXXX) pour consulter l'état de votre transport.",
+                tutorialId: "track-transport",
+            },
+            {
+                id: "robot-contact",
+                label: "Contacter un conseiller",
+                response:
+                    "Un conseiller HBC Logistique est disponible pour répondre directement à votre demande.",
+                action: "contact_human",
+            },
+        ];
+
+        message =
+            "Je suis en Mode Robot, dédié uniquement aux services HBC Logistique (devis, transport lourd et suivi de dossier).\n\nComment puis-je vous orienter ?";
+        quickReplyContext = "initial";
+        options = redirectOptions;
+        conversationState.currentOptions = redirectOptions;
+        conversationState.awaitingSelection = true;
     } else {
         // Default category-based response with guidance
         const categoryResponses: Record<

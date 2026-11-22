@@ -51,6 +51,8 @@ export function useSupportChat(onClose: () => void) {
         },
     ]);
     const [isLoading, setIsLoading] = useState(false);
+    const [aiAvailable, setAiAvailable] = useState(false);
+    const [activeMode, setActiveMode] = useState<"ai" | "robot">("robot");
     const [aiMode, setAiMode] = useState<
         "gemini" | "openrouter" | "resilient_local"
     >("resilient_local");
@@ -62,24 +64,41 @@ export function useSupportChat(onClose: () => void) {
     );
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    // Initialisation dynamique du statut de l'IA (Gemini Cloud vs Moteur Résilient Local)
+    // Initialisation dynamique du statut de l'IA (Mode IA Cloud vs Mode Robot)
     useEffect(() => {
         let isMounted = true;
         getAiStatusAction()
             .then((res) => {
                 if (isMounted && res.data?.isAvailable) {
+                    setAiAvailable(true);
+                    setActiveMode("ai");
                     setAiMode(res.data.mode);
                 } else if (isMounted) {
+                    setAiAvailable(false);
+                    setActiveMode("robot");
                     setAiMode("resilient_local");
                 }
             })
             .catch(() => {
-                if (isMounted) setAiMode("resilient_local");
+                if (isMounted) {
+                    setAiAvailable(false);
+                    setActiveMode("robot");
+                    setAiMode("resilient_local");
+                }
             });
         return () => {
             isMounted = false;
         };
     }, []);
+
+    const toggleChatMode = () => {
+        if (!aiAvailable) return;
+        setActiveMode((prev) => {
+            const next = prev === "ai" ? "robot" : "ai";
+            setAiMode(next === "robot" ? "resilient_local" : "gemini");
+            return next;
+        });
+    };
 
     // Auto-scroll logic
     const scrollToBottom = () => {
@@ -278,7 +297,7 @@ export function useSupportChat(onClose: () => void) {
             setIsLoading(true);
 
             await addTypingThenMessage(
-                "Je peux vous aider à créer votre demande de devis ! 📋\n\nComment souhaitez-vous procéder ?"
+                "Je peux vous aider à configurer votre demande de devis étape par étape.\n\nComment souhaitez-vous procéder ?"
             );
 
             setChatItems((prev) => [
@@ -287,11 +306,11 @@ export function useSupportChat(onClose: () => void) {
                     type: "quote_options",
                     data: [
                         {
-                            label: "💬 Création guidée (je réponds aux questions)",
+                            label: "Création guidée (questions pas à pas)",
                             value: "guided",
                         },
                         {
-                            label: "📝 Remplir le formulaire moi-même",
+                            label: "Remplir le formulaire en ligne",
                             value: "manual",
                         },
                     ],
@@ -319,88 +338,112 @@ export function useSupportChat(onClose: () => void) {
         try {
             let handledByAi = false;
 
-            // Tier 1 : Tentative d'appel de l'action IA Cloud (Gemini 1.5 Flash avec timeout & validation)
-            try {
-                // Construction d'un extrait de l'historique conversationnel
-                const history = chatItems
-                    .filter(
-                        (item): item is ChatItem & { data: Message } =>
-                            item.type === "message" &&
-                            !(item.data as Message).isTyping
-                    )
-                    .map((item) => ({
-                        role:
-                            item.data.role === "assistant"
-                                ? ("assistant" as const)
-                                : ("user" as const),
-                        content: item.data.content,
-                    }));
-
-                const aiResult = await generateSupportAiAction({
-                    message: content,
-                    history,
-                });
-
-                if (aiResult.data) {
-                    handledByAi = true;
-                    setAiMode("gemini");
-
-                    setChatItems((prev) =>
-                        prev.filter(
-                            (item) =>
-                                !(
-                                    item.type === "message" &&
-                                    (item.data as Message).isTyping
-                                )
+            // Tier 1 : Mode IA (Gemini 2.5 Flash -> fallback OpenRouter) si actif
+            if (activeMode === "ai") {
+                try {
+                    const history = chatItems
+                        .filter(
+                            (item): item is ChatItem & { data: Message } =>
+                                item.type === "message" &&
+                                !(item.data as Message).isTyping
                         )
-                    );
+                        .map((item) => ({
+                            role:
+                                item.data.role === "assistant"
+                                    ? ("assistant" as const)
+                                    : ("user" as const),
+                            content: item.data.content,
+                        }));
 
-                    const assistantMessage = createMessage(
-                        aiResult.data.message,
-                        "assistant",
-                        aiResult.data.category,
-                        aiResult.data.sentiment
-                    );
+                    const aiResult = await generateSupportAiAction({
+                        message: content,
+                        history,
+                    });
 
-                    setChatItems((prev) => [
-                        ...prev,
-                        {
-                            type: "message",
-                            data: assistantMessage,
-                            id: assistantMessage.id,
-                        },
-                    ]);
+                    if (aiResult.data) {
+                        handledByAi = true;
+                        setAiMode(aiResult.data.source);
 
-                    // Si l'IA détecte un besoin d'escalade, on suggère un contact humain immédiat
-                    if (aiResult.data.shouldEscalate) {
-                        setCurrentQuickReplies([
+                        setChatItems((prev) =>
+                            prev.filter(
+                                (item) =>
+                                    !(
+                                        item.type === "message" &&
+                                        (item.data as Message).isTyping
+                                    )
+                            )
+                        );
+
+                        const assistantMessage = createMessage(
+                            aiResult.data.message,
+                            "assistant",
+                            aiResult.data.category,
+                            aiResult.data.sentiment
+                        );
+
+                        setChatItems((prev) => [
+                            ...prev,
                             {
-                                id: "contact_human_urgent",
-                                label: "Parler à un conseiller",
-                                text: "Je souhaite contacter un conseiller humain",
-                                category: "general",
-                            },
-                            {
-                                id: "quote_help",
-                                label: "Demander un devis",
-                                text: "Je souhaite obtenir un devis pour mon transport",
-                                category: "quote",
+                                type: "message",
+                                data: assistantMessage,
+                                id: assistantMessage.id,
                             },
                         ]);
-                    } else if (aiResult.data.category === "transport") {
-                        setCurrentQuickReplies(
-                            getContextualQuickReplies("afterTrackingHelp")
-                        );
+
+                        if (
+                            aiResult.data.suggestedAction ===
+                            "start_quote_flow"
+                        ) {
+                            setChatItems((prev) => [
+                                ...prev,
+                                {
+                                    type: "quote_options",
+                                    data: [
+                                        {
+                                            label: "Création guidée (questions pas à pas)",
+                                            value: "guided",
+                                        },
+                                        {
+                                            label: "Remplir le formulaire en ligne",
+                                            value: "manual",
+                                        },
+                                    ],
+                                    id: `quote_choice_${Date.now()}`,
+                                },
+                            ]);
+                        }
+
+                        // Si l'IA détecte un besoin d'escalade, on suggère un contact humain immédiat
+                        if (aiResult.data.shouldEscalate) {
+                            setCurrentQuickReplies([
+                                {
+                                    id: "contact_human_urgent",
+                                    label: "Parler à un conseiller",
+                                    text: "Je souhaite contacter un conseiller humain",
+                                    category: "general",
+                                },
+                                {
+                                    id: "quote_help",
+                                    label: "Demander un devis",
+                                    text: "Je souhaite obtenir un devis pour mon transport",
+                                    category: "quote",
+                                },
+                            ]);
+                        } else if (aiResult.data.category === "transport") {
+                            setCurrentQuickReplies(
+                                getContextualQuickReplies("afterTrackingHelp")
+                            );
+                        }
                     }
+                } catch (aiErr: unknown) {
+                    logger.warn(
+                        "Échec Mode IA cloud, basculement automatique vers le Mode Robot",
+                        { error: String(aiErr) }
+                    );
                 }
-            } catch (aiErr: unknown) {
-                logger.warn(
-                    "Échec IA cloud, basculement silencieux vers le moteur résilient local",
-                    { error: String(aiErr) }
-                );
             }
 
-            // Tier 2 : Repli transparent sur le moteur déterministe local
+            // Tier 2 : Mode Robot (fallback automatique ou mode rapide sélectionné)
             if (!handledByAi) {
                 setAiMode("resilient_local");
                 const response = await generateMockResponse(content);
@@ -549,6 +592,9 @@ export function useSupportChat(onClose: () => void) {
         chatItems,
         isLoading,
         aiMode,
+        activeMode,
+        aiAvailable,
+        toggleChatMode,
         currentQuickReplies,
         quoteFlowState,
         messagesEndRef,

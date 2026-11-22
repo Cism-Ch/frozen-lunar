@@ -19,6 +19,9 @@ export function SupportChatModal({ isOpen, onClose }: SupportChatModalProps) {
         chatItems,
         isLoading,
         aiMode,
+        activeMode,
+        aiAvailable,
+        toggleChatMode,
         currentQuickReplies,
         quoteFlowState,
         messagesEndRef,
@@ -58,6 +61,9 @@ export function SupportChatModal({ isOpen, onClose }: SupportChatModalProps) {
                 <ChatHeader
                     quoteFlowState={quoteFlowState}
                     aiMode={aiMode}
+                    activeMode={activeMode}
+                    canSwitchMode={aiAvailable}
+                    onToggleMode={toggleChatMode}
                     onRestart={restartChat}
                     onClose={onClose}
                 />

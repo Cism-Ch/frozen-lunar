@@ -174,9 +174,9 @@ export async function draftEmailAction(input: unknown): Promise<{
 }
 
 /**
- * Traitement des requêtes conversationnelles du support client.
- * Tente d'appeler Gemini 1.5 Flash ; si indisponible ou erreur, renvoie data=null
- * pour déclencher le moteur de réponses guidées déterministe local sans interruption de service.
+ * Traitement des requêtes conversationnelles du support client (Mode IA).
+ * Tente Gemini 2.5 Flash puis OpenRouter ; si indisponible ou erreur, renvoie data=null
+ * pour déclencher le Mode Robot déterministe local sans interruption de service.
  */
 export async function generateSupportAiAction(input: unknown): Promise<{
     data: {
@@ -184,6 +184,7 @@ export async function generateSupportAiAction(input: unknown): Promise<{
         category: "technical" | "billing" | "quote" | "transport" | "general";
         sentiment: "positive" | "neutral" | "negative";
         shouldEscalate: boolean;
+        suggestedAction?: "start_quote_flow" | "contact_human" | null;
         source: "gemini" | "openrouter" | "resilient_local";
     } | null;
     error: string | null;

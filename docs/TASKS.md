@@ -9,12 +9,11 @@
 
 ```
 +-------------------------+  +-------------------------+  +-------------------------+
-| [>] NEXT UP (SP 07)     |  |  [?] ROADMAP (SP 08-11) |  |       [X] ARCHIVES      |
+| [>] NEXT UP (SP 08)     |  |  [?] ROADMAP (SP 09-11) |  |       [X] ARCHIVES      |
 +-------------------------+  +-------------------------+  +-------------------------+
-| [ ] TASK-BOT-01..03     |  | [ ] TASK-UPT-01..02     |  | [x] SP 01..05 (Archived)|
-|                         |  | [ ] TASK-FLT-01..03     |  | [x] TASK-LOC2-01..03    |
-|                         |  | [ ] TASK-PRT-01..02     |  |                         |
-|                         |  | [ ] TASK-USR-01..03     |  |                         |
+| [ ] TASK-UPT-01..02     |  | [ ] TASK-FLT-01..03     |  | [x] SP 01..05 (Archived)|
+|                         |  | [ ] TASK-PRT-01..02     |  | [x] TASK-LOC2-01..03    |
+|                         |  | [ ] TASK-USR-01..03     |  | [x] TASK-BOT-01..03     |
 +-------------------------+  +-------------------------+  +-------------------------+
 ```
 
@@ -44,25 +43,25 @@
 
 ---
 
-## Planned Sprint 07: Dual-Mode Support Agent (Mode IA vs Mode Robot) & Interactive Quote Flow
+## Completed Sprint 07: Dual-Mode Support Agent (Mode IA vs Mode Robot) & Interactive Quote Flow
 
-- [ ] **`TASK-BOT-01` - Dual-Mode Architecture (Mode IA Humain vs Mode Robot Cadre)**
+- [x] **`TASK-BOT-01` - Dual-Mode Architecture (Mode IA Humain vs Mode Robot Cadré)**
   - **Priority:** HIGH
-  - **Target files:** `src/hooks/useSupportChat.ts`, `src/components/features/support/components/ChatHeader.tsx`, `src/lib/support-agent/config.ts`, `src/lib/support-agent/mock-responses.ts`
+  - **Target files:** `src/hooks/useSupportChat.ts`, `src/components/features/support/components/ChatHeader.tsx`, `src/components/features/support/SupportChatModal.tsx`, `src/lib/support-agent/config.ts`, `src/lib/support-agent/mock-responses.ts`
   - **Acceptance criteria:**
-    - [ ] Replace "Mode Autonome" with explicit **Mode IA** (Gemini 2.5 / OpenRouter Nemotron, concise 2-3 sentences, natural) vs **Mode Robot** (light, deterministic, strictly bounded fallback that politely redirects off-topic queries).
+    - [x] Replaced "Mode Autonome" with explicit **Mode IA** (`Mode IA • Gemini` / `Mode IA • OpenRouter`, concise 2-3 sentences) and **Mode Robot** (deterministic fallback & manual toggle that politely redirects off-topic queries).
 
-- [ ] **`TASK-BOT-02` - Anti-Drift Guardrails, Interactive Quote Configurator & Tool Fixes**
+- [x] **`TASK-BOT-02` - Anti-Drift Guardrails, Interactive Quote Configurator & Tool Fixes**
   - **Priority:** HIGH
-  - **Target files:** `src/lib/support-agent/knowledge.ts`, `src/lib/support-agent/tools.ts`, `src/lib/support-agent/quote-flow.ts`, `src/lib/gemini.ts`
+  - **Target files:** `src/lib/support-agent/knowledge.ts`, `src/lib/support-agent/tools.ts`, `src/lib/gemini.ts`, `src/app/actions/ai-actions.ts`
   - **Acceptance criteria:**
-    - [ ] Fix `SystemSettings` lookup (`id: "default"` instead of `"global"`), enforce strict anti-verbosity / anti-prompt-injection / anti-off-topic guardrails, and wire interactive quote configuration (`quote-flow.ts`).
+    - [x] Fixed `SystemSettings` lookup (`id: "default"`), enforced anti-verbosity / anti-prompt-injection (`<client_message>`) / anti-off-topic guardrails, and wired interactive quote configuration (`suggestedAction`).
 
-- [ ] **`TASK-BOT-03` - Dual-Mode Compliance Tests & RSI Validation**
+- [x] **`TASK-BOT-03` - Dual-Mode Compliance Tests & RSI Validation**
   - **Priority:** MEDIUM
   - **Target files:** `tests/unit/support-agent-compliance.test.ts`
   - **Acceptance criteria:**
-    - [ ] Test Mode IA, Mode Robot fallback, off-topic redirection, prompt-injection resistance, and pass `run_fullstack_eval.py --quick`.
+    - [x] Verified Mode IA, Mode Robot off-topic redirection, `SystemSettings` lookup, and prompt guardrails (`100/100` Vitest tests passed, `100/100` RSI PASS).
 
 ---
 

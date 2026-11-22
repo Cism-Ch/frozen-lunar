@@ -2,12 +2,15 @@ import { QuoteFlowState } from "@/lib/support-agent/quote-flow";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Headset, X, RotateCcw } from "lucide-react";
+import { Headset, X, RotateCcw, Bot, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface ChatHeaderProps {
     quoteFlowState: QuoteFlowState;
     aiMode?: "gemini" | "openrouter" | "resilient_local";
+    activeMode?: "ai" | "robot";
+    canSwitchMode?: boolean;
+    onToggleMode?: () => void;
     onRestart: () => void;
     onClose: () => void;
 }
@@ -15,6 +18,9 @@ interface ChatHeaderProps {
 export function ChatHeader({
     quoteFlowState,
     aiMode = "resilient_local",
+    activeMode = "robot",
+    canSwitchMode = false,
+    onToggleMode,
     onRestart,
     onClose,
 }: ChatHeaderProps) {
@@ -79,8 +85,9 @@ export function ChatHeader({
                                         Création de devis
                                     </span>
                                 </>
-                            ) : aiMode === "gemini" ||
-                              aiMode === "openrouter" ? (
+                            ) : activeMode === "ai" &&
+                              (aiMode === "gemini" ||
+                                  aiMode === "openrouter") ? (
                                 <>
                                     <span className="relative flex h-2 w-2 shrink-0">
                                         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
@@ -88,8 +95,8 @@ export function ChatHeader({
                                     </span>
                                     <span className="truncate text-[11px] font-medium text-emerald-200 sm:text-xs">
                                         {aiMode === "gemini"
-                                            ? "IA Gemini Active"
-                                            : "IA OpenRouter Active"}
+                                            ? "Mode IA • Gemini"
+                                            : "Mode IA • OpenRouter"}
                                     </span>
                                 </>
                             ) : (
@@ -99,9 +106,9 @@ export function ChatHeader({
                                     </span>
                                     <span
                                         className="truncate text-[11px] font-medium text-sky-100 sm:text-xs"
-                                        title="Moteur déterministe autonome actif : guidage devis, FAQ transport et suivi disponibles"
+                                        title="Mode Robot actif : réponses rapides, cadrées et droit au but"
                                     >
-                                        Mode Autonome
+                                        Mode Robot
                                     </span>
                                 </>
                             )}
@@ -110,6 +117,31 @@ export function ChatHeader({
                 </div>
 
                 <div className="flex shrink-0 items-center gap-1.5">
+                    {canSwitchMode && onToggleMode && (
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={onToggleMode}
+                            className="h-9 w-9 rounded-full text-white/85 transition-colors hover:bg-white/15 hover:text-white"
+                            title={
+                                activeMode === "ai"
+                                    ? "Passer en Mode Robot (rapide & cadré)"
+                                    : "Passer en Mode IA (Gemini / OpenRouter)"
+                            }
+                            aria-label={
+                                activeMode === "ai"
+                                    ? "Basculer vers le Mode Robot"
+                                    : "Basculer vers le Mode IA"
+                            }
+                        >
+                            {activeMode === "ai" ? (
+                                <Bot className="h-4 w-4" />
+                            ) : (
+                                <Sparkles className="h-4 w-4" />
+                            )}
+                        </Button>
+                    )}
                     <Button
                         variant="ghost"
                         size="icon"
