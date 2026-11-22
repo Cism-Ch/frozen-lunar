@@ -11,6 +11,7 @@ import {
     User,
     Users,
     Home,
+    Activity,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -47,6 +48,11 @@ const navItems = [
         title: "Utilisateurs",
         href: "/admin/users",
         icon: Users,
+    },
+    {
+        title: "Statut & Uptime",
+        href: "/admin/status",
+        icon: Activity,
     },
     {
         title: "Paramètres",

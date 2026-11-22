@@ -9,11 +9,12 @@
 
 ```
 +-------------------------+  +-------------------------+  +-------------------------+
-| [>] NEXT UP (SP 08)     |  |  [?] ROADMAP (SP 09-11) |  |       [X] ARCHIVES      |
+| [>] NEXT UP (SP 09)     |  |  [?] ROADMAP (SP 10-11) |  |       [X] ARCHIVES      |
 +-------------------------+  +-------------------------+  +-------------------------+
-| [ ] TASK-UPT-01..02     |  | [ ] TASK-FLT-01..03     |  | [x] SP 01..05 (Archived)|
-|                         |  | [ ] TASK-PRT-01..02     |  | [x] TASK-LOC2-01..03    |
-|                         |  | [ ] TASK-USR-01..03     |  | [x] TASK-BOT-01..03     |
+| [ ] TASK-FLT-01..03     |  | [ ] TASK-PRT-01..02     |  | [x] SP 01..05 (Archived)|
+|                         |  | [ ] TASK-USR-01..03     |  | [x] TASK-LOC2-01..03    |
+|                         |  |                         |  | [x] TASK-BOT-01..03     |
+|                         |  |                         |  | [x] TASK-UPT-01..02     |
 +-------------------------+  +-------------------------+  +-------------------------+
 ```
 
@@ -65,20 +66,20 @@
 
 ---
 
-## Planned Sprint 08: Dependencies Uptime & Service Health Page
+## Completed Sprint 08: Dependencies Uptime & Service Health Page
 
-- [ ] **`TASK-UPT-01` - Secure Health Probe Endpoint (`/api/health`) & Alerting**
+- [x] **`TASK-UPT-01` - Secure Health Probe Endpoint (`/api/health`) & Alerting**
   - **Priority:** HIGH
-  - **Target files:** `src/app/api/health/route.ts`, `src/lib/health-check.ts`
+  - **Target files:** `src/app/api/health/route.ts`, `src/lib/health-check.ts`, `src/app/actions/health-actions.ts`, `tests/unit/health-check.test.ts`
   - **Acceptance criteria:**
-    - [ ] Rate-limited & Redis-cached (30s) health checks (3s timeout, zero secrets leaked) for Supabase/Postgres, Redis, QStash, Tigris S3, Resend, Gemini 2.5, OpenRouter, OpenStreetMap (Photon/Nominatim).
-    - [ ] Trigger deduplicated Resend admin warning email (30-min Redis lock) on critical dependency outage.
+    - [x] Rate-limited & Redis-cached (30s) health checks (3s timeout, zero secrets leaked) for Supabase/Postgres, Redis, QStash, Tigris S3, Resend, Gemini 2.5, OpenRouter, OpenStreetMap (Photon/Nominatim).
+    - [x] Trigger deduplicated Resend admin warning email (30-min Redis lock with memory fallback) on critical dependency outage.
 
-- [ ] **`TASK-UPT-02` - Dedicated Uptime Dashboard UI (`/status` & `/admin/status`)**
+- [x] **`TASK-UPT-02` - Dedicated Uptime Dashboard UI (`/status` & `/admin/status`)**
   - **Priority:** MEDIUM
-  - **Target files:** `src/app/status/page.tsx`, `src/app/admin/status/page.tsx`
+  - **Target files:** `src/app/status/page.tsx`, `src/app/admin/status/page.tsx`, `src/components/features/status/StatusDashboard.tsx`
   - **Acceptance criteria:**
-    - [ ] 100% shadcn responsive Mobile-First UI with Framer Motion, live refresh, latency indicators, and admin-only Resend test button.
+    - [x] 100% shadcn responsive Mobile-First UI with Framer Motion, live refresh, latency indicators, and admin-only Resend test button (`105/105` Vitest, `100/100` RSI PASS).
 
 ---
 
