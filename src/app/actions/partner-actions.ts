@@ -10,31 +10,10 @@ import { requireAdmin } from "@/lib/auth-guard";
 import { EMAIL_SENDER, isResendConfigured, resend } from "@/lib/email";
 import { COMPANY_CONFIG } from "@/lib/company-config";
 import { PartnerApplicationEmail } from "@/components/emails/PartnerApplicationEmail";
+import { UEMOA_CEDEAO_COUNTRIES } from "@/lib/fleet-catalog";
 import { logger } from "@/lib/logger";
 
-export const UEMOA_CEDEAO_COUNTRIES = [
-    "Côte d'Ivoire",
-    "Sénégal",
-    "Mali",
-    "Burkina Faso",
-    "Ghana",
-    "Bénin",
-    "Togo",
-    "Guinée",
-    "Niger",
-] as const;
-
-export const PARTNER_OPERATING_ZONES = [
-    "Grand Abidjan & Zones Industrielles",
-    "Port Autonome d'Abidjan (PAA)",
-    "Port de San-Pédro & Sud-Ouest",
-    "Yamoussoukro • Bouaké • Korhogo",
-    "Corridor Abidjan – Bamako (Mali)",
-    "Corridor Abidjan – Ouagadougou (Burkina)",
-    "Corridor Abidjan – Accra – Lomé",
-] as const;
-
-export const partnerApplicationSchema = z.object({
+const partnerApplicationSchema = z.object({
     companyName: z
         .string()
         .trim()
@@ -422,8 +401,4 @@ export async function deletePartnerApplicationAction(
                     : "Impossible de supprimer ce dossier.",
         };
     }
-}
-
-export function resetPartnerRateLimitForTest(): void {
-    memoryPartnerRateLimit.clear();
 }

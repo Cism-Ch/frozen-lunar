@@ -275,6 +275,28 @@ export const AFRICAN_FLEET_CATALOG: Omit<FleetVehicleItem, "id">[] = [
     },
 ];
 
+export const UEMOA_CEDEAO_COUNTRIES = [
+    "Côte d'Ivoire",
+    "Sénégal",
+    "Mali",
+    "Burkina Faso",
+    "Ghana",
+    "Bénin",
+    "Togo",
+    "Guinée",
+    "Niger",
+] as const;
+
+export const PARTNER_OPERATING_ZONES = [
+    "Grand Abidjan & Zones Industrielles",
+    "Port Autonome d'Abidjan (PAA)",
+    "Port de San-Pédro & Sud-Ouest",
+    "Yamoussoukro • Bouaké • Korhogo",
+    "Corridor Abidjan – Bamako (Mali)",
+    "Corridor Abidjan – Ouagadougou (Burkina)",
+    "Corridor Abidjan – Accra – Lomé",
+] as const;
+
 /**
  * Formate le badge de stock au format métier demandé (ex: "Qté: 02 disponibles").
  */

@@ -26,10 +26,7 @@ vi.mock("@/lib/prisma", () => ({
     },
 }));
 
-import {
-    resetPartnerRateLimitForTest,
-    submitPartnerApplicationAction,
-} from "@/app/actions/partner-actions";
+import { submitPartnerApplicationAction } from "@/app/actions/partner-actions";
 import {
     getKycDocumentSignedUrlAction,
     getPresignedUploadUrlAction,
@@ -37,7 +34,7 @@ import {
 
 describe("Africa Partner Onboarding & Private KYC Security", () => {
     beforeEach(() => {
-        resetPartnerRateLimitForTest();
+        vi.clearAllMocks();
     });
 
     it("accepts a valid UEMOA/CEDEAO partner application with private partners-kyc keys", async () => {

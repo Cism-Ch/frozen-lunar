@@ -35,13 +35,11 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import {
-    PARTNER_OPERATING_ZONES,
-    submitPartnerApplicationAction,
-    UEMOA_CEDEAO_COUNTRIES,
-} from "@/app/actions/partner-actions";
+import { submitPartnerApplicationAction } from "@/app/actions/partner-actions";
 import { getPresignedUploadUrlAction } from "@/app/actions/upload-management";
 import {
+    PARTNER_OPERATING_ZONES,
+    UEMOA_CEDEAO_COUNTRIES,
     VEHICLE_CATEGORY_META,
     type FleetVehicleCategory,
 } from "@/lib/fleet-catalog";

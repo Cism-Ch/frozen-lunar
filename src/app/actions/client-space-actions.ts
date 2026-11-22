@@ -15,7 +15,7 @@ const savedAddressSchema = z.object({
     address: z.string().trim().min(5, "Adresse complète requise").max(300),
 });
 
-export const companyProfileInputSchema = z.object({
+const companyProfileInputSchema = z.object({
     companyName: z
         .string()
         .trim()
