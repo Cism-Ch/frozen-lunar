@@ -38,6 +38,7 @@ import { safeFormatDate } from "@/lib/date-utils";
 import { toast } from "sonner";
 import Link from "next/link";
 import { QuoteTimeline } from "./components/QuoteTimeline";
+import { OrderChat } from "@/components/features/client/OrderChat";
 import { generateQuotePDF } from "@/lib/pdf-generator";
 import { geminiService, EstimationResult } from "@/lib/gemini";
 import {
@@ -534,6 +535,9 @@ export default function QuoteModerationPage() {
                             </div>
                         </CardContent>
                     </Card>
+
+                    {/* Chat Interne Hybride IA + Validateur Humain */}
+                    <OrderChat quoteId={quote.id} viewerRole="admin" />
                 </div>
 
                 {/* Right Column - Workspace */}

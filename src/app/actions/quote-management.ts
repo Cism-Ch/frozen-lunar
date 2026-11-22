@@ -12,7 +12,7 @@ import {
 } from "@prisma/client";
 import { handleError } from "@/lib/error-handler";
 import { emailQueue, pdfQueue } from "@/lib/qstash";
-import { requireAdmin } from "@/lib/auth-guard";
+import { getOptionalUser, requireAdmin } from "@/lib/auth-guard";
 import { logger } from "@/lib/logger";
 
 type QuoteWithHistory = Quote & { history: QuoteHistory[] };
@@ -194,6 +194,8 @@ export async function createQuoteAction(
             validatedVehicleId = vehicle.id;
         }
 
+        const currentUser = await getOptionalUser();
+
         // Create the quote in database
         const quote = await prisma.quote.create({
             data: {
@@ -206,6 +208,7 @@ export async function createQuoteAction(
                 transportDate: transportDate,
                 userNotes: validated.userNotes || null,
                 source: sourceToEnum(validated.source),
+                userId: currentUser?.id ?? null,
                 vehicleId: validatedVehicleId,
                 vehicleQuantity: validatedVehicleId ? requestedVehicleQty : 1,
                 supplementaryInfo: validated.supplementaryInfo

@@ -13,6 +13,7 @@ vi.mock("next/cache", () => ({
 
 // Mock auth-guard
 vi.mock("@/lib/auth-guard", () => ({
+    getOptionalUser: vi.fn().mockResolvedValue(null),
     requireAuth: vi.fn().mockResolvedValue({
         user: { id: "admin-1", role: "admin", email: "admin@hbc.com" },
     }),

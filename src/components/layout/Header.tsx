@@ -13,6 +13,7 @@ import {
     Mail,
     Package,
     Handshake,
+    User,
 } from "lucide-react";
 import {
     Sheet,
@@ -43,6 +44,7 @@ export function Header() {
         { name: "Services", href: "/services", icon: Package },
         { name: "Notre Flotte", href: "/flotte", icon: Truck },
         { name: "Partenaires", href: "/partenaires", icon: Handshake },
+        { name: "Espace Client", href: "/espace-client", icon: User },
         { name: "Pourquoi nous", href: "/about", icon: Info },
         { name: "Contact", href: "/contact", icon: Mail },
     ];

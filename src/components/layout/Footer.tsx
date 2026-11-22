@@ -140,6 +140,10 @@ export function Footer() {
                                     name: "Devenir Partenaire",
                                     href: "/partenaires",
                                 },
+                                {
+                                    name: "Espace Client",
+                                    href: "/espace-client",
+                                },
                                 { name: "Contact", href: "/contact" },
                                 {
                                     name: "Mentions légales",

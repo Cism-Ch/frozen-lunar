@@ -9,14 +9,15 @@
 
 ```
 +-------------------------+  +-------------------------+  +-------------------------+
-| [>] NEXT UP (SP 11)     |  |  [?] ROADMAP            |  |       [X] ARCHIVES      |
+| [>] NEXT UP             |  |  [?] ROADMAP            |  |       [X] ARCHIVES      |
 +-------------------------+  +-------------------------+  +-------------------------+
-| [ ] TASK-USR-01..03     |  |                         |  | [x] SP 01..05 (Archived)|
-|                         |  |                         |  | [x] TASK-LOC2-01..03    |
+| All Planned Sprints     |  |                         |  | [x] SP 01..05 (Archived)|
+| Completed (SP 06..11)   |  |                         |  | [x] TASK-LOC2-01..03    |
 |                         |  |                         |  | [x] TASK-BOT-01..03     |
 |                         |  |                         |  | [x] TASK-UPT-01..02     |
 |                         |  |                         |  | [x] TASK-FLT-01..03     |
 |                         |  |                         |  | [x] TASK-PRT-01..02     |
+|                         |  |                         |  | [x] TASK-USR-01..03     |
 +-------------------------+  +-------------------------+  +-------------------------+
 ```
 
@@ -123,22 +124,22 @@
 
 ---
 
-## Planned Sprint 11: Client/Business User Space & Hybrid AI + Human Chat
+## Completed Sprint 11: Client/Business User Space & Hybrid AI + Human Chat
 
-- [ ] **`TASK-USR-01` - Client Account Schema (`CompanyProfile`, `Quote.userId`) & Strict IDOR Isolation**
+- [x] **`TASK-USR-01` - Client Account Schema (`CompanyProfile`, `Quote.userId`) & Strict IDOR Isolation**
   - **Priority:** CRITICAL
-  - **Target files:** `prisma/schema.prisma`, `src/lib/auth-guard.ts`, `middleware.ts`
+  - **Target files:** `prisma/schema.prisma`, `prisma/migrations/20261122_add_client_space_and_hybrid_chat/migration.sql`, `src/lib/auth-guard.ts`, `tests/unit/client-space-idor.test.ts`
   - **Acceptance criteria:**
-    - [ ] Enforce strict ownership checks (`userId === session.user.id`) + Supabase RLS on all client quotes, documents, and chat threads.
+    - [x] Enforced strict ownership checks (`requireQuoteOwnershipOrAdmin` with `userId === session.user.id`) + Supabase RLS on `company_profile`, `support_thread`, and `support_message`.
 
-- [ ] **`TASK-USR-02` - Client Portal UI (`/espace-client`)**
+- [x] **`TASK-USR-02` - Client Portal UI (`/espace-client`)**
   - **Priority:** HIGH
-  - **Target files:** `src/app/espace-client/page.tsx`, `src/app/espace-client/quotes/[id]/page.tsx`
+  - **Target files:** `src/app/espace-client/page.tsx`, `src/app/espace-client/quotes/[id]/page.tsx`, `src/components/features/client/ClientSpaceDashboard.tsx`, `src/app/actions/client-space-actions.ts`
   - **Acceptance criteria:**
-    - [ ] Dashboard for recurring clients/businesses: saved addresses, quote history, PDF downloads, 1-click reorder.
+    - [x] Dashboard for recurring clients/businesses: inline B2B authentication, saved addresses & RCCM/NCC company profile, quote history, PDF downloads, and 1-click reorder.
 
-- [ ] **`TASK-USR-03` - Hybrid AI + Human Validator Internal Chat (`SupportThread` + Realtime)**
+- [x] **`TASK-USR-03` - Hybrid AI + Human Validator Internal Chat (`SupportThread` + Realtime)**
   - **Priority:** HIGH
   - **Target files:** `src/app/actions/thread-actions.ts`, `src/components/features/client/OrderChat.tsx`, `src/app/admin/quotes/[id]/page.tsx`
   - **Acceptance criteria:**
-    - [ ] Real-time order chat with selective Supabase Realtime, optimistic UI, AI triage, and seamless `HUMAN_TAKEOVER` pause by admin validators.
+    - [x] Real-time order chat with selective Supabase Realtime subscription, optimistic UI, concise AI triage, and seamless `HUMAN_TAKEOVER` pause by admin validators (`116/116` Vitest, `100/100` RSI PASS).

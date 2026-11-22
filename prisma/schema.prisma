@@ -22,8 +22,11 @@ model User {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  sessions Session[]
-  accounts Account[]
+  sessions       Session[]
+  accounts       Account[]
+  companyProfile CompanyProfile?
+  quotes         Quote[]
+  supportThreads SupportThread[]
 
   @@map("user")
 }
@@ -131,6 +134,10 @@ model Quote {
   userNotes       String?
   source          QuoteSource @default(FORM)
 
+  // Optional client user account owner (IDOR isolation)
+  userId          String?
+  user            User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+
   // Optional vehicle selection & requested quantity
   vehicleId       String?
   vehicle         Vehicle?    @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
@@ -139,7 +146,8 @@ model Quote {
   // Storage for specific questions or details
   supplementaryInfo Json?
 
-  history QuoteHistory[]
+  history       QuoteHistory[]
+  supportThread SupportThread?
 
   @@map("quote")
 }
@@ -241,6 +249,65 @@ model PartnerApplication {
   updatedAt       DateTime                 @updatedAt
 
   @@map("partner_application")
+}
+
+// --- Modèles Espace Client Entreprise & Chat Hybride IA + Validateur Humain ---
+
+model CompanyProfile {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyName    String
+  rccmNumber     String?
+  nccNumber      String?
+  phone          String
+  defaultPickup  String?
+  defaultDropoff String?
+  savedAddresses Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("company_profile")
+}
+
+enum SupportThreadStatus {
+  AI_ACTIVE      // Assistant IA actif en premier rideau
+  HUMAN_TAKEOVER // Validateur humain a pris la main (IA en pause)
+  RESOLVED       // Échange clôturé
+}
+
+enum SupportSenderRole {
+  CLIENT
+  AI
+  ADMIN
+}
+
+model SupportThread {
+  id         String              @id @default(cuid())
+  quoteId    String              @unique
+  quote      Quote               @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  userId     String?
+  user       User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  status     SupportThreadStatus @default(AI_ACTIVE)
+  assignedTo String?
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+
+  messages SupportMessage[]
+
+  @@map("support_thread")
+}
+
+model SupportMessage {
+  id         String            @id @default(cuid())
+  threadId   String
+  thread     SupportThread     @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  senderRole SupportSenderRole
+  senderName String
+  content    String            @db.Text
+  createdAt  DateTime          @default(now())
+
+  @@map("support_message")
 }
 
 

@@ -2,6 +2,20 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 
 /**
+ * Récupère la session active sans lever d'exception si l'utilisateur n'est pas connecté.
+ */
+export async function getOptionalUser() {
+    try {
+        const session = await auth.api.getSession({
+            headers: await headers(),
+        });
+        return session?.user ?? null;
+    } catch {
+        return null;
+    }
+}
+
+/**
  * Récupère et valide la session active de l'utilisateur côté serveur.
  * Lève une exception explicite si l'utilisateur n'est pas authentifié.
  *
@@ -35,4 +49,37 @@ export async function requireAdmin() {
     }
 
     return user;
+}
+
+/**
+ * Garde anti-IDOR stricte : vérifie que l'utilisateur connecté est soit administrateur,
+ * soit le propriétaire légitime de la ressource (par `userId` strict, ou par correspondance d'email
+ * uniquement si `userId` n'était pas encore associé).
+ */
+export async function requireQuoteOwnershipOrAdmin(
+    resourceUserId: string | null | undefined,
+    resourceEmail?: string | null
+) {
+    const user = await requireAuth();
+
+    if (user.role === "admin") {
+        return { user, isAdmin: true };
+    }
+
+    const matchesId =
+        Boolean(resourceUserId) && resourceUserId === user.id;
+    const matchesLegacyUnlinkedEmail =
+        !resourceUserId &&
+        Boolean(resourceEmail) &&
+        Boolean(user.email) &&
+        resourceEmail!.toLowerCase().trim() ===
+            user.email.toLowerCase().trim();
+
+    if (!matchesId && !matchesLegacyUnlinkedEmail) {
+        throw new Error(
+            "Accès refusé (IDOR) : ce dossier appartient à un autre compte client."
+        );
+    }
+
+    return { user, isAdmin: false };
 }
