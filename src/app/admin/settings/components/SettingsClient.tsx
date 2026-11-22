@@ -565,7 +565,7 @@ export function SettingsClient({ initialData }: SettingsClientProps) {
                                                 onChange={(e) =>
                                                     setWaNumber(e.target.value)
                                                 }
-                                                placeholder="+33 1 23 45 67 89"
+                                                placeholder="+225 07 00 00 00 00"
                                                 required
                                             />
                                             <p className="text-muted-foreground text-xs">
@@ -808,7 +808,7 @@ export function SettingsClient({ initialData }: SettingsClientProps) {
                                         >
                                             <div className="grid gap-2">
                                                 <Label htmlFor="siret">
-                                                    Numéro SIRET
+                                                    Numéro RCCM
                                                 </Label>
                                                 <Input
                                                     id="siret"
@@ -816,13 +816,14 @@ export function SettingsClient({ initialData }: SettingsClientProps) {
                                                     onChange={(e) =>
                                                         setSiret(e.target.value)
                                                     }
+                                                    placeholder="Ex: CI-ABJ-03-2026-B12-00001"
                                                     required
                                                 />
                                             </div>
                                             <div className="grid gap-2">
                                                 <Label htmlFor="tva">
-                                                    Numéro TVA
-                                                    intracommunautaire
+                                                    NCC (Numéro Compte
+                                                    Contribuable)
                                                 </Label>
                                                 <Input
                                                     id="tva"
@@ -832,6 +833,7 @@ export function SettingsClient({ initialData }: SettingsClientProps) {
                                                             e.target.value
                                                         )
                                                     }
+                                                    placeholder="Ex: 2600001-A"
                                                     required
                                                 />
                                             </div>

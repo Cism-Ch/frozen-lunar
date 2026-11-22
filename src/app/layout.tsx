@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { LayoutWrapper } from "@/components/layout/LayoutWrapper";
 import { JsonLd } from "@/components/layout/JsonLd";
+import { COMPANY_CONFIG } from "@/lib/company-config";
 
 const inter = Inter({
     subsets: ["latin"],
@@ -11,7 +12,8 @@ const inter = Inter({
     fallback: ["system-ui", "arial"],
 });
 
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://hbc-logistique.fr";
+const baseUrl =
+    process.env.NEXT_PUBLIC_APP_URL || COMPANY_CONFIG.contact.website;
 
 export const metadata: Metadata = {
     metadataBase: new URL(baseUrl),

@@ -27,7 +27,7 @@ import {
     XCircle,
     Clock,
     Save,
-    Euro,
+    Banknote,
     FileText,
     Download,
     Sparkles,
@@ -172,7 +172,9 @@ export default function QuoteModerationPage() {
             );
             setAiEstimation(result);
             if (result.source === "gemini") {
-                toast.success("Estimation générée par Gemini 1.5");
+                toast.success("Estimation générée par Gemini 2.5");
+            } else if (result.source === "openrouter") {
+                toast.success("Estimation générée par OpenRouter IA");
             } else {
                 toast.info(
                     "Estimation générée par le moteur résilient de secours"
@@ -212,8 +214,9 @@ export default function QuoteModerationPage() {
 
     const applyEstimation = async () => {
         if (aiEstimation && quote) {
-            const priceValue =
-                aiEstimation.price.replace(/[^0-9,]/g, "") + "€ HT"; // Basic parsing
+            const priceValue = aiEstimation.price.includes("FCFA")
+                ? aiEstimation.price
+                : `${aiEstimation.price.replace(/[^0-9\s-]/g, "").trim()} FCFA HT`;
             setAmount(priceValue);
 
             try {
@@ -538,11 +541,11 @@ export default function QuoteModerationPage() {
                     {/* Tarification */}
                     <Card className="border-l-primary/50 overflow-hidden border-l-4">
                         <div className="absolute top-0 right-0 p-4 opacity-5">
-                            <Euro className="h-24 w-24" />
+                            <Banknote className="h-24 w-24" />
                         </div>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                                <Euro className="h-5 w-5" />
+                                <Banknote className="h-5 w-5" />
                                 Tarification
                             </CardTitle>
                             <CardDescription>
@@ -553,7 +556,7 @@ export default function QuoteModerationPage() {
                         <CardContent>
                             <div className="space-y-2">
                                 <label className="text-sm font-medium">
-                                    Montant (Devise incluse ex: 150€)
+                                    Montant (Devise incluse ex: 250 000 FCFA)
                                 </label>
                                 <div className="flex gap-2">
                                     <Input
@@ -562,7 +565,7 @@ export default function QuoteModerationPage() {
                                             setAmount(e.target.value)
                                         }
                                         className="font-mono text-lg"
-                                        placeholder="Ex: 450€ HT"
+                                        placeholder="Ex: 450 000 FCFA HT"
                                     />
                                     <Button
                                         variant="secondary"
@@ -585,10 +588,15 @@ export default function QuoteModerationPage() {
                                                     {aiEstimation.price}
                                                 </span>
                                                 {aiEstimation.source ===
-                                                "gemini" ? (
+                                                    "gemini" ||
+                                                aiEstimation.source ===
+                                                    "openrouter" ? (
                                                     <span className="inline-flex items-center gap-1 rounded-full border border-emerald-300/40 bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
                                                         <Sparkles className="h-2.5 w-2.5" />{" "}
-                                                        Gemini 1.5
+                                                        {aiEstimation.source ===
+                                                        "gemini"
+                                                            ? "Gemini 2.5"
+                                                            : "OpenRouter IA"}
                                                     </span>
                                                 ) : (
                                                     <span

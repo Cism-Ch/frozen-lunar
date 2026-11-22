@@ -70,7 +70,7 @@ export function BusinessAnalytics({ quotes }: BusinessAnalyticsProps) {
             }))
             .sort((a, b) => b.count - a.count);
 
-        // 4. Calcul du montant total estimé (€)
+        // 4. Calcul du montant total estimé (FCFA)
         let totalRevenue = 0;
         let validAmountCount = 0;
 

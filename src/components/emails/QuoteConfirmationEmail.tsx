@@ -11,6 +11,7 @@ import {
     Button,
 } from "@react-email/components";
 import * as React from "react";
+import { COMPANY_CONFIG } from "@/lib/company-config";
 
 interface QuoteConfirmationEmailProps {
     clientName: string;
@@ -30,7 +31,7 @@ export const QuoteConfirmationEmail = ({
     quoteId,
 }: QuoteConfirmationEmailProps) => {
     const siteUrl =
-        process.env.NEXT_PUBLIC_APP_URL || "https://hbc-logistique.fr";
+        process.env.NEXT_PUBLIC_APP_URL || COMPANY_CONFIG.contact.website;
 
     return (
         <Html>
@@ -97,13 +98,13 @@ export const QuoteConfirmationEmail = ({
                         <Hr style={hr} />
 
                         <Text style={footerText}>
-                            HBC SERVICE CASH LOGISTIQUE IMMOBILIÈRE
+                            {COMPANY_CONFIG.legalName}
                             <br />
-                            Transport de matériaux, containers, charpentes et
-                            machines industrielles.
+                            Transport de matériaux, conteneurs, charpentes,
+                            engins et personnel en Côte d&apos;Ivoire.
                             <br />
-                            Email : contact@hbc-logistique.fr | Tél : +33 1 00
-                            00 00 00
+                            Email : {COMPANY_CONFIG.contact.email} | Tél :{" "}
+                            {COMPANY_CONFIG.contact.phoneDisplay}
                         </Text>
                     </Section>
                 </Container>

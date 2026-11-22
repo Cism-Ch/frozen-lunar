@@ -148,7 +148,7 @@ export function QuoteWizard() {
                             <StepLocation
                                 name="pickupLocation"
                                 label="Adresse complète de départ"
-                                placeholder="Ex: 12 Rue de l'Industrie, 75000 Paris"
+                                placeholder="Ex: Zone Industrielle Yopougon, Abidjan"
                                 icon={
                                     <MapPin className="text-muted-foreground h-6 w-6" />
                                 }
@@ -159,7 +159,7 @@ export function QuoteWizard() {
                             <StepLocation
                                 name="dropoffLocation"
                                 label="Adresse complète d'arrivée"
-                                placeholder="Ex: Zone Industrielle Nord, 69000 Lyon"
+                                placeholder="Ex: Port de San-Pédro ou Zone Industrielle Yamoussoukro"
                                 icon={
                                     <Truck className="text-muted-foreground h-6 w-6" />
                                 }

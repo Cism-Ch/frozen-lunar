@@ -8,7 +8,7 @@ import {
     CardTitle,
     CardDescription,
 } from "@/components/ui/card";
-import { FileText, TrendingUp, Clock, CheckCircle, Euro } from "lucide-react";
+import { FileText, TrendingUp, Clock, CheckCircle, Banknote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Quote } from "@/lib/quote-storage";
@@ -126,8 +126,8 @@ export default function DashboardPage() {
             value: totalRevenue,
             isCurrency: true,
             isPercent: false,
-            change: `Panier moyen : ${averageDealSize.toLocaleString("fr-FR")} €`,
-            icon: Euro,
+            change: `Panier moyen : ${averageDealSize.toLocaleString("fr-CI")} FCFA`,
+            icon: Banknote,
             color: "text-blue-500",
             bg: "bg-blue-500/10",
         },
@@ -241,7 +241,7 @@ export default function DashboardPage() {
                                             duration={1.5}
                                             suffix={
                                                 stat.isCurrency
-                                                    ? " €"
+                                                    ? " FCFA"
                                                     : stat.isPercent
                                                       ? " %"
                                                       : ""

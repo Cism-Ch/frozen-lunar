@@ -9,6 +9,7 @@ import {
     AccordionTrigger,
 } from "@/components/ui/accordion";
 import { HelpCircle } from "lucide-react";
+import { COMPANY_CONFIG } from "@/lib/company-config";
 import {
     ScrollReveal,
     StaggerContainer,
@@ -19,27 +20,27 @@ import {
 const faqs = [
     {
         question: "Quels types de marchandises transportez-vous ?",
-        answer: "Nous transportons une large gamme de marchandises : matériaux de construction, containers, charpentes, machines industrielles, modules préfabriqués et bien plus encore. Contactez-nous pour des besoins spécifiques.",
+        answer: "Nous transportons une large gamme de marchandises : matériaux de construction, conteneurs maritimes (20' et 40'), charpentes métalliques, machines industrielles, engins de chantier, modules préfabriqués et bien plus encore. Contactez-nous pour des besoins spécifiques.",
     },
     {
         question: "Comment obtenir un devis ?",
-        answer: "Vous pouvez obtenir un devis en remplissant notre formulaire en ligne, en nous appelant au +33 1 23 45 67 89, ou en nous contactant via WhatsApp. Nous vous répondrons dans les 2 heures.",
+        answer: `Vous pouvez obtenir un devis en remplissant notre formulaire en ligne, en nous appelant au ${COMPANY_CONFIG.contact.phoneDisplay}, ou en nous contactant directement via WhatsApp. Notre équipe vous répond sous 2 heures ouvrées.`,
     },
     {
         question: "Quels sont vos délais de livraison ?",
-        answer: "Les délais varient selon la distance et le type de marchandise. En général, pour les livraisons locales (Île-de-France), comptez 24-48h. Pour les livraisons nationales, 2-5 jours ouvrés. Nous proposons également un service express.",
+        answer: "Les délais varient selon la distance, l'état des axes et le type de convoi. En général, pour les livraisons dans le Grand Abidjan, comptez 24h. Pour les corridors nationaux en Côte d'Ivoire (Yamoussoukro, Bouaké, San-Pédro, Korhogo), comptez 24 à 72h. Un service express dédié est également disponible.",
     },
     {
         question: "Proposez-vous une assurance pour les marchandises ?",
-        answer: "Oui, toutes nos livraisons sont assurées. Nous souscrivons une assurance couvrant les dommages éventuels pendant le transport. Des options d'assurance complémentaire sont disponibles pour les marchandises de grande valeur.",
+        answer: "Oui, toutes nos prestations respectent le cadre de l'Acte Uniforme OHADA (AUCTMR) et disposent d'une couverture responsabilité civile transporteur. Des options d'assurance facultés ad valorem sont disponibles sur demande pour les engins et cargaisons de grande valeur.",
     },
     {
-        question: "Intervenez-vous en dehors de l'Île-de-France ?",
-        answer: "Absolument ! Nous intervenons sur toute la France métropolitaine. Nous avons également des partenaires en Europe pour les transports internationaux.",
+        question: "Intervenez-vous en dehors du Grand Abidjan ?",
+        answer: "Absolument ! Nous couvrons toute la Côte d'Ivoire (Abidjan, Port Autonome d'Abidjan, Port de San-Pédro, Yamoussoukro, Bouaké, Korhogo, Daloa, Man, Abengourou) ainsi que les corridors de la sous-région UEMOA / CEDEAO (Mali, Burkina Faso, Ghana, Niger).",
     },
     {
         question: "Proposez-vous le chargement et le déchargement ?",
-        answer: "Oui, nous proposons un service complet incluant le chargement, le transport sécurisé et le déchargement. Notre équipe est formée pour manipuler tous types de marchandises avec le plus grand soin.",
+        answer: "Oui, nous proposons un service clé en main incluant le chargement, l'arrimage sécurisé, le transport et le déchargement avec camions-grues ou porte-chars adaptés.",
     },
 ];
 

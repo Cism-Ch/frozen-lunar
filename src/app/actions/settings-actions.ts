@@ -30,12 +30,12 @@ const updateCompanySettingsSchema = z.object({
         .max(255, "Adresse trop longue"),
     siret: z
         .string()
-        .min(9, "Le numéro SIRET est requis")
-        .max(30, "Numéro SIRET trop long"),
+        .min(5, "Le numéro RCCM est requis")
+        .max(40, "Numéro RCCM trop long"),
     vatNumber: z
         .string()
-        .min(5, "Le numéro de TVA intracommunautaire est requis")
-        .max(30, "Numéro de TVA trop long"),
+        .min(5, "Le numéro NCC (Compte Contribuable) est requis")
+        .max(40, "Numéro NCC trop long"),
 });
 
 const updateWhatsAppSettingsSchema = z.object({

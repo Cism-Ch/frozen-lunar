@@ -1,6 +1,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Quote } from "./quote-storage";
+import { COMPANY_CONFIG } from "@/lib/company-config";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -14,10 +15,14 @@ export const generateQuotePDF = (quote: Quote) => {
 
     doc.setFontSize(10);
     doc.setTextColor(100, 100, 100);
-    doc.text("123 Avenue des Transports", 20, 28);
-    doc.text("75001 Paris, France", 20, 33);
-    doc.text("contact@hbc-logistique.fr", 20, 38);
-    doc.text("01 23 45 67 89", 20, 43);
+    doc.text(COMPANY_CONFIG.address.street, 20, 28);
+    doc.text(
+        `${COMPANY_CONFIG.address.city}, ${COMPANY_CONFIG.address.country}`,
+        20,
+        33
+    );
+    doc.text(COMPANY_CONFIG.contact.email, 20, 38);
+    doc.text(COMPANY_CONFIG.contact.phoneDisplay, 20, 43);
 
     // --- Quote Info ---
     doc.setFontSize(12);

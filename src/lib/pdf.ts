@@ -34,14 +34,14 @@ export class PdfService {
         data.items.forEach((item) => {
             doc.text(item.description, 20, y);
             doc.text(item.quantity.toString(), 120, y);
-            doc.text(`${item.price} €`, 160, y);
+            doc.text(`${item.price.toLocaleString("fr-FR")} FCFA`, 160, y);
             y += 10;
         });
 
         doc.line(20, y, 190, y);
         y += 10;
         doc.setFontSize(14);
-        doc.text(`Total: ${data.total} €`, 150, y);
+        doc.text(`Total: ${data.total.toLocaleString("fr-FR")} FCFA`, 145, y);
 
         // Output as ArrayBuffer and convert to Buffer for Node.js upload
         const arrayBuffer = doc.output("arraybuffer");

@@ -341,7 +341,7 @@ export const GUIDED_FLOWS: GuidedFlow[] = [
                         id: "small-load",
                         label: "Petite charge (< 5 tonnes)",
                         response:
-                            "Parfait ! Pour ce type de charge, nos tarifs débutent à partir de 150€ HT selon la distance. Je vous invite à remplir le formulaire pour un devis précis.",
+                            "Parfait ! Pour ce type de charge, nos tarifs débutent à partir de 120 000 FCFA HT selon la distance. Je vous invite à remplir le formulaire pour un devis précis.",
                         action: "quote_form",
                     },
                     {
@@ -370,7 +370,7 @@ export const GUIDED_FLOWS: GuidedFlow[] = [
                         id: "container-20",
                         label: "Container 20 pieds",
                         response:
-                            "Container 20 pieds - format standard. Transport possible sur toute la France. Remplissez le formulaire pour un chiffrage rapide.",
+                            "Container 20 pieds - format standard. Transport possible sur toute la Côte d'Ivoire et les corridors CEDEAO. Remplissez le formulaire pour un chiffrage rapide.",
                         action: "quote_form",
                     },
                     {

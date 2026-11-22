@@ -16,13 +16,14 @@ export default function MentionsLegalesPage() {
                 <SectionContainer className="from-muted/50 to-background bg-gradient-to-b pt-20 pb-12 md:pt-32 md:pb-16">
                     <div className="mx-auto max-w-3xl space-y-6 text-center">
                         <Badge variant="outline" className="mb-2">
-                            Juridique
+                            Juridique • Côte d&apos;Ivoire / ARTCI
                         </Badge>
                         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
-                            Mentions Légales
+                            Mentions Légales & Conformité
                         </h1>
                         <p className="text-muted-foreground text-lg">
-                            Informations légales et réglementaires
+                            Informations légales, éditoriales et protection des
+                            données personnelles
                         </p>
                     </div>
                 </SectionContainer>
@@ -30,10 +31,10 @@ export default function MentionsLegalesPage() {
                 {/* Content Section */}
                 <SectionContainer className="bg-background pt-0 md:pt-0">
                     <Card className="mx-auto max-w-4xl border-2">
-                        <CardContent className="prose prose-neutral dark:prose-invert max-w-none p-8 md:p-12">
-                            <section className="mb-8">
+                        <CardContent className="prose prose-neutral dark:prose-invert max-w-none space-y-8 p-8 md:p-12">
+                            <section>
                                 <h2 className="text-primary mb-4 text-2xl font-bold">
-                                    Éditeur du site
+                                    1. Éditeur de la plateforme
                                 </h2>
                                 <div className="text-muted-foreground space-y-2 leading-relaxed">
                                     <p>
@@ -71,77 +72,124 @@ export default function MentionsLegalesPage() {
                                         <strong>Email :</strong>{" "}
                                         {COMPANY_CONFIG.contact.email}
                                     </p>
-                                    <p>
-                                        <strong>
-                                            Protection des données personnelles :
-                                        </strong>{" "}
-                                        {
-                                            COMPANY_CONFIG.compliance
-                                                .dataProtectionLaw
-                                        }{" "}
-                                        —{" "}
-                                        {
-                                            COMPANY_CONFIG.compliance
-                                                .dataProtectionAuthority
-                                        }
-                                        .
-                                    </p>
                                 </div>
                             </section>
 
-                            <section className="mb-8">
+                            <section>
                                 <h2 className="text-primary mb-4 text-2xl font-bold">
-                                    Directeur de la publication
+                                    2. Directeur de la publication
                                 </h2>
                                 <p className="text-muted-foreground leading-relaxed">
                                     {COMPANY_CONFIG.publicationDirector}
                                 </p>
                             </section>
 
-                            <section className="mb-8">
+                            <section>
                                 <h2 className="text-primary mb-4 text-2xl font-bold">
-                                    Hébergement
+                                    3. Hébergement & Infrastructure Cloud
                                 </h2>
                                 <div className="text-muted-foreground space-y-2 leading-relaxed">
-                                    <p>Ce site est hébergé par :</p>
                                     <p>
-                                        <strong>
-                                            [Nom de l&apos;hébergeur]
-                                        </strong>
+                                        La plateforme web, les API et la base de
+                                        données sont opérées sur une
+                                        infrastructure cloud sécurisée et
+                                        chiffrée (TLS 1.3 & chiffrement au
+                                        repos) via des prestataires certifiés
+                                        (Vercel / Supabase / Tigris S3).
                                     </p>
-                                    <p>[Adresse de l&apos;hébergeur]</p>
-                                    <p>[Téléphone de l&apos;hébergeur]</p>
+                                    <p>
+                                        Pour toute demande relative à
+                                        l&apos;hébergement technique :{" "}
+                                        {COMPANY_CONFIG.contact.email}.
+                                    </p>
                                 </div>
                             </section>
 
-                            <section className="mb-8">
+                            <section>
                                 <h2 className="text-primary mb-4 text-2xl font-bold">
-                                    Propriété intellectuelle
+                                    4. Propriété intellectuelle (OAPI)
                                 </h2>
                                 <p className="text-muted-foreground leading-relaxed">
-                                    L&apos;ensemble de ce site relève de la
-                                    législation française et internationale sur
-                                    le droit d&apos;auteur et la propriété
-                                    intellectuelle. Tous les droits de
-                                    reproduction sont réservés, y compris pour
-                                    les documents téléchargeables et les
-                                    représentations iconographiques et
-                                    photographiques.
+                                    L&apos;ensemble des contenus présents sur ce
+                                    site (textes, logos, marques, fiches flotte,
+                                    graphismes, interfaces et code applicatif)
+                                    est protégé par les accords de
+                                    l&apos;Organisation Africaine de la
+                                    Propriété Intellectuelle (OAPI) et les
+                                    lois en vigueur en République de Côte
+                                    d&apos;Ivoire. Toute reproduction ou
+                                    exploitation sans autorisation écrite
+                                    préalable est strictement interdite.
                                 </p>
                             </section>
 
                             <section>
                                 <h2 className="text-primary mb-4 text-2xl font-bold">
-                                    Données personnelles
+                                    5. Protection des données personnelles
+                                    (Loi ARTCI n° 2013-450)
+                                </h2>
+                                <div className="text-muted-foreground space-y-3 leading-relaxed">
+                                    <p>
+                                        Conformément à la{" "}
+                                        <strong>
+                                            {
+                                                COMPANY_CONFIG.compliance
+                                                    .dataProtectionLaw
+                                            }
+                                        </strong>{" "}
+                                        en République de Côte d&apos;Ivoire,
+                                        sous le contrôle de l&apos;
+                                        <strong>
+                                            {
+                                                COMPANY_CONFIG.compliance
+                                                    .dataProtectionAuthority
+                                            }
+                                        </strong>
+                                        , et à la Loi n° 2013-546 relative aux
+                                        transactions électroniques :
+                                    </p>
+                                    <ul className="list-disc space-y-1.5 pl-6">
+                                        <li>
+                                            <strong>Finalités :</strong> gestion
+                                            des demandes de devis, suivi des
+                                            opérations de transport, support
+                                            client et relation partenaire.
+                                        </li>
+                                        <li>
+                                            <strong>Conservation :</strong> les
+                                            données sont conservées pendant la
+                                            durée nécessaire à l&apos;exécution
+                                            des prestations et aux obligations
+                                            légales OHADA.
+                                        </li>
+                                        <li>
+                                            <strong>Vos droits :</strong> vous
+                                            disposez d&apos;un droit
+                                            d&apos;accès, de rectification,
+                                            d&apos;opposition et de suppression
+                                            de vos données en écrivant à{" "}
+                                            <strong>
+                                                {COMPANY_CONFIG.contact.email}
+                                            </strong>
+                                            .
+                                        </li>
+                                    </ul>
+                                </div>
+                            </section>
+
+                            <section>
+                                <h2 className="text-primary mb-4 text-2xl font-bold">
+                                    6. Cookies & Droit applicable
                                 </h2>
                                 <p className="text-muted-foreground leading-relaxed">
-                                    Conformément à la loi « Informatique et
-                                    Libertés » du 6 janvier 1978 modifiée et au
-                                    Règlement Général sur la Protection des
-                                    Données (RGPD), vous disposez d&apos;un
-                                    droit d&apos;accès, de rectification, de
-                                    suppression et d&apos;opposition aux données
-                                    personnelles vous concernant.
+                                    Ce site utilise exclusivement des cookies
+                                    techniques essentiels à la sécurité des
+                                    sessions et au bon fonctionnement de
+                                    l&apos;application. Les présentes mentions
+                                    légales sont régies par le{" "}
+                                    {COMPANY_CONFIG.compliance.legalFramework} ;
+                                    tout litige relève de la compétence du{" "}
+                                    {COMPANY_CONFIG.compliance.jurisdiction}.
                                 </p>
                             </section>
                         </CardContent>

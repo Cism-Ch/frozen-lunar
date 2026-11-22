@@ -1,8 +1,7 @@
 # [SSOT] TASKS.md - Central Registry & Task Tracker
 
 > Single Source of Truth (SSOT) for orchestrating technical and functional tasks.
-> Absolute rule for AI Agents: Consult before every task, update immediately on completion.
-> Strict ceiling: 250 lines.
+> Strict ceiling: 250 lines. Archives: `docs/archive/tasks/SPRINT_01_05_ARCHIVE.md`.
 
 ---
 
@@ -10,49 +9,134 @@
 
 ```
 +-------------------------+  +-------------------------+  +-------------------------+
-| [>] IN PROGRESS (SP 05) |  |   [?] FUTURE BACKLOG    |  |       [X] ARCHIVES      |
+| [>] NEXT UP (SP 07)     |  |  [?] ROADMAP (SP 08-11) |  |       [X] ARCHIVES      |
 +-------------------------+  +-------------------------+  +-------------------------+
-| (Sprint 05 completed)   |  | [ ] Ready for Sprint 06 |  | [x] TASK-INIT-01        |
-|                         |  |                         |  | [x] TASK-LOC-01..03     |
-|                         |  |                         |  | [x] TASK-AI-01..03      |
-|                         |  |                         |  | [x] TASK-SEC-01..03     |
-|                         |  |                         |  | [x] TASK-CI-01..03      |
+| [ ] TASK-BOT-01..03     |  | [ ] TASK-UPT-01..02     |  | [x] SP 01..05 (Archived)|
+|                         |  | [ ] TASK-FLT-01..03     |  | [x] TASK-LOC2-01..03    |
+|                         |  | [ ] TASK-PRT-01..02     |  |                         |
+|                         |  | [ ] TASK-USR-01..03     |  |                         |
 +-------------------------+  +-------------------------+  +-------------------------+
 ```
 
 ---
 
-## Active Sprint 05: Côte d'Ivoire Localization & Compliant Support Agent
+## Completed Sprint 06: Complete Africa/CI Localization, OHADA Legal, X Branding & Resend
 
-- [x] **`TASK-CI-01` - Côte d'Ivoire SSOT Config & Full Platform Localization (FCFA / +225 / OHADA)**
+- [x] **`TASK-LOC2-01` - Eradicate Remaining France/Euro References & Twitter -> X**
   - **Priority:** HIGH
-  - **Target files:** `src/lib/company-config.ts`, `prisma/demo-data.json`, `src/lib/gemini.ts`, `src/lib/huggingface.ts`, `src/app/legal/mentions-legales/page.tsx`, `src/app/legal/cgv/page.tsx`, `src/app/contact/page.tsx`, `src/components/layout/Footer.tsx`, `src/components/layout/JsonLd.tsx`
+  - **Target files:** `src/components/features/FAQSection.tsx`, `src/components/layout/Footer.tsx`, `src/components/features/QuoteWizard.tsx`, `src/components/features/admin/BusinessAnalytics.tsx`, `src/app/actions/settings-actions.ts`, `src/app/admin/settings/components/SettingsClient.tsx`, `src/app/admin/dashboard/page.tsx`, `src/app/admin/quotes/[id]/page.tsx`, `src/lib/pdf.ts`, `src/lib/pdf-generator.ts`, `src/lib/support-agent/tutorials.ts`, `src/app/layout.tsx`
   - **Acceptance criteria:**
-    - [x] `TASK-CI-01.01`: Centralized Côte d'Ivoire company info (Abidjan, +225, FCFA, RCCM/NCC, ARTCI/OHADA) in `src/lib/company-config.ts`.
-    - [x] `TASK-CI-01.02`: Replaced France mock data with Côte d'Ivoire corridors, FCFA pricing, `+225` WhatsApp normalization, and OHADA/ARTCI legal pages.
+    - [x] Zero remaining France/Ile-de-France/Euro/`+33` strings in UI, FAQ, admin analytics, settings, PDFs, and tutorials.
+    - [x] Replaced Twitter icon/link with official X SVG icon and accessible ARIA label.
 
-- [x] **`TASK-CI-02` - Compliant & Tool-Enabled Support Agent (Knowledge Base + Guardrails)**
+- [x] **`TASK-LOC2-02` - Industry-Grade OHADA/AUCTMR CGV & ARTCI Legal Notices**
   - **Priority:** HIGH
-  - **Target files:** `src/lib/support-agent/knowledge.ts`, `src/lib/support-agent/tools.ts`, `src/lib/support-agent/config.ts`, `src/lib/gemini.ts`
+  - **Target files:** `src/app/legal/cgv/page.tsx`, `src/app/legal/mentions-legales/page.tsx`
   - **Acceptance criteria:**
-    - [x] `TASK-CI-02.01`: Built structured SSOT Knowledge Base (`knowledge.ts`) with ARTCI (Loi n° 2013-450) & OHADA guardrails and anti-hallucination rules.
-    - [x] `TASK-CI-02.02`: Implemented Zod-validated server-side tools (`tools.ts`) for verified quote status lookup, live `SystemSettings` lookup, and human ticket escalation.
+    - [x] Full transport/logistics CGV aligned with OHADA AUCTMR (consignment note, demurrage, cargo insurance, liability limits, force majeure, UEMOA/Mobile Money payment).
+    - [x] Full Mentions Legales aligned with Loi ARTCI n° 2013-450 & Loi n° 2013-546 (electronic transactions).
 
-- [x] **`TASK-CI-03` - Unit Tests & Deterministic RSI Validation**
+- [x] **`TASK-LOC2-03` - Resend Verification, Configurable Sender & Alert Email Templates**
   - **Priority:** HIGH
-  - **Target files:** `tests/unit/support-agent-compliance.test.ts`, `tests/unit/ai-resilience.test.ts`, `tests/unit/huggingface.test.ts`, `docs/TASKS.md`
+  - **Target files:** `src/lib/email.ts`, `src/lib/qstash.ts`, `src/app/api/workflow/email/route.ts`, `src/components/emails/`, `tests/unit/email-workflows.test.ts`
   - **Acceptance criteria:**
-    - [x] `TASK-CI-03.01`: Updated CI localization tests (FCFA / +225) and added 5 compliance & PII-protection tests (95/95 total Vitest passed).
-    - [x] `TASK-CI-03.02`: Validated with `python evals/run_fullstack_eval.py --quick` (100/100 PASS).
+    - [x] Added `EMAIL_FROM` env var & `isResendConfigured()`, dev loopback QStash guard, and React Email alert templates (`AdminAlertEmail`, `PartnerApplicationEmail`, `QuoteStatusUpdateEmail`) verified with `email-workflows.test.ts` (99/99 Vitest, 100/100 RSI PASS).
 
 ---
 
-## Completed Tasks History
+## Planned Sprint 07: Dual-Mode Support Agent (Mode IA vs Mode Robot) & Interactive Quote Flow
 
-| Date | Task ID | Title & Description | Created / Modified Files |
-| :--- | :--- | :--- | :--- |
-| 2026-11-21 | `TASK-INIT-01` | RSI Protocol Initialization & Deterministic Baseline (100/100 PASS) | `.gitignore`, `docs/TASKS.md`, `docs/old/*.md`, `tests/unit/ai-resilience.test.ts` |
-| 2026-11-21 | `TASK-LOC-01..03` | OpenStreetMap + Leaflet + shadcn Dynamic LocationPicker & Tests | `next.config.ts`, `src/lib/geocoding.ts`, `LocationPicker.tsx`, `InteractiveLocationMap.tsx`, `geocoding.test.ts` |
-| 2026-11-21 | `TASK-AI-01..03` | Google Gemini 2.5 Flash Upgrade & OpenRouter Multi-Model Fallback | `src/lib/openrouter.ts`, `src/lib/gemini.ts`, `src/lib/huggingface.ts`, `ai-actions.ts`, `useSupportChat.ts`, `ChatHeader.tsx`, `openrouter.test.ts` |
-| 2026-11-21 | `TASK-SEC-01..03` | Security Hardening (6 App Fixes) & Critical CVE Upgrades (0 Critical) | `auth.ts`, `workflow/email`, `workflow/pdf`, `upload-management.ts`, `middleware.ts`, `next.config.ts`, `package.json`, `pnpm-lock.yaml` |
-| 2026-11-21 | `TASK-CI-01..03` | Côte d'Ivoire Localization (FCFA/+225/OHADA) & Compliant Support Agent | `company-config.ts`, `knowledge.ts`, `tools.ts`, `demo-data.json`, `gemini.ts`, `huggingface.ts`, `mentions-legales`, `cgv`, `contact`, `Footer`, `JsonLd`, `support-agent-compliance.test.ts` |
+- [ ] **`TASK-BOT-01` - Dual-Mode Architecture (Mode IA Humain vs Mode Robot Cadre)**
+  - **Priority:** HIGH
+  - **Target files:** `src/hooks/useSupportChat.ts`, `src/components/features/support/components/ChatHeader.tsx`, `src/lib/support-agent/config.ts`, `src/lib/support-agent/mock-responses.ts`
+  - **Acceptance criteria:**
+    - [ ] Replace "Mode Autonome" with explicit **Mode IA** (Gemini 2.5 / OpenRouter Nemotron, concise 2-3 sentences, natural) vs **Mode Robot** (light, deterministic, strictly bounded fallback that politely redirects off-topic queries).
+
+- [ ] **`TASK-BOT-02` - Anti-Drift Guardrails, Interactive Quote Configurator & Tool Fixes**
+  - **Priority:** HIGH
+  - **Target files:** `src/lib/support-agent/knowledge.ts`, `src/lib/support-agent/tools.ts`, `src/lib/support-agent/quote-flow.ts`, `src/lib/gemini.ts`
+  - **Acceptance criteria:**
+    - [ ] Fix `SystemSettings` lookup (`id: "default"` instead of `"global"`), enforce strict anti-verbosity / anti-prompt-injection / anti-off-topic guardrails, and wire interactive quote configuration (`quote-flow.ts`).
+
+- [ ] **`TASK-BOT-03` - Dual-Mode Compliance Tests & RSI Validation**
+  - **Priority:** MEDIUM
+  - **Target files:** `tests/unit/support-agent-compliance.test.ts`
+  - **Acceptance criteria:**
+    - [ ] Test Mode IA, Mode Robot fallback, off-topic redirection, prompt-injection resistance, and pass `run_fullstack_eval.py --quick`.
+
+---
+
+## Planned Sprint 08: Dependencies Uptime & Service Health Page
+
+- [ ] **`TASK-UPT-01` - Secure Health Probe Endpoint (`/api/health`) & Alerting**
+  - **Priority:** HIGH
+  - **Target files:** `src/app/api/health/route.ts`, `src/lib/health-check.ts`
+  - **Acceptance criteria:**
+    - [ ] Rate-limited & Redis-cached (30s) health checks (3s timeout, zero secrets leaked) for Supabase/Postgres, Redis, QStash, Tigris S3, Resend, Gemini 2.5, OpenRouter, OpenStreetMap (Photon/Nominatim).
+    - [ ] Trigger deduplicated Resend admin warning email (30-min Redis lock) on critical dependency outage.
+
+- [ ] **`TASK-UPT-02` - Dedicated Uptime Dashboard UI (`/status` & `/admin/status`)**
+  - **Priority:** MEDIUM
+  - **Target files:** `src/app/status/page.tsx`, `src/app/admin/status/page.tsx`
+  - **Acceptance criteria:**
+    - [ ] 100% shadcn responsive Mobile-First UI with Framer Motion, live refresh, latency indicators, and admin-only Resend test button.
+
+---
+
+## Planned Sprint 09: African Fleet Portfolio, Stock Management & Quote Vehicle Step
+
+- [ ] **`TASK-FLT-01` - Prisma `Vehicle` Schema, RLS & West Africa Seed Catalog**
+  - **Priority:** HIGH
+  - **Target files:** `prisma/schema.prisma`, `prisma/migrations/`, `src/lib/fleet-catalog.ts`
+  - **Acceptance criteria:**
+    - [ ] Add `Vehicle` model (`slug`, `name`, `category`, `capacityLabel`, `totalQuantity`, `availableQuantity`, `dailyRateFcfa`, `imageUrl`, `specs`, `isActive`) + `Quote.vehicleId` & `Quote.vehicleQuantity` + Supabase RLS policies.
+
+- [ ] **`TASK-FLT-02` - Styled Fleet Portfolio (`/flotte`) & Admin Fleet Manager (`/admin/fleet`)**
+  - **Priority:** HIGH
+  - **Target files:** `src/app/flotte/page.tsx`, `src/app/admin/fleet/page.tsx`, `src/app/actions/fleet-actions.ts`
+  - **Acceptance criteria:**
+    - [ ] Showcase African fleet (Bus 64 places, Coaster 30 places, Pick-up 4x4, Porte-char 40-70T, Porte-conteneur 20'/40', Plateau 12m, Bennes 6x4/8x4, Semi-benne 35-50m3, Camion-grue Hiab, Fourgon 3.5T) with live stock badges (`Qte: 02 disponibles`) & admin CRUD.
+
+- [ ] **`TASK-FLT-03` - `QuoteWizard` Vehicle Selection Step (`StepVehicle`)**
+  - **Priority:** HIGH
+  - **Target files:** `src/components/features/quote-wizard/steps/StepVehicle.tsx`, `src/components/features/QuoteWizard.tsx`
+  - **Acceptance criteria:**
+    - [ ] Add vehicle selector step displaying live available stock, disabled/on-request state for `0` stock, and atomic server-side Zod + availability validation.
+
+---
+
+## Planned Sprint 10: Africa Partner Onboarding Portal
+
+- [ ] **`TASK-PRT-01` - Prisma `PartnerApplication` Model, KYC S3 Uploads & Server Actions**
+  - **Priority:** HIGH
+  - **Target files:** `prisma/schema.prisma`, `src/app/actions/partner-actions.ts`, `src/app/actions/upload-management.ts`
+  - **Acceptance criteria:**
+    - [ ] Add `PartnerApplication` schema (UEMOA/CEDEAO country, city, RCCM/NCC, fleet inventory, private KYC documents in S3 folder `partners-kyc` accessible only via 300s signed URLs behind `requireAdmin()`), Zod validation, and rate limiting.
+
+- [ ] **`TASK-PRT-02` - Partner Application Page (`/partenaires`) & Admin Approval (`/admin/partners`)**
+  - **Priority:** HIGH
+  - **Target files:** `src/app/partenaires/page.tsx`, `src/app/admin/partners/page.tsx`
+  - **Acceptance criteria:**
+    - [ ] Multi-step shadcn Mobile-First form + Resend confirmation/alert emails + admin KYC review workflow.
+
+---
+
+## Planned Sprint 11: Client/Business User Space & Hybrid AI + Human Chat
+
+- [ ] **`TASK-USR-01` - Client Account Schema (`CompanyProfile`, `Quote.userId`) & Strict IDOR Isolation**
+  - **Priority:** CRITICAL
+  - **Target files:** `prisma/schema.prisma`, `src/lib/auth-guard.ts`, `middleware.ts`
+  - **Acceptance criteria:**
+    - [ ] Enforce strict ownership checks (`userId === session.user.id`) + Supabase RLS on all client quotes, documents, and chat threads.
+
+- [ ] **`TASK-USR-02` - Client Portal UI (`/espace-client`)**
+  - **Priority:** HIGH
+  - **Target files:** `src/app/espace-client/page.tsx`, `src/app/espace-client/quotes/[id]/page.tsx`
+  - **Acceptance criteria:**
+    - [ ] Dashboard for recurring clients/businesses: saved addresses, quote history, PDF downloads, 1-click reorder.
+
+- [ ] **`TASK-USR-03` - Hybrid AI + Human Validator Internal Chat (`SupportThread` + Realtime)**
+  - **Priority:** HIGH
+  - **Target files:** `src/app/actions/thread-actions.ts`, `src/components/features/client/OrderChat.tsx`, `src/app/admin/quotes/[id]/page.tsx`
+  - **Acceptance criteria:**
+    - [ ] Real-time order chat with selective Supabase Realtime, optimistic UI, AI triage, and seamless `HUMAN_TAKEOVER` pause by admin validators.
