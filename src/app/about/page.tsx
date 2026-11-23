@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { features } from "@/config/marketing";
-import { Truck, Target, Users, Award, ArrowRight } from "lucide-react";
+import { Target, Users, Award, ArrowRight } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import {
     ScrollReveal,
@@ -47,8 +48,16 @@ export default function AboutPage() {
             <Header />
             <main className="flex-1">
                 {/* Hero Section */}
-                <SectionContainer className="from-muted/50 to-background bg-gradient-to-b pt-20 pb-16 md:pt-32 md:pb-24">
-                    <div className="grid items-center gap-12 lg:grid-cols-2">
+                <SectionContainer className="relative overflow-hidden bg-[#F2F5F7] pt-20 pb-16 md:pt-28 md:pb-24 dark:bg-[#0B1219]">
+                    <div
+                        aria-hidden="true"
+                        className="bg-primary-accent/15 pointer-events-none absolute -top-20 right-10 h-64 w-64 rounded-full blur-[100px]"
+                    />
+                    <div
+                        aria-hidden="true"
+                        className="pointer-events-none absolute bottom-0 left-0 h-64 w-64 rounded-full bg-[#6081A0]/15 blur-[100px] dark:bg-[#92A9BE]/20"
+                    />
+                    <div className="relative z-10 grid items-center gap-12 lg:grid-cols-2">
                         <ScrollReveal
                             direction="left"
                             className="space-y-6 text-center lg:text-left"
@@ -100,30 +109,26 @@ export default function AboutPage() {
                         </ScrollReveal>
 
                         <ScrollReveal direction="right">
-                            <div className="bg-muted group relative aspect-video overflow-hidden rounded-2xl border shadow-2xl">
-                                <div className="from-primary/5 via-background to-secondary/5 absolute inset-0 flex items-center justify-center bg-gradient-to-br transition-transform duration-700 group-hover:scale-105">
-                                    <motion.div
-                                        className="relative"
-                                        animate={{ y: [0, -10, 0] }}
-                                        transition={{
-                                            duration: 4,
-                                            repeat: Infinity,
-                                            ease: "easeInOut",
-                                        }}
-                                    >
-                                        <motion.div
-                                            className="bg-primary/20 absolute -inset-4 rounded-full blur-xl"
-                                            animate={{
-                                                scale: [1, 1.2, 1],
-                                                opacity: [0.5, 0.8, 0.5],
-                                            }}
-                                            transition={{
-                                                duration: 3,
-                                                repeat: Infinity,
-                                            }}
-                                        />
-                                        <Truck className="text-primary/40 relative h-32 w-32" />
-                                    </motion.div>
+                            <div className="group relative">
+                                <div
+                                    aria-hidden="true"
+                                    className="from-primary/25 via-primary-accent/15 to-[#6081A0]/25 dark:to-[#92A9BE]/30 absolute -inset-2 rounded-[2rem] bg-linear-to-tr opacity-80 blur-2xl"
+                                />
+                                <div className="relative aspect-[16/10] overflow-hidden rounded-3xl border border-slate-900/10 bg-[#F2F5F7] shadow-2xl dark:border-[#92A9BE]/25 dark:bg-[#111C27]">
+                                    <Image
+                                        src="/images/about-isometric.jpg"
+                                        alt="Illustration isométrique du hub logistique et multi-transport HBC Logistique"
+                                        fill
+                                        sizes="(max-width: 1024px) 100vw, 50vw"
+                                        className="object-cover object-center transition-transform duration-700 group-hover:scale-[1.03]"
+                                    />
+                                    <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-slate-950/30 via-transparent to-transparent" />
+                                    <div className="absolute right-4 bottom-4 left-4 flex items-center justify-between rounded-2xl border border-white/40 bg-white/80 px-4 py-2.5 text-xs font-semibold text-slate-900 shadow-md backdrop-blur-md dark:border-[#92A9BE]/30 dark:bg-[#0B1219]/80 dark:text-white">
+                                        <span>Hub Multi-Services • Côte d&apos;Ivoire</span>
+                                        <span className="text-primary font-mono font-bold">
+                                            24/7
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </ScrollReveal>

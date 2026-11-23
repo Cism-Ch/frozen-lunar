@@ -91,10 +91,10 @@
     /* Neo-Tech Light Mode */
     --background: hsl(0 0% 100%);
     /* Pure white */
-    --background-subtle: hsl(0 0% 98%);
-    /* Very light gray - NEW */
-    --background-muted: hsl(0 0% 96%);
-    /* Light gray - NEW */
+    --background-subtle: #F2F5F7;
+    /* Crisp off-white canvas for Hero & soft sections */
+    --background-muted: #EAF0F4;
+    /* Soft cool tint */
     --foreground: hsl(0 0% 9%);
     /* Dark text */
     --foreground-muted: hsl(0 0% 45%);
@@ -113,7 +113,7 @@
     --primary-accent: #FF7C24;
     --primary-foreground: hsl(0 0% 100%);
 
-    /* Deep Navy Secondary (#001F3D) + Steel Blue Variant (#6081A0) */
+    /* Deep Navy Secondary (#001F3D) + Light-Mode Steel Blue (#6081A0) */
     --secondary: #001F3D;
     --secondary-steel: #6081A0;
     --secondary-foreground: hsl(0 0% 100%);
@@ -177,9 +177,9 @@
     --primary-accent: #FF7C24;
     --primary-foreground: hsl(0 0% 100%);
 
-    /* Deep Navy Secondary (#001F3D) + Steel Blue Variant (#6081A0) */
+    /* Deep Navy Secondary (#001F3D) + Dark-Mode Ice Steel Blue (#92A9BE) */
     --secondary: #001F3D;
-    --secondary-steel: #6081A0;
+    --secondary-steel: #92A9BE;
     --secondary-foreground: hsl(0 0% 100%);
 
     --muted: hsl(0 0% 14%);

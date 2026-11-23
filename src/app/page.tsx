@@ -34,7 +34,14 @@ export default function Home() {
                 <HowItWorks />
 
                 {/* Services Section */}
-                <SectionContainer id="services" className="bg-muted/30">
+                <SectionContainer
+                    id="services"
+                    className="relative overflow-hidden bg-[#F2F5F7]/70 dark:bg-[#0F1822]/70"
+                >
+                    <div
+                        aria-hidden="true"
+                        className="bg-primary-accent/10 pointer-events-none absolute -top-24 right-10 h-72 w-72 rounded-full blur-[110px]"
+                    />
                     <ScrollReveal className="mb-16 space-y-4 text-center">
                         <Badge variant="outline" className="mb-2">
                             Nos Services

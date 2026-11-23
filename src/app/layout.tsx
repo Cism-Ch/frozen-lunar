@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { Raleway } from "next/font/google";
+import { Nunito_Sans } from "next/font/google";
 import "./globals.css";
 import { LayoutWrapper } from "@/components/layout/LayoutWrapper";
 import { JsonLd } from "@/components/layout/JsonLd";
 import { COMPANY_CONFIG } from "@/lib/company-config";
 
-const raleway = Raleway({
+const nunitoSans = Nunito_Sans({
     subsets: ["latin"],
     weight: ["300", "400", "500", "600", "700", "800"],
     variable: "--font-sans",
@@ -66,7 +66,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="fr" suppressHydrationWarning>
-            <body className={`${raleway.variable} font-sans antialiased`}>
+            <body className={`${nunitoSans.variable} font-sans antialiased`}>
                 <JsonLd />
                 <LayoutWrapper>{children}</LayoutWrapper>
             </body>

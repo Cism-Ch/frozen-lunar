@@ -17,7 +17,7 @@
 |                         |  |                         |  | [x] TASK-CLT-01..03     |
 |                         |  |                         |  | [x] TASK-PRT-03..04     |
 |                         |  |                         |  | [x] TASK-ADM-01..05     |
-|                         |  |                         |  | [x] TASK-UIX-01..03     |
+|                         |  |                         |  | [x] TASK-UIX-01..06     |
 |                         |  |                         |  | [x] TASK-QTE-01..04     |
 +-------------------------+  +-------------------------+  +-------------------------+
 ```
@@ -145,3 +145,9 @@
 - [x] **`TASK-QTE-02` (SP 19)** - Redesign `/admin/quotes` list with KPIs, `HBC-YYYY-XXXX`, amount column, and `CANCELLED` filter (`100/100` RSI PASS).
 - [x] **`TASK-QTE-03` (SP 20)** - Server AI pricing engine (`assistQuotePricingAction` & `saveStructuredPricingAction`).
 - [x] **`TASK-QTE-04` (SP 20)** - Rebuild `/admin/quotes/[id]` workspace & interactive `QuotePricingStudio` (`100/100` RSI PASS, `pnpm next build` + 127/127 tests PASS).
+
+## Completed Sprint 21: Theme-Adaptive Hero (#F2F5F7 / #92A9BE), Isometric Design, Nunito Sans & Mobile Fleet Fix
+
+- [x] **`TASK-UIX-04` (SP 21)** - Switch typography to `Nunito Sans` & theme-adaptive tokens (`#F2F5F7` light / `#92A9BE` dark + orange glows).
+- [x] **`TASK-UIX-05` (SP 21)** - Editorial Hero redesign (BAU CARGO inspired) with isometric background, dynamic multi-service text & `/about` isometric visual.
+- [x] **`TASK-UIX-06` (SP 21)** - Fix mobile vehicle cards disappearing on `/flotte` (`motion.tsx` `amount: "some"` + direct card render, `100/100` RSI PASS, `pnpm next build` PASS).

@@ -34,8 +34,6 @@ import {
     CountUp,
     FadeIn,
     ScrollReveal,
-    StaggerContainer,
-    StaggerItem,
     motion,
 } from "@/components/ui/motion";
 import {
@@ -208,10 +206,10 @@ export function FleetPortfolioClient({ vehicles }: FleetPortfolioClientProps) {
                             }
                             className="w-full lg:w-auto"
                         >
-                            <TabsList className="flex h-auto flex-wrap justify-start gap-1 p-1">
+                            <TabsList className="no-scrollbar flex h-auto w-full flex-nowrap justify-start gap-1 overflow-x-auto p-1 sm:flex-wrap">
                                 <TabsTrigger
                                     value="ALL"
-                                    className="min-h-[40px]"
+                                    className="min-h-[40px] shrink-0"
                                 >
                                     Toute la flotte ({vehicles.length})
                                 </TabsTrigger>
@@ -223,7 +221,7 @@ export function FleetPortfolioClient({ vehicles }: FleetPortfolioClientProps) {
                                     <TabsTrigger
                                         key={cat}
                                         value={cat}
-                                        className="min-h-[40px]"
+                                        className="min-h-[40px] shrink-0"
                                     >
                                         {VEHICLE_CATEGORY_META[cat].shortLabel}
                                     </TabsTrigger>
@@ -253,12 +251,11 @@ export function FleetPortfolioClient({ vehicles }: FleetPortfolioClientProps) {
                             </p>
                         </Card>
                     ) : (
-                        <StaggerContainer
+                        <div
                             key={`${selectedCategory}-${searchQuery}`}
-                            className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3"
-                            staggerSpeed="normal"
+                            className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-8 lg:grid-cols-3"
                         >
-                            {filteredVehicles.map((vehicle) => {
+                            {filteredVehicles.map((vehicle, index) => {
                                 const catMeta =
                                     VEHICLE_CATEGORY_META[vehicle.category];
                                 const CategoryIcon = getCategoryIcon(
@@ -270,9 +267,15 @@ export function FleetPortfolioClient({ vehicles }: FleetPortfolioClientProps) {
                                 const imgFailed = failedImages[vehicle.id];
 
                                 return (
-                                    <StaggerItem
+                                    <motion.div
                                         key={vehicle.id}
-                                        className="h-full"
+                                        initial={{ opacity: 0, y: 12 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{
+                                            duration: 0.3,
+                                            delay: Math.min(index * 0.04, 0.24),
+                                        }}
+                                        className="h-full min-w-0"
                                     >
                                         <AnimatedCard
                                             hoverEffect="lift"
@@ -416,10 +419,10 @@ export function FleetPortfolioClient({ vehicles }: FleetPortfolioClientProps) {
                                                 </CardFooter>
                                             </Card>
                                         </AnimatedCard>
-                                    </StaggerItem>
+                                    </motion.div>
                                 );
                             })}
-                        </StaggerContainer>
+                        </div>
                     )}
                 </SectionContainer>
 
