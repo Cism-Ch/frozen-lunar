@@ -2,7 +2,7 @@ import { QuoteFlowState } from "@/lib/support-agent/quote-flow";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Headset, X, RotateCcw, Bot, Sparkles } from "lucide-react";
+import { Headset, X, RotateCcw } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface ChatHeaderProps {
@@ -17,10 +17,8 @@ interface ChatHeaderProps {
 
 export function ChatHeader({
     quoteFlowState,
-    aiMode = "resilient_local",
-    activeMode = "robot",
-    canSwitchMode = false,
-    onToggleMode,
+    aiMode = "gemini",
+    activeMode = "ai",
     onRestart,
     onClose,
 }: ChatHeaderProps) {
@@ -94,21 +92,21 @@ export function ChatHeader({
                                         <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400"></span>
                                     </span>
                                     <span className="truncate text-[11px] font-medium text-emerald-200 sm:text-xs">
-                                        {aiMode === "gemini"
-                                            ? "Mode IA • Gemini"
-                                            : "Mode IA • OpenRouter"}
+                                        {aiMode === "openrouter"
+                                            ? "Assistant IA HBC • En ligne (Relais)"
+                                            : "Assistant IA HBC • En ligne"}
                                     </span>
                                 </>
                             ) : (
                                 <>
                                     <span className="relative flex h-2 w-2 shrink-0">
-                                        <span className="relative inline-flex h-2 w-2 rounded-full bg-sky-300"></span>
+                                        <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-300"></span>
                                     </span>
                                     <span
-                                        className="truncate text-[11px] font-medium text-sky-100 sm:text-xs"
-                                        title="Mode Robot actif : réponses rapides, cadrées et droit au but"
+                                        className="truncate text-[11px] font-medium text-amber-100 sm:text-xs"
+                                        title="Mode secours automatique actif (LLMs momentanément indisponibles)"
                                     >
-                                        Mode Robot
+                                        Mode Secours (Robot)
                                     </span>
                                 </>
                             )}
@@ -117,31 +115,6 @@ export function ChatHeader({
                 </div>
 
                 <div className="flex shrink-0 items-center gap-1.5">
-                    {canSwitchMode && onToggleMode && (
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={onToggleMode}
-                            className="h-9 w-9 rounded-full text-white/85 transition-colors hover:bg-white/15 hover:text-white"
-                            title={
-                                activeMode === "ai"
-                                    ? "Passer en Mode Robot (rapide & cadré)"
-                                    : "Passer en Mode IA (Gemini / OpenRouter)"
-                            }
-                            aria-label={
-                                activeMode === "ai"
-                                    ? "Basculer vers le Mode Robot"
-                                    : "Basculer vers le Mode IA"
-                            }
-                        >
-                            {activeMode === "ai" ? (
-                                <Bot className="h-4 w-4" />
-                            ) : (
-                                <Sparkles className="h-4 w-4" />
-                            )}
-                        </Button>
-                    )}
                     <Button
                         variant="ghost"
                         size="icon"

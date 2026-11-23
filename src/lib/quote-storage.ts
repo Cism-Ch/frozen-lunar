@@ -34,6 +34,7 @@ export interface QuoteSupplementaryInfo {
 
 export interface Quote {
     id: string;
+    trackingCode?: string;
     date: string;
     client: string;
     email: string;
@@ -42,10 +43,12 @@ export interface Quote {
     pickup: string;
     dropoff: string;
     transportDate: string;
-    status: "En attente" | "Validé" | "Refusé";
+    status: "En attente" | "Validé" | "Refusé" | "Annulé";
     amount: string;
     notes?: string;
     userNotes?: string;
+    cancellationReason?: string;
+    cancelledAt?: string;
     supplementaryInfo?: QuoteSupplementaryInfo;
     source: "form" | "chat";
     history?: QuoteHistoryEvent[];

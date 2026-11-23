@@ -25,9 +25,10 @@ export const generateQuotePDF = (quote: Quote) => {
     doc.text(COMPANY_CONFIG.contact.phoneDisplay, 20, 43);
 
     // --- Quote Info ---
+    const refLabel = quote.trackingCode || `HBC-${quote.id.slice(-6).toUpperCase()}`;
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
-    doc.text(`DEVIS N° ${quote.id}`, 140, 20);
+    doc.text(`DEVIS N° ${refLabel}`, 132, 20);
 
     doc.setFontSize(10);
     doc.setTextColor(100, 100, 100);

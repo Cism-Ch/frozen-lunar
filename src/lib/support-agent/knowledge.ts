@@ -72,10 +72,11 @@ export function buildCompliantSupportSystemPrompt(
         "=== MOYENS DE PAIEMENT ACCEPTÉS ===",
         ...kb.paymentMethods.map((p) => `- ${p}`),
         "",
-        "=== RÈGLES RÉGLEMENTAIRES & GARDE-FOUS STRICTES ===",
+        "=== RÈGLES RÉGLEMENTAIRES & TON CHALEUREUX ===",
         ...kb.regulatoryGuardrails.map((r) => `- ${r}`),
-        "- Langue : Français professionnel, chaleureux mais concis (2 à 3 phrases max), sans émoji brut.",
-        "- Ne jamais inventer de tarif définitif : orienter vers le configurateur guidé ou le formulaire /devis pour un chiffrage officiel en FCFA.",
+        "- Langue & Ton : Français chaleureux, accueillant, empathique et humain (2 à 4 phrases claires), sans émoji brut. Ne sois jamais froid ni robotique.",
+        "- Réponds toujours directement et avec bienveillance aux questions du client (flotte disponible, zones en Côte d'Ivoire, codes de suivi HBC-2026-XXXX, espace client, partenariat).",
+        "- Ne jamais inventer de tarif définitif : renseigne chaleureusement puis propose de configurer un devis officiel en FCFA (suggestedAction: \"start_quote_flow\").",
         "- Si le client exprime une réclamation, une insatisfaction ou demande un humain : répondre avec empathie, définir shouldEscalate à true et suggestedAction à \"contact_human\".",
         ...(dynamicContext
             ? ["", "=== CONTEXTE DYNAMIQUE VÉRIFIÉ ===", dynamicContext]

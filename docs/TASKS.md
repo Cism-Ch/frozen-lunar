@@ -9,11 +9,12 @@
 
 ```
 +-------------------------+  +-------------------------+  +-------------------------+
-| [>] IN PROGRESS (SP 13) |  |  [?] ROADMAP (SP 14-16) |  |       [X] ARCHIVES      |
+| [>] IN PROGRESS (SP 14) |  |  [?] ROADMAP (SP 15-16) |  |       [X] ARCHIVES      |
 +-------------------------+  +-------------------------+  +-------------------------+
-| [-] TASK-SUP-01..02     |  | [ ] TASK-CLT-01..03     |  | [x] SP 01..05 (Archived)|
-|                         |  | [ ] TASK-PRT-03..04     |  | [x] SP 06..11 (Archived)|
-|                         |  | [ ] TASK-ADM-01..02     |  | [x] TASK-INF-01..04     |
+| [-] TASK-CLT-01..03     |  | [ ] TASK-PRT-03..04     |  | [x] SP 01..05 (Archived)|
+|                         |  | [ ] TASK-ADM-01..02     |  | [x] SP 06..11 (Archived)|
+|                         |  |                         |  | [x] TASK-INF-01..04     |
+|                         |  |                         |  | [x] TASK-SUP-01..02     |
 +-------------------------+  +-------------------------+  +-------------------------+
 ```
 
@@ -47,37 +48,37 @@
 
 ---
 
-## In-Progress Sprint 13: Readable Tracking Codes (`HBC-2026-XXXX`) & Warm AI Support Chat
+## Completed Sprint 13: Readable Tracking Codes (`HBC-2026-XXXX`) & Warm AI Support Chat
 
-- [-] **`TASK-SUP-01` - Readable Quote Tracking Codes (`HBC-2026-XXXX`)**
+- [x] **`TASK-SUP-01` - Readable Quote Tracking Codes (`HBC-2026-XXXX`)**
   - **Priority:** HIGH
-  - **Target files:** `prisma/schema.prisma`, `src/lib/tracking-code.ts`, `src/app/actions/quote-management.ts`, `src/lib/pdf-generator.ts`
+  - **Target files:** `prisma/schema.prisma`, `src/lib/tracking-code.ts`, `src/app/actions/quote-management.ts`, `src/lib/pdf-generator.ts`, `tests/unit/tracking-code.test.ts`
   - **Acceptance criteria:**
-    - [ ] Generate & backfill `HBC-YYYY-XXXX` tracking codes, display consistently across client space, admin, PDFs, and support tracking.
+    - [x] Generated & backfilled unambiguous `HBC-YYYY-XXXX` tracking codes across quotes, search, summary dialog, and PDFs.
 
-- [-] **`TASK-SUP-02` - Warm Default AI Support Chat (Emergency-Only Robot Mode)**
+- [x] **`TASK-SUP-02` - Warm Default AI Support Chat (Emergency-Only Robot Mode)**
   - **Priority:** HIGH
   - **Target files:** `src/hooks/useSupportChat.ts`, `src/lib/gemini.ts`, `src/lib/support-agent/knowledge.ts`, `src/components/features/support/components/ChatHeader.tsx`
   - **Acceptance criteria:**
-    - [ ] Default to warm, empathetic AI mode (Gemini -> OpenRouter); activate Robot Mode strictly as an automatic emergency fallback if all LLMs fail.
+    - [x] Defaulted to warm, empathetic AI mode (Gemini -> OpenRouter); Robot Mode activates strictly as an automatic emergency fallback if all LLMs fail (`100/100` RSI PASS).
 
 ---
 
-## Planned Sprint 14: Individual vs Company Client Space, Auto-Prefill, Cancellation Modal & Analytics
+## In-Progress Sprint 14: Individual vs Company Client Space, Auto-Prefill, Cancellation Modal & Analytics
 
-- [ ] **`TASK-CLT-01` - Individual vs Company Client Profile & QuoteWizard Auto-Prefill**
+- [-] **`TASK-CLT-01` - Individual vs Company Client Profile & QuoteWizard Auto-Prefill**
   - **Priority:** HIGH
   - **Target files:** `src/app/actions/client-space-actions.ts`, `src/components/features/client/ClientSpaceDashboard.tsx`, `src/components/features/QuoteWizard.tsx`
   - **Acceptance criteria:**
     - [ ] Support `INDIVIDUAL` (no RCCM/NCC required) vs `COMPANY` account types and auto-prefill `QuoteWizard` for authenticated users without overwriting user edits.
 
-- [ ] **`TASK-CLT-02` - Quote Cancellation Modal (Preset/Custom Reasons) & Admin Cancellation Rate KPI**
+- [-] **`TASK-CLT-02` - Quote Cancellation Modal (Preset/Custom Reasons) & Admin Cancellation Rate KPI**
   - **Priority:** HIGH
   - **Target files:** `src/app/actions/client-space-actions.ts`, `src/components/features/admin/BusinessAnalytics.tsx`, `src/components/features/admin/QuoteStatusBadge.tsx`, `src/app/admin/quotes/[id]/page.tsx`
   - **Acceptance criteria:**
     - [ ] Centered cancellation modal with preset + custom reasons, `CANCELLED` status tracking, admin visibility, and cancellation rate (%) + top reasons KPI in `BusinessAnalytics`.
 
-- [ ] **`TASK-CLT-03` - Centered Confirmation Modals Across Popular & Critical Actions**
+- [-] **`TASK-CLT-03` - Centered Confirmation Modals Across Popular & Critical Actions**
   - **Priority:** MEDIUM
   - **Target files:** `src/components/features/client/ClientSpaceDashboard.tsx`, `src/app/admin/quotes/[id]/page.tsx`, `src/components/features/partners/AdminPartnersClient.tsx`
   - **Acceptance criteria:**

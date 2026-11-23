@@ -13,6 +13,10 @@ import {
 import { handleError } from "@/lib/error-handler";
 import { emailQueue, pdfQueue } from "@/lib/qstash";
 import { getOptionalUser, requireAdmin } from "@/lib/auth-guard";
+import {
+    formatQuoteReference,
+    generateTrackingCode,
+} from "@/lib/tracking-code";
 import { logger } from "@/lib/logger";
 
 type QuoteWithHistory = Quote & { history: QuoteHistory[] };
@@ -112,6 +116,8 @@ function statusToEnum(status: string): QuoteStatus {
             return QuoteStatus.VALIDATED;
         case "Refusé":
             return QuoteStatus.REJECTED;
+        case "Annulé":
+            return QuoteStatus.CANCELLED;
         default:
             return QuoteStatus.PENDING;
     }
@@ -128,6 +134,8 @@ function enumToStatus(status: QuoteStatus): string {
             return "Validé";
         case QuoteStatus.REJECTED:
             return "Refusé";
+        case QuoteStatus.CANCELLED:
+            return "Annulé";
         default:
             return "En attente";
     }
@@ -195,10 +203,12 @@ export async function createQuoteAction(
         }
 
         const currentUser = await getOptionalUser();
+        const trackingCode = generateTrackingCode();
 
         // Create the quote in database
         const quote = await prisma.quote.create({
             data: {
+                trackingCode,
                 clientName: validated.clientName,
                 email: validated.email,
                 phone: validated.phone,
@@ -278,6 +288,7 @@ export async function createQuoteAction(
             success: true,
             quote: {
                 id: quote.id,
+                trackingCode: formatQuoteReference(quote),
                 date: quote.date.toISOString(),
                 client: quote.clientName,
                 email: quote.email,
@@ -344,6 +355,12 @@ export async function getQuotesAction(filters?: {
                         mode: "insensitive",
                     },
                 },
+                {
+                    trackingCode: {
+                        contains: validatedFilters.search,
+                        mode: "insensitive",
+                    },
+                },
             ];
         }
 
@@ -361,6 +378,7 @@ export async function getQuotesAction(filters?: {
             success: true,
             quotes: quotes.map((quote: QuoteWithHistory) => ({
                 id: quote.id,
+                trackingCode: formatQuoteReference(quote),
                 date: quote.date.toISOString().split("T")[0],
                 client: quote.clientName,
                 email: quote.email,
@@ -372,6 +390,10 @@ export async function getQuotesAction(filters?: {
                 status: enumToStatus(quote.status),
                 amount: quote.amount,
                 userNotes: quote.userNotes || undefined,
+                cancellationReason: quote.cancellationReason || undefined,
+                cancelledAt: quote.cancelledAt
+                    ? quote.cancelledAt.toISOString()
+                    : undefined,
                 source: enumToSource(quote.source),
                 supplementaryInfo: quote.supplementaryInfo
                     ? (quote.supplementaryInfo as Record<string, unknown>)

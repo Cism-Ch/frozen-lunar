@@ -148,7 +148,7 @@ export function QuoteWizard() {
             }
 
             setSummaryData({
-                id: result.quote.id,
+                id: result.quote.trackingCode || result.quote.id,
                 itemType: selectedVehicle
                     ? `${values.itemType} (${values.vehicleQuantity || 1}× ${selectedVehicle.name})`
                     : values.itemType,

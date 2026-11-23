@@ -51,11 +51,11 @@ export function useSupportChat(onClose: () => void) {
         },
     ]);
     const [isLoading, setIsLoading] = useState(false);
-    const [aiAvailable, setAiAvailable] = useState(false);
-    const [activeMode, setActiveMode] = useState<"ai" | "robot">("robot");
+    const [aiAvailable, setAiAvailable] = useState(true);
+    const [activeMode, setActiveMode] = useState<"ai" | "robot">("ai");
     const [aiMode, setAiMode] = useState<
         "gemini" | "openrouter" | "resilient_local"
-    >("resilient_local");
+    >("gemini");
     const [currentQuickReplies, setCurrentQuickReplies] = useState<
         QuickReply[]
     >(AGENT_CONFIG.quickReplies);
@@ -236,15 +236,17 @@ export function useSupportChat(onClose: () => void) {
                     );
                 }
 
+                const quoteRef =
+                    result.quote.trackingCode || result.quote.id;
                 await addTypingThenMessage(
-                    `✅ **Votre demande de devis a été enregistrée !**\n\nNuméro de référence: **${result.quote.id}**\n\nNotre équipe vous contactera sous 24h pour vous proposer un tarif personnalisé.\n\nMerci de votre confiance ! 🚚`
+                    `Votre demande de devis a bien été enregistrée !\n\nCode de suivi : **${quoteRef}**\n\nConservez ce code pour suivre votre transport à tout moment. Notre équipe vous contactera sous 24h pour vous proposer un tarif personnalisé.`
                 );
 
                 setChatItems((prev) => [
                     ...prev,
                     {
                         type: "quote_success",
-                        data: { quoteId: result.quote!.id },
+                        data: { quoteId: quoteRef },
                         id: `success_${Date.now()}`,
                     },
                 ]);
@@ -284,10 +286,13 @@ export function useSupportChat(onClose: () => void) {
         }
 
         const lowerContent = content.toLowerCase();
+        // En Mode Secours Robot uniquement, on propose directement le parcours devis sur mots-clés.
+        // En Mode IA normal, on laisse l'assistant IA dialoguer chaleureusement avec le client.
         if (
-            lowerContent.includes("devis") ||
-            lowerContent.includes("prix") ||
-            lowerContent.includes("tarif")
+            activeMode === "robot" &&
+            (lowerContent.includes("devis") ||
+                lowerContent.includes("prix") ||
+                lowerContent.includes("tarif"))
         ) {
             const userMessage = createMessage(content, "user");
             setChatItems((prev) => [
@@ -443,8 +448,9 @@ export function useSupportChat(onClose: () => void) {
                 }
             }
 
-            // Tier 2 : Mode Robot (fallback automatique ou mode rapide sélectionné)
+            // Tier 2 : Mode Robot d'urgence (uniquement si tous les LLMs ont échoué)
             if (!handledByAi) {
+                setActiveMode("robot");
                 setAiMode("resilient_local");
                 const response = await generateMockResponse(content);
 

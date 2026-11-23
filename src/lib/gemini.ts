@@ -668,7 +668,7 @@ export async function generateSupportAiResponse(
             
             Réponds UNIQUEMENT au format JSON strict :
             {
-                "message": "Ta réponse concise au client en 2 à 3 phrases maximum",
+                "message": "Ta réponse chaleureuse, humaine et claire au client (2 à 4 phrases)",
                 "category": "technical" | "billing" | "quote" | "transport" | "general",
                 "sentiment": "positive" | "neutral" | "negative",
                 "shouldEscalate": true | false,
@@ -684,8 +684,8 @@ export async function generateSupportAiResponse(
                 const model = client.getGenerativeModel({
                     model: getGeminiModel(),
                     generationConfig: {
-                        maxOutputTokens: 280,
-                        temperature: 0.3,
+                        maxOutputTokens: 380,
+                        temperature: 0.45,
                     },
                 });
 
