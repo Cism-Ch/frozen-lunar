@@ -2,10 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Quote, quoteStorage } from "@/lib/quote-storage";
+import Link from "next/link";
+import { Quote } from "@/lib/quote-storage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
     Card,
     CardContent,
@@ -13,34 +17,51 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { QuoteStatusBadge } from "@/components/features/admin/QuoteStatusBadge";
-import { Separator } from "@/components/ui/separator";
 import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { QuoteStatusBadge } from "@/components/features/admin/QuoteStatusBadge";
+import { QuotePricingStudio } from "@/components/features/admin/QuotePricingStudio";
+import { QuoteTimeline } from "./components/QuoteTimeline";
+import { OrderChat } from "@/components/features/client/OrderChat";
+import {
+    AlertTriangle,
     ArrowLeft,
-    CalendarIcon,
-    Truck,
-    MapPin,
-    User,
-    Mail,
-    Phone,
-    CheckCircle,
-    XCircle,
-    Clock,
-    Save,
+    Ban,
     Banknote,
-    FileText,
+    Calculator,
+    CalendarIcon,
+    Check,
+    CheckCircle,
+    Clock,
+    Copy,
     Download,
-    Sparkles,
-    ShieldAlert,
+    ExternalLink,
+    FileText,
+    Flame,
+    Loader2,
+    Mail,
+    MapPin,
     MessageCircle,
+    MessageSquare,
+    Paperclip,
+    Phone,
+    Save,
+    Sparkles,
+    Truck,
+    User,
+    XCircle,
 } from "lucide-react";
 import { safeFormatDate } from "@/lib/date-utils";
 import { toast } from "sonner";
-import Link from "next/link";
-import { QuoteTimeline } from "./components/QuoteTimeline";
-import { OrderChat } from "@/components/features/client/OrderChat";
 import { generateQuotePDF } from "@/lib/pdf-generator";
-import { geminiService, EstimationResult } from "@/lib/gemini";
+import { geminiService } from "@/lib/gemini";
 import {
     prepareWhatsAppQuoteMessageAction,
     logWhatsAppContactAction,
@@ -48,45 +69,53 @@ import {
 } from "@/app/actions/whatsapp-actions";
 import { GeneratedWhatsAppMessage } from "@/lib/huggingface";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import {
     getQuoteByIdAction,
     updateQuoteAction,
     updateQuoteStatusAction,
     addQuoteNoteAction,
 } from "@/app/actions/quote-management";
+import { formatQuoteReference } from "@/lib/tracking-code";
 import { logger } from "@/lib/logger";
 
-export default function QuoteModerationPage() {
+export default function QuoteWorkspacePage() {
     const params = useParams();
     const router = useRouter();
     const id = params.id as string;
 
     const [quote, setQuote] = useState<Quote | null>(null);
     const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState<string>(() => {
+        if (typeof window === "undefined") return "overview";
+        const param = new URLSearchParams(window.location.search).get("tab");
+        if (
+            param === "pricing" ||
+            param === "chat" ||
+            param === "audit" ||
+            param === "overview"
+        ) {
+            return param;
+        }
+        return "overview";
+    });
 
-    // Editable states
+    // États éditables (corrigé : synchronisés sur quote.amount et quote.userNotes)
     const [amount, setAmount] = useState("");
     const [notes, setNotes] = useState("");
+    const [saving, setSaving] = useState(false);
+    const [copiedRef, setCopiedRef] = useState(false);
 
-    const [aiEstimation, setAiEstimation] = useState<EstimationResult | null>(
+    // Confirmations statut
+    const [pendingStatus, setPendingStatus] = useState<Quote["status"] | null>(
         null
     );
-    const [estimating, setEstimating] = useState(false);
+    const [updatingStatus, setUpdatingStatus] = useState(false);
 
-    // Email Drawer State
+    // Email IA
     const [emailOpen, setEmailOpen] = useState(false);
     const [emailDraft, setEmailDraft] = useState({ subject: "", body: "" });
     const [generatingEmail, setGeneratingEmail] = useState(false);
 
-    // WhatsApp Click-to-Chat State
+    // WhatsApp IA
     const [whatsappOpen, setWhatsappOpen] = useState(false);
     const [whatsappCustomNote, setWhatsappCustomNote] = useState("");
     const [whatsappDraft, setWhatsappDraft] =
@@ -96,18 +125,107 @@ export default function QuoteModerationPage() {
         null
     );
 
-    // Détection des devis liés par numéro de téléphone
+    const refreshQuote = async (quoteId: string) => {
+        const res = await getQuoteByIdAction(quoteId);
+        if (res.success && res.quote) {
+            const loaded = res.quote as Quote;
+            setQuote(loaded);
+            setAmount(loaded.amount || "");
+            setNotes(loaded.userNotes || "");
+        }
+    };
+
+    useEffect(() => {
+        const loadQuote = async () => {
+            if (!id) return;
+            try {
+                const result = await getQuoteByIdAction(decodeURIComponent(id));
+                if (result.success && result.quote) {
+                    const loaded = result.quote as Quote;
+                    setQuote(loaded);
+                    setAmount(loaded.amount || "");
+                    setNotes(loaded.userNotes || "");
+                } else {
+                    toast.error("Devis introuvable");
+                    router.push("/admin/quotes");
+                }
+            } catch (error: unknown) {
+                logger.error("Error loading quote", error);
+                toast.error("Erreur lors du chargement du devis");
+                router.push("/admin/quotes");
+            } finally {
+                setLoading(false);
+            }
+        };
+        void loadQuote();
+    }, [id, router]);
+
     useEffect(() => {
         if (quote?.phone) {
             getQuotesByPhoneAction({ phone: quote.phone })
                 .then((res) => {
-                    if (res.data) {
-                        setRelatedQuotesCount(res.data.length);
-                    }
+                    if (res.data) setRelatedQuotesCount(res.data.length);
                 })
                 .catch(() => {});
         }
     }, [quote?.phone]);
+
+    const handleSaveChanges = async () => {
+        if (!quote) return;
+        setSaving(true);
+        try {
+            const result = await updateQuoteAction(quote.id, {
+                amount,
+                userNotes: notes,
+            });
+            if (result.success) {
+                await refreshQuote(quote.id);
+                toast.success("Modifications enregistrées");
+            } else {
+                toast.error(result.error || "Erreur lors de la sauvegarde");
+            }
+        } catch (error: unknown) {
+            logger.error("Error saving changes", error);
+            toast.error("Erreur lors de la sauvegarde");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const executeStatusChange = async () => {
+        if (!quote || !pendingStatus) return;
+        setUpdatingStatus(true);
+        try {
+            const result = await updateQuoteStatusAction(
+                quote.id,
+                pendingStatus
+            );
+            if (result.success) {
+                await refreshQuote(quote.id);
+                toast.success(`Statut mis à jour : ${pendingStatus}`);
+                setPendingStatus(null);
+            } else {
+                toast.error(result.error || "Erreur lors de la mise à jour");
+            }
+        } catch (error: unknown) {
+            logger.error("Error updating status", error);
+            toast.error("Erreur lors de la mise à jour du statut");
+        } finally {
+            setUpdatingStatus(false);
+        }
+    };
+
+    const handleDownloadPDF = async () => {
+        if (!quote) return;
+        generateQuotePDF(quote);
+        toast.success("PDF téléchargé");
+        try {
+            await addQuoteNoteAction(quote.id, "PDF généré et téléchargé");
+            await refreshQuote(quote.id);
+        } catch (err: unknown) {
+            logger.error("PDF audit log error", err);
+        }
+    };
 
     const handleOpenWhatsAppDialog = async (customNote?: string) => {
         if (!quote) return;
@@ -139,69 +257,29 @@ export default function QuoteModerationPage() {
 
     const handleSendWhatsApp = async () => {
         if (!whatsappDraft || !quote) return;
-        // Déclenche l'ouverture de WhatsApp Web ou de l'application native
         window.open(whatsappDraft.url, "_blank", "noopener,noreferrer");
-        toast.success("Lien WhatsApp ouvert avec succès");
+        toast.success("Lien WhatsApp ouvert");
         setWhatsappOpen(false);
-
-        // Consignation de l'action dans l'historique du devis
         await logWhatsAppContactAction(quote.id);
-        const updated = await getQuoteByIdAction(quote.id);
-        if (updated.success && updated.quote) {
-            setQuote(updated.quote as Quote);
-        }
-    };
-
-    const handleUpdateWhatsAppText = (newText: string) => {
-        if (!whatsappDraft || !quote) return;
-        const cleanDigits = quote.phone.replace(/[^0-9]/g, "");
-        setWhatsappDraft({
-            ...whatsappDraft,
-            text: newText,
-            url: `https://wa.me/${cleanDigits}?text=${encodeURIComponent(newText)}`,
-        });
-    };
-
-    const handleEstimate = async () => {
-        if (!quote) return;
-        setEstimating(true);
-        try {
-            const result = await geminiService.estimateTransport(
-                quote.pickup,
-                quote.dropoff,
-                quote.type
-            );
-            setAiEstimation(result);
-            if (result.source === "gemini") {
-                toast.success("Estimation générée par Gemini 2.5");
-            } else if (result.source === "openrouter") {
-                toast.success("Estimation générée par OpenRouter IA");
-            } else {
-                toast.info(
-                    "Estimation générée par le moteur résilient de secours"
-                );
-            }
-        } catch (error: unknown) {
-            logger.error("Error during transport estimation", error);
-            toast.error("Erreur lors de l'estimation");
-        } finally {
-            setEstimating(false);
-        }
+        await refreshQuote(quote.id);
     };
 
     const handleGenerateEmail = async (
         type: "validation" | "refusal" | "question"
     ) => {
         if (!quote) return;
+        const ref = formatQuoteReference({
+            trackingCode: quote.trackingCode,
+            id: quote.id,
+        });
         setGeneratingEmail(true);
         setEmailOpen(true);
         setEmailDraft({ subject: "Génération en cours...", body: "" });
-
         try {
             const draft = await geminiService.draftEmail(
                 type,
                 quote.client,
-                quote.id
+                ref
             );
             setEmailDraft(draft);
         } catch (error: unknown) {
@@ -213,140 +291,78 @@ export default function QuoteModerationPage() {
         }
     };
 
-    const applyEstimation = async () => {
-        if (aiEstimation && quote) {
-            const priceValue = aiEstimation.price.includes("FCFA")
-                ? aiEstimation.price
-                : `${aiEstimation.price.replace(/[^0-9\s-]/g, "").trim()} FCFA HT`;
-            setAmount(priceValue);
-
-            try {
-                await addQuoteNoteAction(
-                    quote.id,
-                    `Estimation IA appliquée: ${aiEstimation.price}`
-                );
-                toast.success("Prix appliqué");
-
-                // Refresh quote to see history
-                const result = await getQuoteByIdAction(quote.id);
-                if (result.success && result.quote) {
-                    setQuote(result.quote as Quote);
-                }
-            } catch (error: unknown) {
-                logger.error("Error applying estimation", error);
-                toast.error("Erreur lors de l'application de l'estimation");
-            }
-        }
-    };
-
-    useEffect(() => {
-        const loadQuote = async () => {
-            if (!id) return;
-
-            try {
-                const result = await getQuoteByIdAction(decodeURIComponent(id));
-                if (result.success && result.quote) {
-                    setQuote(result.quote as Quote);
-                    setAmount(result.quote.amount || "");
-                    setNotes(result.quote.userNotes || "");
-                } else {
-                    toast.error("Devis introuvable");
-                    router.push("/admin/quotes");
-                }
-            } catch (error: unknown) {
-                logger.error("Error loading quote", error);
-                toast.error("Erreur lors du chargement du devis");
-                router.push("/admin/quotes");
-            } finally {
-                setLoading(false);
-            }
-        };
-        loadQuote();
-    }, [id, router]);
-
-    const handleSaveChanges = async () => {
-        if (!quote) return;
-
-        try {
-            const result = await updateQuoteAction(quote.id, {
-                amount,
-                userNotes: notes,
-            });
-
-            if (result.success) {
-                // Reload quote to get fresh history
-                const refreshResult = await getQuoteByIdAction(quote.id);
-                if (refreshResult.success && refreshResult.quote) {
-                    setQuote(refreshResult.quote as Quote);
-                }
-
-                toast.success("Modifications enregistrées");
-            } else {
-                toast.error(result.error || "Erreur lors de la sauvegarde");
-            }
-        } catch (error: unknown) {
-            logger.error("Error saving changes", error);
-            toast.error("Erreur lors de la sauvegarde");
-        }
-    };
-
-    const handleStatusChange = async (status: Quote["status"]) => {
-        if (!quote) return;
-
-        try {
-            const result = await updateQuoteStatusAction(quote.id, status);
-            if (result.success) {
-                // Reload quote to get updated status and history
-                const refreshResult = await getQuoteByIdAction(quote.id);
-                if (refreshResult.success && refreshResult.quote) {
-                    setQuote(refreshResult.quote as Quote);
-                }
-                toast.success(`Devis ${status.toLowerCase()}`);
-            } else {
-                toast.error(result.error || "Erreur lors de la mise à jour");
-            }
-        } catch (error: unknown) {
-            logger.error("Error updating status", error);
-            toast.error("Erreur lors de la mise à jour du statut");
-        }
-    };
-
-    // Derived state for changes
     const hasChanges = quote
-        ? amount !== (quote.amount || "") || notes !== (quote.notes || "")
+        ? amount !== (quote.amount || "") ||
+          notes !== (quote.userNotes || "")
         : false;
 
-    if (loading)
+    if (loading) {
         return (
-            <div className="text-muted-foreground p-8 text-center">
-                Chargement du dossier...
+            <div className="text-muted-foreground flex items-center justify-center gap-2 py-16 text-sm">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Chargement de l&apos;espace de travail...
             </div>
         );
+    }
+
     if (!quote) return null;
 
+    const quoteRef = formatQuoteReference({
+        trackingCode: quote.trackingCode,
+        id: quote.id,
+    });
+    const attachments = quote.supplementaryInfo?.attachments ?? [];
+    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(
+        quote.pickup
+    )}&destination=${encodeURIComponent(quote.dropoff)}`;
+
     return (
-        <div className="w-full space-y-6 pb-24 lg:pb-0">
-            {/* Header */}
-            <div className="flex flex-col gap-4">
-                <div className="flex items-start gap-3 sm:gap-4">
-                    <Link href="/admin/quotes">
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-9 w-9 shrink-0"
-                        >
+        <div className="mx-auto w-full max-w-7xl space-y-6 pb-20 lg:pb-6">
+            {/* Barre Supérieure de l'Espace de Travail */}
+            <div className="bg-card/95 sticky top-2 z-20 flex flex-col justify-between gap-4 rounded-2xl border p-4 shadow-sm backdrop-blur sm:flex-row sm:items-center">
+                <div className="flex items-start gap-3">
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-9 w-9 shrink-0 rounded-xl"
+                        asChild
+                    >
+                        <Link href="/admin/quotes" aria-label="Retour aux devis">
                             <ArrowLeft className="h-4 w-4" />
-                        </Button>
-                    </Link>
-                    <div className="min-w-0 flex-1">
-                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-                            <h1 className="truncate text-lg font-bold tracking-tight sm:text-2xl">
-                                Dossier {quote.id.slice(0, 8)}...
+                        </Link>
+                    </Button>
+                    <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <h1 className="font-mono text-lg font-extrabold tracking-tight sm:text-xl">
+                                {quoteRef}
                             </h1>
+                            <button
+                                type="button"
+                                onClick={async () => {
+                                    await navigator.clipboard.writeText(
+                                        quoteRef
+                                    );
+                                    setCopiedRef(true);
+                                    toast.success("Code de suivi copié");
+                                    setTimeout(() => setCopiedRef(false), 1800);
+                                }}
+                                className="text-muted-foreground hover:text-foreground rounded p-1 transition-colors"
+                                title="Copier le code de suivi"
+                            >
+                                {copiedRef ? (
+                                    <Check className="h-3.5 w-3.5 text-emerald-500" />
+                                ) : (
+                                    <Copy className="h-3.5 w-3.5" />
+                                )}
+                            </button>
                             <QuoteStatusBadge status={quote.status} />
+                            <Badge variant="outline" className="font-mono text-xs">
+                                {quote.amount || "À calculer"}
+                            </Badge>
                         </div>
-                        <p className="text-muted-foreground mt-1 text-sm">
-                            Créé le {safeFormatDate(quote.date, "dd MMMM yyyy")}
+                        <p className="text-muted-foreground mt-0.5 text-xs">
+                            {quote.client} • Créé le{" "}
+                            {safeFormatDate(quote.date, "dd MMMM yyyy")}
                         </p>
                     </div>
                 </div>
@@ -355,413 +371,445 @@ export default function QuoteModerationPage() {
                     <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => {
-                            generateQuotePDF(quote);
-                            quoteStorage.addNote(
-                                quote.id,
-                                "PDF généré et téléchargé"
-                            );
-                            const updated = quoteStorage.getById(quote.id);
-                            if (updated) setQuote(updated);
-                        }}
-                        className="gap-2"
+                        className="gap-1.5"
+                        onClick={handleDownloadPDF}
                     >
                         <Download className="h-4 w-4" />
-                        <span className="hidden sm:inline">
-                            Télécharger
-                        </span>{" "}
                         PDF
                     </Button>
-
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1.5 border-emerald-500/35 text-emerald-700 hover:bg-emerald-500/10 dark:text-emerald-400"
+                        onClick={() => handleOpenWhatsAppDialog()}
+                    >
+                        <MessageCircle className="h-4 w-4" />
+                        WhatsApp IA
+                    </Button>
                     {hasChanges && (
                         <Button
-                            onClick={handleSaveChanges}
                             size="sm"
-                            className="gap-2 shadow-md"
+                            onClick={handleSaveChanges}
+                            disabled={saving}
+                            className="gap-1.5"
                         >
-                            <Save className="h-4 w-4" />
-                            <span className="hidden sm:inline">
-                                Enregistrer
-                            </span>
+                            {saving ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <Save className="h-4 w-4" />
+                            )}
+                            Enregistrer
                         </Button>
                     )}
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                {/* Left Column - Read Only Context */}
-                <div className="space-y-6 lg:col-span-2">
-                    {/* Itinerary Card */}
-                    <Card>
-                        <CardHeader className="pb-4">
-                            <CardTitle className="flex items-center gap-2 text-lg">
-                                <MapPin className="text-primary h-5 w-5" />
-                                Itinéraire & Transport
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="relative space-y-8 pl-3 sm:pl-6">
-                                {/* Dotted Line */}
-                                <div className="border-muted-foreground/20 absolute top-3 bottom-3 left-3 w-px border-l-2 border-dashed sm:left-6" />
+            {/* Onglets Modulaires de l'Espace de Travail */}
+            <Tabs
+                value={activeTab}
+                onValueChange={setActiveTab}
+                className="space-y-6"
+            >
+                <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 p-1.5 sm:w-fit">
+                    <TabsTrigger value="overview" className="gap-2 px-3.5 py-2">
+                        <FileText className="h-4 w-4" />
+                        Dossier &amp; Fret
+                    </TabsTrigger>
+                    <TabsTrigger value="pricing" className="gap-2 px-3.5 py-2">
+                        <Calculator className="text-primary h-4 w-4" />
+                        Chiffrage IA
+                    </TabsTrigger>
+                    <TabsTrigger value="chat" className="gap-2 px-3.5 py-2">
+                        <MessageSquare className="h-4 w-4" />
+                        Messagerie Client
+                    </TabsTrigger>
+                    <TabsTrigger value="audit" className="gap-2 px-3.5 py-2">
+                        <Clock className="h-4 w-4" />
+                        Journal d&apos;Audit
+                    </TabsTrigger>
+                </TabsList>
 
-                                {/* Pickup */}
-                                <div className="relative pl-6 sm:pl-8">
-                                    <div className="bg-background absolute top-0 left-[-5px] h-4 w-4 rounded-full border-2 border-green-500 shadow-sm" />
-                                    <div className="bg-muted/10 rounded-lg border p-4">
-                                        <h4 className="mb-1 text-xs font-semibold tracking-wider text-green-600 uppercase">
-                                            Départ
-                                        </h4>
-                                        <p className="text-base font-medium sm:text-lg">
-                                            {quote.pickup}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* Dropoff */}
-                                <div className="relative pl-6 sm:pl-8">
-                                    <div className="bg-background absolute top-0 left-[-5px] h-4 w-4 rounded-full border-2 border-red-500 shadow-sm" />
-                                    <div className="bg-muted/10 rounded-lg border p-4">
-                                        <h4 className="mb-1 text-xs font-semibold tracking-wider text-red-600 uppercase">
-                                            Arrivée
-                                        </h4>
-                                        <p className="text-base font-medium sm:text-lg">
-                                            {quote.dropoff}
-                                        </p>
-                                    </div>
-                                </div>
+                {/* 1. VUE DOSSIER & FRET */}
+                <TabsContent value="overview" className="space-y-6">
+                    {quote.status === "Annulé" && (
+                        <div className="rounded-xl border border-rose-500/30 bg-rose-500/8 p-4">
+                            <div className="flex items-center gap-2 text-xs font-bold text-rose-700 uppercase dark:text-rose-400">
+                                <Ban className="h-4 w-4" />
+                                Devis annulé par le client
                             </div>
+                            <p className="mt-1 text-sm font-semibold">
+                                {quote.cancellationReason ||
+                                    "Aucun motif renseigné"}
+                            </p>
+                        </div>
+                    )}
 
-                            <Separator className="my-6" />
+                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+                        {/* Gauche 8 cols */}
+                        <div className="space-y-6 lg:col-span-8">
+                            <Card>
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="flex items-center gap-2 text-base">
+                                        <MapPin className="text-primary h-4 w-4" />
+                                        Itinéraire &amp; Spécifications
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                        <div className="bg-muted/25 rounded-xl border p-3.5">
+                                            <span className="text-[10px] font-bold tracking-wider text-emerald-600 uppercase">
+                                                Départ / Enlèvement
+                                            </span>
+                                            <p className="mt-1 font-semibold">
+                                                {quote.pickup}
+                                            </p>
+                                        </div>
+                                        <div className="bg-muted/25 rounded-xl border p-3.5">
+                                            <span className="text-[10px] font-bold tracking-wider text-rose-600 uppercase">
+                                                Arrivée / Livraison
+                                            </span>
+                                            <p className="mt-1 font-semibold">
+                                                {quote.dropoff}
+                                            </p>
+                                        </div>
+                                    </div>
 
-                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                <div className="bg-muted/20 flex items-center gap-3 rounded-lg p-3">
-                                    <CalendarIcon className="text-muted-foreground h-5 w-5" />
-                                    <div>
-                                        <p className="text-muted-foreground text-xs">
-                                            Date Prévue
-                                        </p>
-                                        <p className="font-medium">
-                                            {safeFormatDate(
-                                                quote.transportDate,
-                                                "dd MMM yyyy"
+                                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                        <div className="bg-muted/20 flex items-center gap-3 rounded-xl border p-3">
+                                            <CalendarIcon className="text-primary h-4 w-4" />
+                                            <div>
+                                                <p className="text-muted-foreground text-xs">
+                                                    Date prévue
+                                                </p>
+                                                <p className="text-sm font-semibold">
+                                                    {safeFormatDate(
+                                                        quote.transportDate,
+                                                        "dd MMM yyyy"
+                                                    )}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="bg-muted/20 flex items-center gap-3 rounded-xl border p-3">
+                                            <Truck className="text-primary h-4 w-4" />
+                                            <div>
+                                                <p className="text-muted-foreground text-xs">
+                                                    Marchandise / Fret
+                                                </p>
+                                                <p className="text-sm font-semibold">
+                                                    {quote.type}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Contraintes */}
+                                    {(quote.supplementaryInfo?.hazardous ||
+                                        quote.supplementaryInfo?.requiresCrane ||
+                                        quote.supplementaryInfo?.urgency ===
+                                            "urgent" ||
+                                        quote.supplementaryInfo?.urgency ===
+                                            "very_urgent") && (
+                                        <div className="flex flex-wrap gap-2">
+                                            {quote.supplementaryInfo
+                                                ?.hazardous && (
+                                                <Badge
+                                                    variant="destructive"
+                                                    className="gap-1.5"
+                                                >
+                                                    <AlertTriangle className="h-3.5 w-3.5" />
+                                                    Matières dangereuses
+                                                </Badge>
                                             )}
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="bg-muted/20 flex items-center gap-3 rounded-lg p-3">
-                                    <Truck className="text-muted-foreground h-5 w-5" />
-                                    <div>
-                                        <p className="text-muted-foreground text-xs">
-                                            Type de Véhicule
-                                        </p>
-                                        <p className="font-medium capitalize">
-                                            {quote.type}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+                                            {quote.supplementaryInfo
+                                                ?.requiresCrane && (
+                                                <Badge variant="secondary">
+                                                    Grue requise
+                                                </Badge>
+                                            )}
+                                            {(quote.supplementaryInfo
+                                                ?.urgency === "urgent" ||
+                                                quote.supplementaryInfo
+                                                    ?.urgency ===
+                                                    "very_urgent") && (
+                                                <Badge className="gap-1 bg-orange-600 text-white">
+                                                    <Flame className="h-3.5 w-3.5" />
+                                                    Prioritaire
+                                                </Badge>
+                                            )}
+                                        </div>
+                                    )}
 
-                    {/* Client Card */}
-                    <Card>
-                        <CardHeader className="pb-4">
-                            <CardTitle className="flex items-center gap-2 text-lg">
-                                <User className="text-primary h-5 w-5" />
-                                Informations Client
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                                <div>
-                                    <h3 className="tex-sm text-muted-foreground mb-1 font-medium">
-                                        Contact Principal
-                                    </h3>
-                                    <p className="text-lg font-medium">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="w-full gap-2"
+                                        asChild
+                                    >
+                                        <a
+                                            href={googleMapsUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            <MapPin className="text-primary h-4 w-4" />
+                                            Ouvrir l&apos;itinéraire sur Google
+                                            Maps
+                                            <ExternalLink className="ml-auto h-3.5 w-3.5 opacity-60" />
+                                        </a>
+                                    </Button>
+                                </CardContent>
+                            </Card>
+
+                            {/* Pièces jointes & Notes */}
+                            <Card>
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="flex items-center gap-2 text-base">
+                                        <FileText className="text-primary h-4 w-4" />
+                                        Notes du dossier &amp; Pièces jointes
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    {attachments.length > 0 && (
+                                        <div className="space-y-2">
+                                            <Label className="flex items-center gap-1.5 text-xs uppercase">
+                                                <Paperclip className="h-3.5 w-3.5" />
+                                                Pièces jointes (
+                                                {attachments.length})
+                                            </Label>
+                                            <div className="flex flex-wrap gap-2">
+                                                {attachments.map((file, i) => (
+                                                    <Badge
+                                                        key={i}
+                                                        variant="secondary"
+                                                        className="font-mono text-xs"
+                                                    >
+                                                        {file
+                                                            .split("/")
+                                                            .pop() || file}
+                                                    </Badge>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="quote-notes">
+                                            Instructions &amp; notes internes
+                                        </Label>
+                                        <Textarea
+                                            id="quote-notes"
+                                            value={notes}
+                                            onChange={(e) =>
+                                                setNotes(e.target.value)
+                                            }
+                                            className="min-h-[130px]"
+                                            placeholder="Codes d'accès, contraintes chantier, consignes chauffeur..."
+                                        />
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+
+                        {/* Droite 4 cols : Client + Décision Statut + Email IA */}
+                        <div className="space-y-6 lg:col-span-4">
+                            <Card>
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="flex items-center gap-2 text-base">
+                                        <User className="text-primary h-4 w-4" />
+                                        Client
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-3 text-sm">
+                                    <p className="text-base font-bold">
                                         {quote.client}
                                     </p>
-                                </div>
-
-                                <div className="space-y-3">
                                     <a
                                         href={`mailto:${quote.email}`}
-                                        className="hover:bg-muted group flex items-center gap-3 rounded-md p-2 transition-colors"
+                                        className="text-muted-foreground hover:text-foreground flex items-center gap-2 truncate"
                                     >
-                                        <div className="bg-primary/5 group-hover:bg-primary/10 rounded-full p-2">
-                                            <Mail className="text-primary h-4 w-4" />
-                                        </div>
-                                        <span className="text-sm font-medium">
+                                        <Mail className="text-primary h-4 w-4 shrink-0" />
+                                        <span className="truncate">
                                             {quote.email}
                                         </span>
                                     </a>
-                                    <div className="flex items-center gap-2">
-                                        <a
-                                            href={`tel:${quote.phone}`}
-                                            className="hover:bg-muted group flex flex-1 items-center gap-3 rounded-md p-2 transition-colors"
-                                        >
-                                            <div className="bg-primary/5 group-hover:bg-primary/10 rounded-full p-2">
-                                                <Phone className="text-primary h-4 w-4" />
-                                            </div>
-                                            <span className="text-sm font-medium">
-                                                {quote.phone}
-                                            </span>
-                                        </a>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() =>
-                                                handleOpenWhatsAppDialog()
-                                            }
-                                            className="h-9 w-9 shrink-0 rounded-full text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
-                                            title="Ouvrir discussion WhatsApp"
-                                        >
-                                            <MessageCircle className="h-5 w-5" />
-                                        </Button>
-                                    </div>
+                                    <a
+                                        href={`tel:${quote.phone}`}
+                                        className="text-muted-foreground hover:text-foreground flex items-center gap-2"
+                                    >
+                                        <Phone className="text-primary h-4 w-4 shrink-0" />
+                                        <span>{quote.phone}</span>
+                                    </a>
                                     {relatedQuotesCount !== null &&
                                         relatedQuotesCount > 1 && (
-                                            <div className="text-muted-foreground flex items-center gap-1.5 pl-2 text-xs">
-                                                <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                                                <span>
-                                                    <strong>
-                                                        {relatedQuotesCount}{" "}
-                                                        dossiers
-                                                    </strong>{" "}
-                                                    associés à ce numéro
-                                                </span>
-                                            </div>
+                                            <Badge variant="secondary">
+                                                {relatedQuotesCount} dossiers
+                                                associés à ce numéro
+                                            </Badge>
                                         )}
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+                                </CardContent>
+                            </Card>
 
-                    {/* Chat Interne Hybride IA + Validateur Humain */}
-                    <OrderChat quoteId={quote.id} viewerRole="admin" />
-                </div>
-
-                {/* Right Column - Workspace */}
-                <div className="text-foreground space-y-6">
-                    {/* Tarification */}
-                    <Card className="border-l-primary/50 overflow-hidden border-l-4">
-                        <div className="absolute top-0 right-0 p-4 opacity-5">
-                            <Banknote className="h-24 w-24" />
-                        </div>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Banknote className="h-5 w-5" />
-                                Tarification
-                            </CardTitle>
-                            <CardDescription>
-                                Définissez le prix final ou une estimation pour
-                                le client.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">
-                                    Montant (Devise incluse ex: 250 000 FCFA)
-                                </label>
-                                <div className="flex gap-2">
-                                    <Input
-                                        value={amount}
-                                        onChange={(e) =>
-                                            setAmount(e.target.value)
-                                        }
-                                        className="font-mono text-lg"
-                                        placeholder="Ex: 450 000 FCFA HT"
-                                    />
+                            <Card>
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="text-sm tracking-wider uppercase">
+                                        Décision &amp; Communication
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-2.5">
                                     <Button
-                                        variant="secondary"
-                                        size="icon"
-                                        onClick={handleEstimate}
-                                        disabled={estimating}
-                                        title="Estimer avec IA"
+                                        variant="outline"
+                                        className="w-full justify-start border-emerald-500/30 bg-emerald-500/8 text-emerald-700 hover:bg-emerald-500/15 dark:text-emerald-400"
+                                        onClick={() =>
+                                            setPendingStatus("Validé")
+                                        }
                                     >
-                                        <Sparkles
-                                            className={`h-4 w-4 text-purple-600 ${estimating ? "animate-pulse" : ""}`}
-                                        />
+                                        <CheckCircle className="mr-2 h-4 w-4" />
+                                        Valider le devis
                                     </Button>
-                                </div>
-                                {aiEstimation && (
-                                    <div className="animate-in fade-in slide-in-from-top-2 mt-4 space-y-2 rounded-lg border border-purple-200/20 bg-purple-500/5 p-3 text-sm">
-                                        <div className="flex flex-col gap-1.5 font-medium text-purple-700 sm:flex-row sm:items-center sm:justify-between">
-                                            <div className="flex flex-wrap items-center gap-2">
-                                                <span>
-                                                    Estimation:{" "}
-                                                    {aiEstimation.price}
-                                                </span>
-                                                {aiEstimation.source ===
-                                                    "gemini" ||
-                                                aiEstimation.source ===
-                                                    "openrouter" ? (
-                                                    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-300/40 bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
-                                                        <Sparkles className="h-2.5 w-2.5" />{" "}
-                                                        {aiEstimation.source ===
-                                                        "gemini"
-                                                            ? "Gemini 2.5"
-                                                            : "OpenRouter IA"}
-                                                    </span>
-                                                ) : (
-                                                    <span
-                                                        className="inline-flex items-center gap-1 rounded-full border border-amber-300/40 bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
-                                                        title="Calculé sans dépendance externe par l'algorithme heuristique logistique"
-                                                    >
-                                                        <ShieldAlert className="h-2.5 w-2.5" />{" "}
-                                                        Moteur Secours
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <span className="text-muted-foreground text-xs">
-                                                {aiEstimation.distance} /{" "}
-                                                {aiEstimation.duration}
-                                            </span>
-                                        </div>
-                                        <p className="text-muted-foreground text-xs">
-                                            {aiEstimation.reasoning}
-                                        </p>
-                                        <div className="flex items-center justify-between pt-1">
-                                            <span className="text-muted-foreground text-[11px] italic">
-                                                Confiance :{" "}
-                                                {aiEstimation.confidence}
-                                            </span>
-                                            <Button
-                                                variant="link"
-                                                className="h-auto p-0 text-xs font-semibold text-purple-600 hover:underline"
-                                                onClick={applyEstimation}
-                                            >
-                                                Appliquer ce prix
-                                            </Button>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
+                                    <Button
+                                        variant="outline"
+                                        className="w-full justify-start border-rose-500/30 bg-rose-500/8 text-rose-700 hover:bg-rose-500/15 dark:text-rose-400"
+                                        onClick={() =>
+                                            setPendingStatus("Refusé")
+                                        }
+                                    >
+                                        <XCircle className="mr-2 h-4 w-4" />
+                                        Refuser le dossier
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        className="w-full justify-start"
+                                        onClick={() =>
+                                            setPendingStatus("En attente")
+                                        }
+                                    >
+                                        <Clock className="mr-2 h-4 w-4 text-amber-500" />
+                                        Remettre en attente
+                                    </Button>
 
-                    {/* Notes Internes */}
+                                    <div className="grid grid-cols-2 gap-2 pt-2">
+                                        <Button
+                                            size="sm"
+                                            variant="secondary"
+                                            onClick={() =>
+                                                handleGenerateEmail(
+                                                    "validation"
+                                                )
+                                            }
+                                        >
+                                            <Sparkles className="mr-1.5 h-3.5 w-3.5 text-purple-500" />
+                                            Email Valid.
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="secondary"
+                                            onClick={() =>
+                                                handleGenerateEmail("refusal")
+                                            }
+                                        >
+                                            <Sparkles className="mr-1.5 h-3.5 w-3.5 text-purple-500" />
+                                            Email Refus
+                                        </Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </div>
+                </TabsContent>
+
+                {/* 2. ATELIER DE CHIFFRAGE IA */}
+                <TabsContent value="pricing" className="space-y-6">
+                    <QuotePricingStudio
+                        quoteId={quote.id}
+                        quoteRef={quoteRef}
+                        initialBreakdown={
+                            quote.supplementaryInfo?.pricingBreakdown
+                        }
+                        onPricingSaved={(newAmount) => {
+                            setAmount(newAmount);
+                            void refreshQuote(quote.id);
+                        }}
+                    />
+
+                    {/* Ajustement libre rapide */}
                     <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <FileText className="h-5 w-5" />
-                                Notes Internes
+                        <CardHeader className="pb-3">
+                            <CardTitle className="flex items-center gap-2 text-base">
+                                <Banknote className="text-primary h-4 w-4" />
+                                Ajustement manuel direct du montant affiché
                             </CardTitle>
                             <CardDescription>
-                                Visible uniquement par l&apos;équipe admin et
-                                les chauffeurs.
+                                Permet de surcharger librement le libellé du
+                                tarif sans modifier les lignes ci-dessus.
                             </CardDescription>
                         </CardHeader>
-                        <CardContent>
-                            <Textarea
-                                value={notes}
-                                onChange={(e) => setNotes(e.target.value)}
-                                className="focus-visible:ring-primary/20 min-h-[150px] resize-none"
-                                placeholder="Instructions spéciales, codes d'accès, spécificités du chargement..."
+                        <CardContent className="flex flex-col gap-3 sm:flex-row">
+                            <Input
+                                value={amount}
+                                onChange={(e) => setAmount(e.target.value)}
+                                placeholder="Ex: 1 450 000 FCFA HT"
+                                className="font-mono text-base font-semibold"
                             />
-                        </CardContent>
-                    </Card>
-
-                    {/* Actions Rapides */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-muted-foreground text-sm tracking-wider uppercase">
-                                Actions
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
                             <Button
-                                className="w-full justify-start border-green-200/20 bg-green-500/10 text-green-600 hover:border-green-300/30 hover:bg-green-500/20"
-                                variant="outline"
-                                onClick={() => handleStatusChange("Validé")}
+                                onClick={handleSaveChanges}
+                                disabled={saving || !hasChanges}
+                                className="shrink-0 gap-2"
                             >
-                                <CheckCircle className="mr-2 h-4 w-4" />
-                                Valider le devis
-                            </Button>
-
-                            <Button
-                                className="w-full justify-start border-red-200/20 bg-red-500/10 text-red-600 hover:border-red-300/30 hover:bg-red-500/20"
-                                variant="outline"
-                                onClick={() => handleStatusChange("Refusé")}
-                            >
-                                <XCircle className="mr-2 h-4 w-4" />
-                                Refuser le transport
-                            </Button>
-
-                            <Separator className="my-2" />
-
-                            <Button
-                                className="w-full justify-start border-orange-200/20 bg-orange-500/10 text-orange-600 hover:border-orange-300/30 hover:bg-orange-500/20"
-                                variant="outline"
-                                onClick={() => handleStatusChange("En attente")}
-                            >
-                                <Clock className="mr-2 h-4 w-4" />
-                                Remettre en attente
-                            </Button>
-
-                            <Separator className="my-2" />
-
-                            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                                <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    className="justify-start sm:justify-center"
-                                    onClick={() =>
-                                        handleGenerateEmail("validation")
-                                    }
-                                >
-                                    <Sparkles className="mr-2 h-3 w-3 text-purple-500" />{" "}
-                                    Email Validation
-                                </Button>
-                                <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    className="justify-start sm:justify-center"
-                                    onClick={() =>
-                                        handleGenerateEmail("refusal")
-                                    }
-                                >
-                                    <Sparkles className="mr-2 h-3 w-3 text-purple-500" />{" "}
-                                    Email Refus
-                                </Button>
-                            </div>
-
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                className="w-full justify-center gap-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700/50 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
-                                onClick={() => handleOpenWhatsAppDialog()}
-                            >
-                                <MessageCircle className="h-4 w-4 text-emerald-600" />
-                                <span>Contacter sur WhatsApp (IA 1-Clic)</span>
+                                {saving ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                    <Save className="h-4 w-4" />
+                                )}
+                                Enregistrer le montant
                             </Button>
                         </CardContent>
                     </Card>
+                </TabsContent>
 
-                    {/* Historique */}
+                {/* 3. MESSAGERIE HYBRIDE */}
+                <TabsContent value="chat">
+                    <OrderChat quoteId={quote.id} viewerRole="admin" />
+                </TabsContent>
+
+                {/* 4. JOURNAL D'AUDIT */}
+                <TabsContent value="audit">
                     <Card>
                         <CardHeader>
-                            <CardTitle className="text-muted-foreground flex items-center gap-2 text-sm tracking-wider uppercase">
-                                <Clock className="h-4 w-4" />
-                                Historique
+                            <CardTitle className="flex items-center gap-2 text-base">
+                                <Clock className="text-primary h-4 w-4" />
+                                Historique complet du dossier {quoteRef}
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
                             <QuoteTimeline quote={quote} />
                         </CardContent>
                     </Card>
-                </div>
-            </div>
-            {/* AI Email Dialog */}
+                </TabsContent>
+            </Tabs>
+
+            {/* Confirmation Statut */}
+            <ConfirmDialog
+                open={pendingStatus !== null}
+                onOpenChange={(open) => !open && setPendingStatus(null)}
+                title={`Passer le dossier ${quoteRef} en "${pendingStatus}" ?`}
+                description="Cette modification sera immédiatement enregistrée et tracée dans le journal d'audit."
+                confirmLabel="Confirmer"
+                cancelLabel="Annuler"
+                variant={pendingStatus === "Refusé" ? "destructive" : "default"}
+                isLoading={updatingStatus}
+                onConfirm={executeStatusChange}
+            />
+
+            {/* Modale Email IA */}
             <Dialog open={emailOpen} onOpenChange={setEmailOpen}>
                 <DialogContent className="sm:max-w-[625px]">
                     <DialogHeader>
-                        <DialogTitle>Assistant de Rédaction IA</DialogTitle>
+                        <DialogTitle>Assistant de Rédaction Email IA</DialogTitle>
                         <DialogDescription>
-                            Modifiez le brouillon généré avant de l&apos;envoyer
-                            (Simulation).
+                            Ajustez le brouillon avant de le copier ou
+                            l&apos;envoyer au client.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="grid gap-4 py-4">
+                    <div className="grid gap-4 py-3">
                         <div className="grid gap-2">
                             <Label>Objet</Label>
                             <Input
@@ -795,176 +843,92 @@ export default function QuoteModerationPage() {
                             variant="secondary"
                             onClick={() => setEmailOpen(false)}
                         >
-                            Annuler
+                            Fermer
                         </Button>
                         <Button
-                            onClick={() => {
-                                toast.success("Email envoyé (Simulation)");
+                            onClick={async () => {
+                                await navigator.clipboard.writeText(
+                                    `${emailDraft.subject}\n\n${emailDraft.body}`
+                                );
+                                toast.success("Brouillon copié dans le presse-papier");
                                 setEmailOpen(false);
-                                // Log communication in history
-                                if (quote)
-                                    quoteStorage.addNote(
-                                        quote.id,
-                                        `Email envoyé: ${emailDraft.subject}`
-                                    );
                             }}
+                            disabled={generatingEmail}
                         >
-                            Envoyer
+                            Copier le brouillon
                         </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
-            {/* WhatsApp Click-to-Chat Dialog (100% Gratuit) */}
+            {/* Modale WhatsApp IA */}
             <Dialog open={whatsappOpen} onOpenChange={setWhatsappOpen}>
-                <DialogContent className="sm:max-w-[625px]">
+                <DialogContent className="sm:max-w-[580px]">
                     <DialogHeader>
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                            <DialogTitle className="flex items-center gap-2">
-                                <MessageCircle className="h-5 w-5 text-emerald-600" />
-                                Assistant WhatsApp Devis
-                            </DialogTitle>
-                            {whatsappDraft?.source === "huggingface" ? (
-                                <span className="inline-flex items-center gap-1 rounded-full border border-purple-300/40 bg-purple-100 px-2 py-0.5 text-[10px] font-semibold text-purple-800 dark:bg-purple-950/60 dark:text-purple-300">
-                                    <Sparkles className="h-2.5 w-2.5" /> Hugging
-                                    Face (
-                                    {whatsappDraft.model?.split("/")[1] ||
-                                        "Mistral"}
-                                    )
-                                </span>
-                            ) : (
-                                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-300/40 bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
-                                    Modèle Local Résilient
-                                </span>
-                            )}
-                        </div>
+                        <DialogTitle className="flex items-center gap-2">
+                            <MessageCircle className="h-5 w-5 text-emerald-500" />
+                            Message WhatsApp — {quoteRef}
+                        </DialogTitle>
                         <DialogDescription>
-                            Générez un message WhatsApp mobile prêt à
-                            l&apos;envoi, vérifiez le contenu et lancez la
-                            discussion en 1 clic.
+                            Personnalisez votre message de suivi avant ouverture
+                            dans WhatsApp.
                         </DialogDescription>
                     </DialogHeader>
-
-                    <div className="grid gap-4 py-3">
-                        <div className="grid gap-1.5">
-                            <Label htmlFor="custom-wa-note">
-                                Précision personnalisée (optionnel)
-                            </Label>
-                            <div className="flex gap-2">
-                                <Input
-                                    id="custom-wa-note"
-                                    value={whatsappCustomNote}
-                                    onChange={(e) =>
-                                        setWhatsappCustomNote(e.target.value)
-                                    }
-                                    placeholder="Ex: Véhicule disponible dès jeudi matin, confirmation avant 17h..."
-                                    disabled={generatingWhatsApp}
-                                />
-                                <Button
-                                    variant="secondary"
-                                    size="sm"
-                                    onClick={() =>
-                                        handleOpenWhatsAppDialog(
-                                            whatsappCustomNote
-                                        )
-                                    }
-                                    disabled={generatingWhatsApp}
-                                >
-                                    {generatingWhatsApp
-                                        ? "Génération..."
-                                        : "Régénérer"}
-                                </Button>
-                            </div>
-                        </div>
-
-                        <div className="grid gap-1.5">
-                            <Label>Aperçu du message WhatsApp (éditable)</Label>
-                            <Textarea
-                                value={whatsappDraft?.text || ""}
+                    <div className="space-y-3 py-2">
+                        <div className="flex gap-2">
+                            <Input
+                                value={whatsappCustomNote}
                                 onChange={(e) =>
-                                    handleUpdateWhatsAppText(e.target.value)
+                                    setWhatsappCustomNote(e.target.value)
                                 }
-                                className="h-[210px] font-mono text-xs leading-relaxed"
-                                disabled={generatingWhatsApp}
+                                placeholder="Consigne courte pour régénérer..."
                             />
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() =>
+                                    handleOpenWhatsAppDialog(whatsappCustomNote)
+                                }
+                                disabled={generatingWhatsApp}
+                            >
+                                Régénérer
+                            </Button>
                         </div>
-
-                        <div className="text-muted-foreground flex items-center justify-between text-xs">
-                            <span>
-                                Destinataire : <strong>{quote?.client}</strong>{" "}
-                                ({quote?.phone})
-                            </span>
-                            <span className="font-medium text-emerald-600">
-                                Click-to-Chat 100% Gratuit
-                            </span>
-                        </div>
+                        <Textarea
+                            rows={6}
+                            value={whatsappDraft?.text || ""}
+                            disabled={generatingWhatsApp}
+                            onChange={(e) => {
+                                if (!whatsappDraft) return;
+                                const digits = quote.phone.replace(
+                                    /[^0-9]/g,
+                                    ""
+                                );
+                                setWhatsappDraft({
+                                    ...whatsappDraft,
+                                    text: e.target.value,
+                                    url: `https://wa.me/${digits}?text=${encodeURIComponent(e.target.value)}`,
+                                });
+                            }}
+                        />
                     </div>
-
-                    <DialogFooter className="gap-2 sm:gap-0">
+                    <DialogFooter>
                         <Button
                             variant="secondary"
                             onClick={() => setWhatsappOpen(false)}
                         >
-                            Fermer
+                            Annuler
                         </Button>
                         <Button
                             onClick={handleSendWhatsApp}
-                            disabled={!whatsappDraft || generatingWhatsApp}
-                            className="gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+                            disabled={generatingWhatsApp || !whatsappDraft}
+                            className="bg-emerald-600 text-white hover:bg-emerald-700"
                         >
-                            <MessageCircle className="h-4 w-4" />
-                            Lancer sur WhatsApp (1-Clic)
+                            Ouvrir WhatsApp
                         </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-
-            {/* Sticky Mobile Decision Bar (Norme SaaS B2B 2026 - Accès 1-clic d'une seule main) */}
-            <div className="border-border/80 bg-background/95 fixed right-0 bottom-0 left-0 z-30 border-t p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-lg backdrop-blur-md lg:hidden">
-                <div className="mx-auto flex max-w-md items-center justify-between gap-2">
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-11 flex-1 border-emerald-300 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700/50 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
-                        onClick={() => handleStatusChange("Validé")}
-                    >
-                        <CheckCircle className="mr-1.5 h-4 w-4 text-emerald-600" />
-                        <span>Valider</span>
-                    </Button>
-
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-11 flex-1 border-red-200 text-xs font-semibold text-red-600 hover:bg-red-50 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-950/40"
-                        onClick={() => handleStatusChange("Refusé")}
-                    >
-                        <XCircle className="mr-1.5 h-4 w-4 text-red-600" />
-                        <span>Refuser</span>
-                    </Button>
-
-                    <Button
-                        size="sm"
-                        className="h-11 bg-emerald-600 px-3 text-white hover:bg-emerald-700"
-                        onClick={() => handleOpenWhatsAppDialog()}
-                        aria-label="Contacter sur WhatsApp"
-                        title="WhatsApp 1-Clic"
-                    >
-                        <MessageCircle className="h-4 w-4" />
-                    </Button>
-
-                    {hasChanges && (
-                        <Button
-                            size="sm"
-                            className="bg-primary text-primary-foreground h-11 px-3 shadow-xs"
-                            onClick={handleSaveChanges}
-                            aria-label="Enregistrer modifications"
-                            title="Enregistrer"
-                        >
-                            <Save className="h-4 w-4" />
-                        </Button>
-                    )}
-                </div>
-            </div>
         </div>
     );
 }

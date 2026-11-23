@@ -17,7 +17,9 @@ describe("Demo Data Structure (TASK-018)", () => {
             expect(item).toHaveProperty("dropoffLocation");
             expect(item).toHaveProperty("status");
             expect(item).toHaveProperty("source");
-            expect(["PENDING", "VALIDATED", "REJECTED"]).toContain(item.status);
+            expect(["PENDING", "VALIDATED", "REJECTED", "CANCELLED"]).toContain(
+                item.status
+            );
             expect(["FORM", "CHAT"]).toContain(item.source);
         }
     });

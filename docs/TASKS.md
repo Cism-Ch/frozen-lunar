@@ -9,16 +9,16 @@
 
 ```
 +-------------------------+  +-------------------------+  +-------------------------+
-| [>] IN PROGRESS (SP 20) |  |  [?] ROADMAP            |  |       [X] ARCHIVES      |
+| [>] IN PROGRESS         |  |  [?] ROADMAP            |  |       [X] ARCHIVES      |
 +-------------------------+  +-------------------------+  +-------------------------+
-| [-] TASK-QTE-03..04     |  | (None)                  |  | [x] SP 01..11 (Archived)|
+| (None)                  |  | (None)                  |  | [x] SP 01..11 (Archived)|
 |                         |  |                         |  | [x] TASK-INF-01..04     |
 |                         |  |                         |  | [x] TASK-SUP-01..02     |
 |                         |  |                         |  | [x] TASK-CLT-01..03     |
 |                         |  |                         |  | [x] TASK-PRT-03..04     |
 |                         |  |                         |  | [x] TASK-ADM-01..05     |
 |                         |  |                         |  | [x] TASK-UIX-01..03     |
-|                         |  |                         |  | [x] TASK-QTE-01..02     |
+|                         |  |                         |  | [x] TASK-QTE-01..04     |
 +-------------------------+  +-------------------------+  +-------------------------+
 ```
 
@@ -143,5 +143,5 @@
 - [x] **`TASK-ADM-05` (SP 18)** - Patch demo data (8 CI quotes, dynamic dates, `HBC-YYYY-XXXX`, aligned `supplementaryInfo`, `100/100` RSI PASS).
 - [x] **`TASK-QTE-01` (SP 19)** - Replace `QuoteDetailsSheet` with responsive centered `QuoteDetailsModal` (equal auto X/Y margins).
 - [x] **`TASK-QTE-02` (SP 19)** - Redesign `/admin/quotes` list with KPIs, `HBC-YYYY-XXXX`, amount column, and `CANCELLED` filter (`100/100` RSI PASS).
-- [-] **`TASK-QTE-03` (SP 20)** - Server AI pricing engine (`assistQuotePricingAction` & `saveStructuredPricingAction`).
-- [-] **`TASK-QTE-04` (SP 20)** - Rebuild `/admin/quotes/[id]` workspace & interactive `QuotePricingStudio`.
+- [x] **`TASK-QTE-03` (SP 20)** - Server AI pricing engine (`assistQuotePricingAction` & `saveStructuredPricingAction`).
+- [x] **`TASK-QTE-04` (SP 20)** - Rebuild `/admin/quotes/[id]` workspace & interactive `QuotePricingStudio` (`100/100` RSI PASS, `pnpm next build` + 127/127 tests PASS).
