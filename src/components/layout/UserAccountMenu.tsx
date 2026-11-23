@@ -202,7 +202,7 @@ export function UserAccountMenu({
                         <Button
                             size="sm"
                             variant="ghost"
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10 col-span-2 h-8 justify-start gap-1.5 text-xs"
+                            className="col-span-2 h-8 justify-start gap-1.5 text-xs font-semibold text-red-600 hover:bg-red-500/10 hover:text-red-700 dark:text-rose-400 dark:hover:bg-rose-500/15 dark:hover:text-rose-300"
                             onClick={() => setLogoutOpen(true)}
                         >
                             <LogOut className="h-3.5 w-3.5" />
@@ -335,7 +335,7 @@ export function UserAccountMenu({
 
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
-                        className="text-destructive focus:text-destructive cursor-pointer rounded-lg"
+                        className="cursor-pointer rounded-lg font-medium text-red-600 focus:bg-red-500/10 focus:text-red-700 dark:text-rose-400 dark:focus:bg-rose-500/15 dark:focus:text-rose-300"
                         onClick={() => setLogoutOpen(true)}
                     >
                         <LogOut className="mr-2 h-4 w-4" />

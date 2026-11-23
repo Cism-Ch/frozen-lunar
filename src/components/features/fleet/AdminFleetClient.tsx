@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
     Database,
     Edit,
     Minus,
     Plus,
+    Search,
     Trash2,
     Truck,
     Loader2,
@@ -44,8 +45,14 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import {
+    FleetLayoutToggle,
+    FleetPaginationBar,
+    useFleetGridLayout,
+} from "@/components/features/fleet/FleetGridControls";
 import {
     formatFcfaRate,
     formatQuantityBadge,
@@ -111,6 +118,24 @@ export function AdminFleetClient({ initialVehicles }: AdminFleetClientProps) {
         useState<FleetVehicleItem[]>(initialVehicles);
     const [busyId, setBusyId] = useState<string | null>(null);
     const [isSeeding, setIsSeeding] = useState(false);
+
+    // Filtres & pagination responsive 1×6 / 2×6 / 3×6
+    const [selectedCategory, setSelectedCategory] = useState<
+        "ALL" | FleetVehicleCategory
+    >("ALL");
+    const [searchQuery, setSearchQuery] = useState("");
+    const [onlyOutOfStock, setOnlyOutOfStock] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [failedImages, setFailedImages] = useState<Record<string, boolean>>(
+        {}
+    );
+    const {
+        activeColumns,
+        viewportMaxCols,
+        pageSize,
+        gridClassName,
+        setColumns,
+    } = useFleetGridLayout();
 
     // Modale création / édition
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -326,6 +351,38 @@ export function AdminFleetClient({ initialVehicles }: AdminFleetClientProps) {
     );
     const totalPark = vehicles.reduce((sum, v) => sum + v.totalQuantity, 0);
 
+    const filteredVehicles = useMemo(() => {
+        const q = searchQuery.trim().toLowerCase();
+        return vehicles.filter((v) => {
+            if (
+                selectedCategory !== "ALL" &&
+                v.category !== selectedCategory
+            ) {
+                return false;
+            }
+            if (onlyOutOfStock && v.availableQuantity > 0) {
+                return false;
+            }
+            if (!q) return true;
+            return (
+                v.name.toLowerCase().includes(q) ||
+                v.capacityLabel.toLowerCase().includes(q) ||
+                v.description.toLowerCase().includes(q) ||
+                v.specs.some((s) => s.toLowerCase().includes(q))
+            );
+        });
+    }, [vehicles, selectedCategory, searchQuery, onlyOutOfStock]);
+
+    const totalPages = Math.max(
+        1,
+        Math.ceil(filteredVehicles.length / pageSize)
+    );
+    const safePage = Math.min(currentPage, totalPages);
+    const paginatedVehicles = useMemo(() => {
+        const start = (safePage - 1) * pageSize;
+        return filteredVehicles.slice(start, start + pageSize);
+    }, [filteredVehicles, safePage, pageSize]);
+
     return (
         <div className="space-y-6">
             {/* En-tête */}
@@ -407,6 +464,79 @@ export function AdminFleetClient({ initialVehicles }: AdminFleetClientProps) {
                 </Card>
             </div>
 
+            {/* Bloc de filtres identique à la flotte client + Sélecteur 1×6 / 2×6 / 3×6 */}
+            <div className="bg-card space-y-3 rounded-xl border p-4 shadow-2xs">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                    <Tabs
+                        value={selectedCategory}
+                        onValueChange={(val) => {
+                            setSelectedCategory(
+                                val as "ALL" | FleetVehicleCategory
+                            );
+                            setCurrentPage(1);
+                        }}
+                        className="w-full lg:w-auto"
+                    >
+                        <TabsList className="no-scrollbar flex h-auto w-full flex-nowrap justify-start gap-1 overflow-x-auto p-1 sm:flex-wrap">
+                            <TabsTrigger
+                                value="ALL"
+                                className="min-h-[38px] shrink-0 text-xs"
+                            >
+                                Toute la flotte ({vehicles.length})
+                            </TabsTrigger>
+                            {(
+                                Object.keys(
+                                    VEHICLE_CATEGORY_META
+                                ) as FleetVehicleCategory[]
+                            ).map((cat) => (
+                                <TabsTrigger
+                                    key={cat}
+                                    value={cat}
+                                    className="min-h-[38px] shrink-0 text-xs"
+                                >
+                                    {VEHICLE_CATEGORY_META[cat].shortLabel}
+                                </TabsTrigger>
+                            ))}
+                        </TabsList>
+                    </Tabs>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                        <div className="relative min-w-[200px] flex-1 sm:w-56 sm:flex-none">
+                            <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                            <Input
+                                value={searchQuery}
+                                onChange={(e) => {
+                                    setSearchQuery(e.target.value);
+                                    setCurrentPage(1);
+                                }}
+                                placeholder="Rechercher un véhicule..."
+                                className="h-9 pl-9 text-sm"
+                            />
+                        </div>
+                        <Button
+                            type="button"
+                            size="sm"
+                            variant={onlyOutOfStock ? "default" : "outline"}
+                            onClick={() => {
+                                setOnlyOutOfStock((prev) => !prev);
+                                setCurrentPage(1);
+                            }}
+                            className="h-9 text-xs font-semibold"
+                        >
+                            En rupture
+                        </Button>
+                        <FleetLayoutToggle
+                            activeColumns={activeColumns}
+                            viewportMaxCols={viewportMaxCols}
+                            onSelect={(cols) => {
+                                setColumns(cols);
+                                setCurrentPage(1);
+                            }}
+                        />
+                    </div>
+                </div>
+            </div>
+
             {/* Liste des véhicules */}
             {vehicles.length === 0 ? (
                 <Card>
@@ -417,42 +547,66 @@ export function AdminFleetClient({ initialVehicles }: AdminFleetClientProps) {
                                 Aucun véhicule enregistré en base
                             </p>
                             <p className="text-muted-foreground text-sm">
-                                Cliquez sur « Catalogue Afrique » pour charger
-                                automatiquement les 10 modèles standards (Bus 64
-                                places, Porte-char, Bennes, etc.).
+                                Cliquez sur « Réinitialiser cartes par défaut »
+                                pour charger automatiquement les modèles
+                                Côte d&apos;Ivoire.
                             </p>
                         </div>
                     </CardContent>
                 </Card>
+            ) : filteredVehicles.length === 0 ? (
+                <Card>
+                    <CardContent className="p-10 text-center text-sm">
+                        <p className="text-muted-foreground">
+                            Aucun véhicule ne correspond à vos filtres actuels.
+                        </p>
+                    </CardContent>
+                </Card>
             ) : (
-                <div className="grid gap-4 md:grid-cols-2">
-                    {vehicles.map((vehicle) => {
+                <>
+                <div className={gridClassName}>
+                    {paginatedVehicles.map((vehicle) => {
                         const catMeta = VEHICLE_CATEGORY_META[vehicle.category];
                         const isBusy = busyId === vehicle.id;
                         const imgUrl = resolveVehicleImageUrl(vehicle);
+                        const imgFailed = failedImages[vehicle.id];
 
                         return (
                             <Card
                                 key={vehicle.id}
-                                className={`overflow-hidden ${
+                                className={`flex h-full flex-col overflow-hidden ${
                                     vehicle.isActive ? "" : "opacity-65"
                                 }`}
                             >
-                                {/* Aperçu visuel de la carte */}
-                                <div className="bg-muted relative h-36 w-full overflow-hidden border-b">
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img
-                                        src={imgUrl}
-                                        alt={vehicle.name}
-                                        loading="lazy"
-                                        className="h-full w-full object-cover"
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+                                {/* Aperçu visuel propre aspect-16/10 avec fallback */}
+                                <div
+                                    className={`relative aspect-16/10 w-full overflow-hidden border-b bg-linear-to-br ${catMeta.accentClass}`}
+                                >
+                                    {!imgFailed ? (
+                                        /* eslint-disable-next-line @next/next/no-img-element */
+                                        <img
+                                            src={imgUrl}
+                                            alt={vehicle.name}
+                                            loading="lazy"
+                                            onError={() =>
+                                                setFailedImages((prev) => ({
+                                                    ...prev,
+                                                    [vehicle.id]: true,
+                                                }))
+                                            }
+                                            className="h-full w-full object-cover object-center transition-transform duration-500 hover:scale-105"
+                                        />
+                                    ) : (
+                                        <div className="flex h-full w-full items-center justify-center">
+                                            <Truck className="text-primary/40 h-14 w-14" />
+                                        </div>
+                                    )}
+                                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-linear-to-t from-black/75 to-transparent" />
                                     <div className="absolute right-3 bottom-2.5 left-3 flex items-center justify-between text-white">
-                                        <span className="rounded bg-black/60 px-2 py-0.5 text-xs font-medium">
+                                        <span className="rounded-md bg-black/60 px-2 py-0.5 text-xs font-medium backdrop-blur-xs">
                                             {catMeta.shortLabel}
                                         </span>
-                                        <span className="rounded bg-black/65 px-2.5 py-0.5 font-mono text-xs font-bold">
+                                        <span className="rounded-md bg-black/70 px-2.5 py-0.5 font-mono text-xs font-bold backdrop-blur-xs">
                                             {formatFcfaRate(
                                                 vehicle.dailyRateFcfa
                                             )}
@@ -592,6 +746,14 @@ export function AdminFleetClient({ initialVehicles }: AdminFleetClientProps) {
                         );
                     })}
                 </div>
+                <FleetPaginationBar
+                    currentPage={safePage}
+                    totalPages={totalPages}
+                    totalItems={filteredVehicles.length}
+                    pageSize={pageSize}
+                    onPageChange={setCurrentPage}
+                />
+                </>
             )}
 
             {/* Dialog Création / Édition */}

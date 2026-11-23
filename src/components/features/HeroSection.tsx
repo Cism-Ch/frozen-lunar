@@ -67,10 +67,10 @@ export function HeroSection() {
                     fill
                     priority
                     sizes="100vw"
-                    className="object-cover object-center opacity-35 mix-blend-multiply transition-opacity duration-500 dark:opacity-20 dark:mix-blend-screen dark:invert dark:hue-rotate-180"
+                    className="object-cover object-center opacity-55 mix-blend-multiply transition-opacity duration-500 dark:opacity-35 dark:mix-blend-screen dark:invert dark:hue-rotate-180"
                 />
                 {/* Fondu progressif haut & bas pour lisibilité éditoriale */}
-                <div className="absolute inset-0 bg-linear-to-b from-[#F2F5F7]/80 via-[#F2F5F7]/45 to-[#F2F5F7] dark:from-[#0B1219]/85 dark:via-[#0B1219]/55 dark:to-[#0B1219]" />
+                <div className="absolute inset-0 bg-linear-to-b from-[#F2F5F7]/65 via-[#F2F5F7]/20 to-[#F2F5F7] dark:from-[#0B1219]/75 dark:via-[#0B1219]/35 dark:to-[#0B1219]" />
             </div>
 
             {/* 2. Lueurs ambiantes subtiles (Orange #FF7C24 + Bleu Acier #92A9BE en sombre) */}
@@ -86,7 +86,7 @@ export function HeroSection() {
             <div className="relative z-10 container mx-auto px-4 md:px-6 lg:px-8">
                 {/* 3. En-tête Éditorial Massif (style BAU CARGO) */}
                 <FadeIn direction="down" delay={0.05}>
-                    <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                    <div className="mb-3 flex flex-wrap items-center gap-2">
                         <Badge
                             variant="outline"
                             className="border-slate-900/15 bg-white/75 px-3 py-1 text-xs font-semibold text-slate-800 backdrop-blur-md dark:border-[#92A9BE]/30 dark:bg-[#92A9BE]/10 dark:text-[#92A9BE]"
@@ -95,9 +95,6 @@ export function HeroSection() {
                             Logistique &amp; Mobilité Multi-Services • Côte
                             d&apos;Ivoire
                         </Badge>
-                        <span className="hidden font-mono text-[11px] font-semibold tracking-widest text-slate-500 uppercase sm:inline dark:text-[#92A9BE]/80">
-                            Abidjan • Yamoussoukro • Bouaké • San-Pédro
-                        </span>
                     </div>
                 </FadeIn>
 

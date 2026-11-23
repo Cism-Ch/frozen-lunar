@@ -13,12 +13,13 @@
 +-------------------------+  +-------------------------+  +-------------------------+
 | (None)                  |  | (None)                  |  | [x] SP 01..11 (Archived)|
 |                         |  |                         |  | [x] TASK-INF-01..04     |
-|                         |  |                         |  | [x] TASK-SUP-01..02     |
+|                         |  |                         |  | [x] TASK-SUP-01..03     |
 |                         |  |                         |  | [x] TASK-CLT-01..03     |
 |                         |  |                         |  | [x] TASK-PRT-03..04     |
 |                         |  |                         |  | [x] TASK-ADM-01..05     |
-|                         |  |                         |  | [x] TASK-UIX-01..06     |
+|                         |  |                         |  | [x] TASK-UIX-01..07     |
 |                         |  |                         |  | [x] TASK-QTE-01..04     |
+|                         |  |                         |  | [x] TASK-FLT-03 / USR-01|
 +-------------------------+  +-------------------------+  +-------------------------+
 ```
 
@@ -151,3 +152,10 @@
 - [x] **`TASK-UIX-04` (SP 21)** - Switch typography to `Nunito Sans` & theme-adaptive tokens (`#F2F5F7` light / `#92A9BE` dark + orange glows).
 - [x] **`TASK-UIX-05` (SP 21)** - Editorial Hero redesign (BAU CARGO inspired) with isometric background, dynamic multi-service text & `/about` isometric visual.
 - [x] **`TASK-UIX-06` (SP 21)** - Fix mobile vehicle cards disappearing on `/flotte` (`motion.tsx` `amount: "some"` + direct card render, `100/100` RSI PASS, `pnpm next build` PASS).
+
+## Completed Sprint 22: Hero Tweaks, 1x6/2x6/3x6 Fleet, Admin vs Client Users, Dark Contrast & Support AI Fix
+
+- [x] **`TASK-UIX-07` (SP 22)** - Brighter isometric Hero bg, removed top-right cities & fixed dark-mode logout contrast (`--destructive`). *(Studio truck image regeneration pending image API 503 capacity recovery.)*
+- [x] **`TASK-FLT-03` (SP 22)** - Shared mobile-first `1x6 / 2x6 / 3x6` fleet layout + pagination on `/flotte` & `/admin/fleet` + admin filter block & card image fix.
+- [x] **`TASK-USR-01` (SP 22)** - Separated Admin Team vs Client Accounts on `/admin/users` with role update, session revocation & email verification actions.
+- [x] **`TASK-SUP-03` (SP 22)** - Fixed premature Support AI fallback to Robot Mode (`1024`/`700` tokens, `15s` timeout, JSON mode + plain-text fallback, `100/100` RSI PASS, `pnpm next build` + 127/127 tests PASS).

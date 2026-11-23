@@ -172,12 +172,140 @@ export async function deleteUserAction(formData: FormData) {
     } catch (error: unknown) {
         logger.error("❌ Erreur lors de la suppression d'utilisateur", error);
 
-        // Utiliser le gestionnaire d'erreurs centralisé
         const errorResponse = handleError(error);
         return {
             success: false,
             error: errorResponse.message,
             code: errorResponse.code,
         };
+    }
+}
+
+const updateUserRoleSchema = z.object({
+    userId: z.string().min(1),
+    role: z.enum(["admin", "moderator", "developer", "user"]),
+});
+
+/**
+ * Met à jour le rôle d'un utilisateur (protège l'admin connecté et empêche de supprimer le dernier admin).
+ */
+export async function updateUserRoleAction(input: unknown): Promise<{
+    success: boolean;
+    message?: string;
+    error?: string;
+}> {
+    try {
+        const currentAdmin = await requireAdmin();
+        const parsed = updateUserRoleSchema.safeParse(input);
+        if (!parsed.success) {
+            return { success: false, error: "Paramètres de rôle invalides." };
+        }
+
+        const { userId, role } = parsed.data;
+        if (userId === currentAdmin.id) {
+            return {
+                success: false,
+                error: "Vous ne pouvez pas modifier votre propre rôle administrateur.",
+            };
+        }
+
+        const target = await prisma.user.findUnique({ where: { id: userId } });
+        if (!target) {
+            return { success: false, error: "Utilisateur introuvable." };
+        }
+
+        if (target.role === "admin" && role !== "admin") {
+            const adminCount = await prisma.user.count({
+                where: { role: "admin" },
+            });
+            if (adminCount <= 1) {
+                return {
+                    success: false,
+                    error: "Impossible de rétrograder le dernier administrateur du système.",
+                };
+            }
+        }
+
+        await prisma.user.update({
+            where: { id: userId },
+            data: { role },
+        });
+
+        revalidatePath("/admin/users");
+        return {
+            success: true,
+            message: `Rôle de ${target.name} mis à jour (${role}).`,
+        };
+    } catch (error: unknown) {
+        logger.error("updateUserRoleAction error", error);
+        return { success: false, error: handleError(error).message };
+    }
+}
+
+/**
+ * Révoque toutes les sessions actives d'un utilisateur (déconnexion forcée multi-appareils).
+ */
+export async function revokeUserSessionsAction(userId: string): Promise<{
+    success: boolean;
+    message?: string;
+    error?: string;
+}> {
+    try {
+        const currentAdmin = await requireAdmin();
+        if (!userId || userId === currentAdmin.id) {
+            return {
+                success: false,
+                error: "Impossible de révoquer vos propres sessions depuis cette action.",
+            };
+        }
+
+        const res = await prisma.session.deleteMany({
+            where: { userId },
+        });
+
+        revalidatePath("/admin/users");
+        return {
+            success: true,
+            message: `${res.count} session(s) active(s) révoquée(s).`,
+        };
+    } catch (error: unknown) {
+        logger.error("revokeUserSessionsAction error", error);
+        return { success: false, error: handleError(error).message };
+    }
+}
+
+/**
+ * Valide ou invalide manuellement le statut de vérification d'email d'un compte.
+ */
+export async function toggleUserEmailVerifiedAction(
+    userId: string,
+    verified: boolean
+): Promise<{
+    success: boolean;
+    message?: string;
+    error?: string;
+}> {
+    try {
+        await requireAdmin();
+        if (!userId) {
+            return { success: false, error: "Identifiant utilisateur requis." };
+        }
+
+        const updated = await prisma.user.update({
+            where: { id: userId },
+            data: { emailVerified: verified },
+            select: { name: true },
+        });
+
+        revalidatePath("/admin/users");
+        return {
+            success: true,
+            message: verified
+                ? `Email de ${updated.name} marqué comme vérifié.`
+                : `Vérification email de ${updated.name} retirée.`,
+        };
+    } catch (error: unknown) {
+        logger.error("toggleUserEmailVerifiedAction error", error);
+        return { success: false, error: handleError(error).message };
     }
 }

@@ -684,18 +684,32 @@ export async function generateSupportAiResponse(
                 const model = client.getGenerativeModel({
                     model: getGeminiModel(),
                     generationConfig: {
-                        maxOutputTokens: 380,
+                        maxOutputTokens: 1024,
                         temperature: 0.45,
+                        responseMimeType: "application/json",
                     },
                 });
 
                 const call = async () => {
                     const result = await model.generateContent(prompt);
                     const response = await result.response;
-                    return extractJsonFromAiText<unknown>(response.text());
+                    const rawText = response.text().trim();
+                    const parsedJson = extractJsonFromAiText<unknown>(rawText);
+                    if (parsedJson) return parsedJson;
+                    // Repli texte naturel : si l'IA répond proprement sans JSON strict, ne pas jeter sa réponse
+                    if (rawText.length >= 10 && !rawText.startsWith("{")) {
+                        return {
+                            message: rawText,
+                            category: "general",
+                            sentiment: "neutral",
+                            shouldEscalate: false,
+                            suggestedAction: null,
+                        };
+                    }
+                    return null;
                 };
 
-                const parsed = await withTimeout(call(), 7000);
+                const parsed = await withTimeout(call(), 15000);
                 const normalized = parseSupportAiPayload(parsed, "gemini");
                 if (normalized) return normalized;
             }
@@ -714,15 +728,24 @@ export async function generateSupportAiResponse(
     if (hasOpenRouter) {
         const orResult = await callOpenRouterChat({
             userPrompt: prompt,
-            maxTokens: 280,
-            temperature: 0.3,
-            timeoutMs: 7000,
+            maxTokens: 700,
+            temperature: 0.35,
+            timeoutMs: 15000,
         });
 
         if (orResult.success) {
-            const parsed = extractJsonFromAiText<unknown>(
-                orResult.data.content
-            );
+            const rawText = orResult.data.content.trim();
+            const parsed =
+                extractJsonFromAiText<unknown>(rawText) ||
+                (rawText.length >= 10 && !rawText.startsWith("{")
+                    ? {
+                          message: rawText,
+                          category: "general",
+                          sentiment: "neutral",
+                          shouldEscalate: false,
+                          suggestedAction: null,
+                      }
+                    : null);
             const normalized = parseSupportAiPayload(parsed, "openrouter");
             if (normalized) return normalized;
         }

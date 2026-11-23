@@ -44,6 +44,11 @@ import {
     type FleetVehicleCategory,
     type FleetVehicleItem,
 } from "@/lib/fleet-catalog";
+import {
+    FleetLayoutToggle,
+    FleetPaginationBar,
+    useFleetGridLayout,
+} from "@/components/features/fleet/FleetGridControls";
 
 interface FleetPortfolioClientProps {
     vehicles: FleetVehicleItem[];
@@ -70,9 +75,17 @@ export function FleetPortfolioClient({ vehicles }: FleetPortfolioClientProps) {
         "ALL" | FleetVehicleCategory
     >("ALL");
     const [searchQuery, setSearchQuery] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
     const [failedImages, setFailedImages] = useState<Record<string, boolean>>(
         {}
     );
+    const {
+        activeColumns,
+        viewportMaxCols,
+        pageSize,
+        gridClassName,
+        setColumns,
+    } = useFleetGridLayout();
 
     const stats = useMemo(() => {
         const totalUnits = vehicles.reduce(
@@ -108,6 +121,16 @@ export function FleetPortfolioClient({ vehicles }: FleetPortfolioClientProps) {
             );
         });
     }, [vehicles, selectedCategory, searchQuery]);
+
+    const totalPages = Math.max(
+        1,
+        Math.ceil(filteredVehicles.length / pageSize)
+    );
+    const safePage = Math.min(currentPage, totalPages);
+    const paginatedVehicles = useMemo(() => {
+        const start = (safePage - 1) * pageSize;
+        return filteredVehicles.slice(start, start + pageSize);
+    }, [filteredVehicles, safePage, pageSize]);
 
     return (
         <div className="flex min-h-screen flex-col">
@@ -196,14 +219,15 @@ export function FleetPortfolioClient({ vehicles }: FleetPortfolioClientProps) {
 
                 {/* Section Catalogue & Grille des Véhicules */}
                 <SectionContainer className="bg-background pt-6 md:pt-10">
-                    <div className="mb-10 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                         <Tabs
                             value={selectedCategory}
-                            onValueChange={(val) =>
+                            onValueChange={(val) => {
                                 setSelectedCategory(
                                     val as "ALL" | FleetVehicleCategory
-                                )
-                            }
+                                );
+                                setCurrentPage(1);
+                            }}
                             className="w-full lg:w-auto"
                         >
                             <TabsList className="no-scrollbar flex h-auto w-full flex-nowrap justify-start gap-1 overflow-x-auto p-1 sm:flex-wrap">
@@ -229,14 +253,27 @@ export function FleetPortfolioClient({ vehicles }: FleetPortfolioClientProps) {
                             </TabsList>
                         </Tabs>
 
-                        <div className="relative w-full lg:w-80">
-                            <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-                            <Input
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="Rechercher (Bus, Benne, 4x4...)"
-                                aria-label="Rechercher un véhicule dans la flotte"
-                                className="min-h-[44px] pl-9"
+                        <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
+                            <div className="relative w-full sm:w-64">
+                                <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                                <Input
+                                    value={searchQuery}
+                                    onChange={(e) => {
+                                        setSearchQuery(e.target.value);
+                                        setCurrentPage(1);
+                                    }}
+                                    placeholder="Rechercher (Bus, Benne, 4x4...)"
+                                    aria-label="Rechercher un véhicule dans la flotte"
+                                    className="min-h-[44px] pl-9"
+                                />
+                            </div>
+                            <FleetLayoutToggle
+                                activeColumns={activeColumns}
+                                viewportMaxCols={viewportMaxCols}
+                                onSelect={(cols) => {
+                                    setColumns(cols);
+                                    setCurrentPage(1);
+                                }}
                             />
                         </div>
                     </div>
@@ -251,11 +288,12 @@ export function FleetPortfolioClient({ vehicles }: FleetPortfolioClientProps) {
                             </p>
                         </Card>
                     ) : (
+                        <>
                         <div
-                            key={`${selectedCategory}-${searchQuery}`}
-                            className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-8 lg:grid-cols-3"
+                            key={`${selectedCategory}-${searchQuery}-${safePage}-${activeColumns}`}
+                            className={gridClassName}
                         >
-                            {filteredVehicles.map((vehicle, index) => {
+                            {paginatedVehicles.map((vehicle, index) => {
                                 const catMeta =
                                     VEHICLE_CATEGORY_META[vehicle.category];
                                 const CategoryIcon = getCategoryIcon(
@@ -423,6 +461,14 @@ export function FleetPortfolioClient({ vehicles }: FleetPortfolioClientProps) {
                                 );
                             })}
                         </div>
+                        <FleetPaginationBar
+                            currentPage={safePage}
+                            totalPages={totalPages}
+                            totalItems={filteredVehicles.length}
+                            pageSize={pageSize}
+                            onPageChange={setCurrentPage}
+                        />
+                        </>
                     )}
                 </SectionContainer>
 
