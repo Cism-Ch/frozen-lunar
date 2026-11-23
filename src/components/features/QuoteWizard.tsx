@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, type FieldPath } from "react-hook-form";
 import * as z from "zod";
-import { MapPin, Truck } from "lucide-react";
+import { MapPin, Sparkles, Truck } from "lucide-react";
 import { toast } from "sonner";
 
 import { Form } from "@/components/ui/form";
@@ -15,6 +15,8 @@ import {
 } from "./QuoteSummaryDialog";
 import { createQuoteAction } from "@/app/actions/quote-management";
 import { getPublicFleetAction } from "@/app/actions/fleet-actions";
+import { getClientDashboardAction } from "@/app/actions/client-space-actions";
+import { authClient } from "@/lib/auth-client";
 import type { FleetVehicleItem } from "@/lib/fleet-catalog";
 import { logger } from "@/lib/logger";
 
@@ -53,6 +55,9 @@ const TOTAL_STEPS = 7;
 type QuoteFormValues = z.infer<typeof formSchema>;
 
 export function QuoteWizard() {
+    const { data: session } = authClient.useSession();
+    const hasPrefilledRef = useRef(false);
+    const [prefilledNotice, setPrefilledNotice] = useState(false);
     const [step, setStep] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [vehicles, setVehicles] = useState<FleetVehicleItem[]>([]);
@@ -75,6 +80,50 @@ export function QuoteWizard() {
             userNotes: "",
         },
     });
+
+    // Pré-remplissage automatique des coordonnées et adresses favorites si le client est connecté
+    useEffect(() => {
+        if (!session?.user || hasPrefilledRef.current) return;
+        let active = true;
+        async function prefillFromProfile() {
+            try {
+                const res = await getClientDashboardAction();
+                if (!active || !res.data) return;
+                hasPrefilledRef.current = true;
+
+                const { user, profile } = res.data;
+                const displayName = profile?.companyName || user.name || "";
+                if (!form.getValues("fullName") && displayName) {
+                    form.setValue("fullName", displayName);
+                }
+                if (!form.getValues("email") && user.email) {
+                    form.setValue("email", user.email);
+                }
+                if (!form.getValues("phone") && profile?.phone) {
+                    form.setValue("phone", profile.phone);
+                }
+                if (
+                    !form.getValues("pickupLocation") &&
+                    profile?.defaultPickup
+                ) {
+                    form.setValue("pickupLocation", profile.defaultPickup);
+                }
+                if (
+                    !form.getValues("dropoffLocation") &&
+                    profile?.defaultDropoff
+                ) {
+                    form.setValue("dropoffLocation", profile.defaultDropoff);
+                }
+                setPrefilledNotice(true);
+            } catch {
+                // Non bloquant
+            }
+        }
+        void prefillFromProfile();
+        return () => {
+            active = false;
+        };
+    }, [session?.user, form]);
 
     // Charge la flotte active et pré-sélectionne un véhicule si `?vehicle=<slug>` est dans l'URL
     useEffect(() => {
@@ -201,6 +250,16 @@ export function QuoteWizard() {
             <WizardHeader step={step} totalSteps={TOTAL_STEPS} />
 
             <CardContent className="min-h-[300px] p-6 md:p-8">
+                {prefilledNotice && (
+                    <div className="mb-5 flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-2.5 text-xs text-emerald-700 dark:text-emerald-300">
+                        <Sparkles className="h-4 w-4 shrink-0" />
+                        <span>
+                            Vos coordonnées et adresses favorites ont été
+                            pré-remplies automatiquement depuis votre Espace
+                            Client.
+                        </span>
+                    </div>
+                )}
                 <Form {...form}>
                     <form
                         onSubmit={form.handleSubmit(onSubmit)}

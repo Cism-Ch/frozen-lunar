@@ -101,8 +101,13 @@ export default function ClientQuoteDetailPage() {
             pickup: quote.pickupLocation,
             dropoff: quote.dropoffLocation,
             transportDate: quote.transportDate,
-            status: quote.statusLabel as "En attente" | "Validé" | "Refusé",
+            status: quote.statusLabel as
+                | "En attente"
+                | "Validé"
+                | "Refusé"
+                | "Annulé",
             amount: quote.amount,
+            trackingCode: quote.trackingCode,
             userNotes: quote.userNotes || undefined,
             source: "form",
             history: [],
@@ -127,7 +132,7 @@ export default function ClientQuoteDetailPage() {
                     </Button>
                     <div>
                         <h1 className="text-2xl font-bold">
-                            Dossier #{quote.id.slice(0, 8)}
+                            Dossier {quote.trackingCode}
                         </h1>
                         <p className="text-muted-foreground text-xs">
                             Créé le {safeFormatDate(quote.date)}

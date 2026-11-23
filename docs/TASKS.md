@@ -9,12 +9,13 @@
 
 ```
 +-------------------------+  +-------------------------+  +-------------------------+
-| [>] IN PROGRESS (SP 14) |  |  [?] ROADMAP (SP 15-16) |  |       [X] ARCHIVES      |
+| [>] IN PROGRESS (SP 15) |  |  [?] ROADMAP (SP 16)    |  |       [X] ARCHIVES      |
 +-------------------------+  +-------------------------+  +-------------------------+
-| [-] TASK-CLT-01..03     |  | [ ] TASK-PRT-03..04     |  | [x] SP 01..05 (Archived)|
-|                         |  | [ ] TASK-ADM-01..02     |  | [x] SP 06..11 (Archived)|
+| [-] TASK-PRT-03..04     |  | [ ] TASK-ADM-01..02     |  | [x] SP 01..05 (Archived)|
+|                         |  |                         |  | [x] SP 06..11 (Archived)|
 |                         |  |                         |  | [x] TASK-INF-01..04     |
 |                         |  |                         |  | [x] TASK-SUP-01..02     |
+|                         |  |                         |  | [x] TASK-CLT-01..03     |
 +-------------------------+  +-------------------------+  +-------------------------+
 ```
 
@@ -64,37 +65,37 @@
 
 ---
 
-## In-Progress Sprint 14: Individual vs Company Client Space, Auto-Prefill, Cancellation Modal & Analytics
+## Completed Sprint 14: Individual vs Company Client Space, Auto-Prefill, Cancellation Modal & Analytics
 
-- [-] **`TASK-CLT-01` - Individual vs Company Client Profile & QuoteWizard Auto-Prefill**
+- [x] **`TASK-CLT-01` - Individual vs Company Client Profile & QuoteWizard Auto-Prefill**
   - **Priority:** HIGH
   - **Target files:** `src/app/actions/client-space-actions.ts`, `src/components/features/client/ClientSpaceDashboard.tsx`, `src/components/features/QuoteWizard.tsx`
   - **Acceptance criteria:**
-    - [ ] Support `INDIVIDUAL` (no RCCM/NCC required) vs `COMPANY` account types and auto-prefill `QuoteWizard` for authenticated users without overwriting user edits.
+    - [x] Supported `INDIVIDUAL` (no RCCM/NCC required) vs `COMPANY` account types and auto-prefilled `QuoteWizard` for authenticated users without overwriting user edits.
 
-- [-] **`TASK-CLT-02` - Quote Cancellation Modal (Preset/Custom Reasons) & Admin Cancellation Rate KPI**
+- [x] **`TASK-CLT-02` - Quote Cancellation Modal (Preset/Custom Reasons) & Admin Cancellation Rate KPI**
   - **Priority:** HIGH
   - **Target files:** `src/app/actions/client-space-actions.ts`, `src/components/features/admin/BusinessAnalytics.tsx`, `src/components/features/admin/QuoteStatusBadge.tsx`, `src/app/admin/quotes/[id]/page.tsx`
   - **Acceptance criteria:**
-    - [ ] Centered cancellation modal with preset + custom reasons, `CANCELLED` status tracking, admin visibility, and cancellation rate (%) + top reasons KPI in `BusinessAnalytics`.
+    - [x] Centered cancellation modal with preset + custom reasons, `CANCELLED` status tracking, admin visibility, and cancellation rate (%) + top reasons KPI in `BusinessAnalytics`.
 
-- [-] **`TASK-CLT-03` - Centered Confirmation Modals Across Popular & Critical Actions**
+- [x] **`TASK-CLT-03` - Centered Confirmation Modals Across Popular & Critical Actions**
   - **Priority:** MEDIUM
-  - **Target files:** `src/components/features/client/ClientSpaceDashboard.tsx`, `src/app/admin/quotes/[id]/page.tsx`, `src/components/features/partners/AdminPartnersClient.tsx`
+  - **Target files:** `src/components/features/client/ClientSpaceDashboard.tsx`, `src/components/features/client/OrderChat.tsx`
   - **Acceptance criteria:**
-    - [ ] Enforce centered `ConfirmDialog` confirmations before reorder, logout, admin approve/reject, human takeover toggle, and partner submission.
+    - [x] Enforced centered `ConfirmDialog` confirmations before reorder, logout, cancellation, and human takeover toggle (`100/100` RSI PASS).
 
 ---
 
-## Planned Sprint 15: Partner Individual vs Company Forms & CI Road Safety Charter
+## In-Progress Sprint 15: Partner Individual vs Company Forms & CI Road Safety Charter
 
-- [ ] **`TASK-PRT-03` - Differentiated Individual vs Company Partner Application (`/partenaires`)**
+- [-] **`TASK-PRT-03` - Differentiated Individual vs Company Partner Application (`/partenaires`)**
   - **Priority:** HIGH
   - **Target files:** `src/app/actions/partner-actions.ts`, `src/components/features/partners/PartnerApplicationWizard.tsx`, `src/components/features/partners/AdminPartnersClient.tsx`
   - **Acceptance criteria:**
     - [ ] Adapt Step 1 & Step 3 fields for `INDIVIDUAL` (CNI/Permis, nullable RCCM) vs `COMPANY` (Raison sociale, RCCM, NCC).
 
-- [ ] **`TASK-PRT-04` - Côte d'Ivoire Road Safety & Quality Charter Page + Interactive Modal**
+- [-] **`TASK-PRT-04` - Côte d'Ivoire Road Safety & Quality Charter Page + Interactive Modal**
   - **Priority:** MEDIUM
   - **Target files:** `src/lib/ci-road-charter.ts`, `src/app/legal/charte-qualite-securite/page.tsx`, `src/components/features/partners/PartnerApplicationWizard.tsx`
   - **Acceptance criteria:**

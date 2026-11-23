@@ -8,6 +8,10 @@ import {
     requireAuth,
     requireQuoteOwnershipOrAdmin,
 } from "@/lib/auth-guard";
+import {
+    formatQuoteReference,
+    generateTrackingCode,
+} from "@/lib/tracking-code";
 import { logger } from "@/lib/logger";
 
 const savedAddressSchema = z.object({
@@ -16,10 +20,11 @@ const savedAddressSchema = z.object({
 });
 
 const companyProfileInputSchema = z.object({
+    accountType: z.enum(["INDIVIDUAL", "COMPANY"]).default("INDIVIDUAL"),
     companyName: z
         .string()
         .trim()
-        .min(2, "La raison sociale ou le nom est requis")
+        .min(2, "Le nom complet ou la raison sociale est requis")
         .max(150),
     rccmNumber: z.string().trim().max(80).optional().or(z.literal("")),
     nccNumber: z.string().trim().max(60).optional().or(z.literal("")),
@@ -33,6 +38,15 @@ const companyProfileInputSchema = z.object({
     savedAddresses: z.array(savedAddressSchema).max(10).default([]),
 });
 
+const cancelQuoteSchema = z.object({
+    quoteId: z.string().min(1, "Identifiant de devis requis"),
+    reason: z
+        .string()
+        .trim()
+        .min(3, "Veuillez sélectionner ou saisir un motif d'annulation")
+        .max(500, "Le motif ne peut pas dépasser 500 caractères"),
+});
+
 export type CompanyProfileInput = z.input<typeof companyProfileInputSchema>;
 
 export interface SavedAddressItem {
@@ -42,6 +56,7 @@ export interface SavedAddressItem {
 
 export interface ClientCompanyProfileDTO {
     id: string;
+    accountType: "INDIVIDUAL" | "COMPANY";
     companyName: string;
     rccmNumber: string | null;
     nccNumber: string | null;
@@ -53,6 +68,7 @@ export interface ClientCompanyProfileDTO {
 
 export interface ClientQuoteSummaryDTO {
     id: string;
+    trackingCode: string;
     date: string;
     clientName: string;
     email: string;
@@ -65,6 +81,8 @@ export interface ClientQuoteSummaryDTO {
     statusLabel: string;
     amount: string;
     userNotes: string | null;
+    cancellationReason: string | null;
+    cancelledAt: string | null;
     vehicleName: string | null;
     vehicleQuantity: number;
     threadStatus: "AI_ACTIVE" | "HUMAN_TAKEOVER" | "RESOLVED" | null;
@@ -166,6 +184,10 @@ export async function getClientDashboardAction(): Promise<{
                 profile: profile
                     ? {
                           id: profile.id,
+                          accountType:
+                              profile.accountType === "COMPANY"
+                                  ? "COMPANY"
+                                  : "INDIVIDUAL",
                           companyName: profile.companyName,
                           rccmNumber: profile.rccmNumber,
                           nccNumber: profile.nccNumber,
@@ -179,6 +201,7 @@ export async function getClientDashboardAction(): Promise<{
                     : null,
                 quotes: quotes.map((q) => ({
                     id: q.id,
+                    trackingCode: formatQuoteReference(q),
                     date: q.date.toISOString(),
                     clientName: q.clientName,
                     email: q.email,
@@ -191,6 +214,10 @@ export async function getClientDashboardAction(): Promise<{
                     statusLabel: statusToLabel(q.status),
                     amount: q.amount,
                     userNotes: q.userNotes,
+                    cancellationReason: q.cancellationReason,
+                    cancelledAt: q.cancelledAt
+                        ? q.cancelledAt.toISOString()
+                        : null,
                     vehicleName: q.vehicle?.name ?? null,
                     vehicleQuantity: q.vehicleQuantity,
                     threadStatus: q.supportThread?.status ?? null,
@@ -233,22 +260,25 @@ export async function upsertCompanyProfileAction(
         }
 
         const v = parsed.data;
+        const isIndividual = v.accountType === "INDIVIDUAL";
         const upserted = await prisma.companyProfile.upsert({
             where: { userId: user.id },
             create: {
                 userId: user.id,
+                accountType: v.accountType,
                 companyName: v.companyName,
-                rccmNumber: v.rccmNumber || null,
-                nccNumber: v.nccNumber || null,
+                rccmNumber: isIndividual ? null : v.rccmNumber || null,
+                nccNumber: isIndividual ? null : v.nccNumber || null,
                 phone: v.phone,
                 defaultPickup: v.defaultPickup || null,
                 defaultDropoff: v.defaultDropoff || null,
                 savedAddresses: v.savedAddresses as Prisma.InputJsonValue,
             },
             update: {
+                accountType: v.accountType,
                 companyName: v.companyName,
-                rccmNumber: v.rccmNumber || null,
-                nccNumber: v.nccNumber || null,
+                rccmNumber: isIndividual ? null : v.rccmNumber || null,
+                nccNumber: isIndividual ? null : v.nccNumber || null,
                 phone: v.phone,
                 defaultPickup: v.defaultPickup || null,
                 defaultDropoff: v.defaultDropoff || null,
@@ -261,6 +291,10 @@ export async function upsertCompanyProfileAction(
         return {
             data: {
                 id: upserted.id,
+                accountType:
+                    upserted.accountType === "COMPANY"
+                        ? "COMPANY"
+                        : "INDIVIDUAL",
                 companyName: upserted.companyName,
                 rccmNumber: upserted.rccmNumber,
                 nccNumber: upserted.nccNumber,
@@ -324,6 +358,7 @@ export async function getClientQuoteDetailAction(quoteId: string): Promise<{
         return {
             data: {
                 id: quote.id,
+                trackingCode: formatQuoteReference(quote),
                 date: quote.date.toISOString(),
                 clientName: quote.clientName,
                 email: quote.email,
@@ -336,6 +371,10 @@ export async function getClientQuoteDetailAction(quoteId: string): Promise<{
                 statusLabel: statusToLabel(quote.status),
                 amount: quote.amount,
                 userNotes: quote.userNotes,
+                cancellationReason: quote.cancellationReason,
+                cancelledAt: quote.cancelledAt
+                    ? quote.cancelledAt.toISOString()
+                    : null,
                 vehicleName: quote.vehicle?.name ?? null,
                 vehicleQuantity: quote.vehicleQuantity,
                 threadStatus: quote.supportThread?.status ?? null,
@@ -365,7 +404,7 @@ export async function getClientQuoteDetailAction(quoteId: string): Promise<{
  * Recommande un transport en 1 clic à partir d'un devis existant (avec vérification anti-IDOR stricte).
  */
 export async function reorderClientQuoteAction(quoteId: string): Promise<{
-    data: { newQuoteId: string } | null;
+    data: { newQuoteId: string; trackingCode: string } | null;
     error: string | null;
 }> {
     try {
@@ -383,9 +422,11 @@ export async function reorderClientQuoteAction(quoteId: string): Promise<{
         );
 
         const nextDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000); // J+2 par défaut
+        const sourceRef = formatQuoteReference(sourceQuote);
 
         const duplicated = await prisma.quote.create({
             data: {
+                trackingCode: generateTrackingCode(),
                 userId: user.id,
                 clientName: sourceQuote.clientName,
                 email: sourceQuote.email,
@@ -397,8 +438,8 @@ export async function reorderClientQuoteAction(quoteId: string): Promise<{
                 status: QuoteStatus.PENDING,
                 amount: "À calculer",
                 userNotes: sourceQuote.userNotes
-                    ? `[Renouvellement de #${sourceQuote.id.slice(0, 8)}] ${sourceQuote.userNotes}`
-                    : `Renouvellement rapide de la commande #${sourceQuote.id.slice(0, 8)}`,
+                    ? `[Renouvellement de ${sourceRef}] ${sourceQuote.userNotes}`
+                    : `Renouvellement rapide de la commande ${sourceRef}`,
                 source: QuoteSource.FORM,
                 vehicleId: sourceQuote.vehicleId,
                 vehicleQuantity: sourceQuote.vehicleQuantity,
@@ -411,7 +452,7 @@ export async function reorderClientQuoteAction(quoteId: string): Promise<{
             data: {
                 quoteId: duplicated.id,
                 action: "Recommande 1-Clic",
-                description: `Créé depuis l'Espace Client à partir du devis #${sourceQuote.id.slice(0, 8)}`,
+                description: `Créé depuis l'Espace Client à partir du devis ${sourceRef}`,
                 user: user.name || user.email,
             },
         });
@@ -420,7 +461,10 @@ export async function reorderClientQuoteAction(quoteId: string): Promise<{
         revalidatePath("/admin/quotes");
 
         return {
-            data: { newQuoteId: duplicated.id },
+            data: {
+                newQuoteId: duplicated.id,
+                trackingCode: formatQuoteReference(duplicated),
+            },
             error: null,
         };
     } catch (error: unknown) {
@@ -431,6 +475,89 @@ export async function reorderClientQuoteAction(quoteId: string): Promise<{
                 error instanceof Error
                     ? error.message
                     : "Impossible de dupliquer cette commande.",
+        };
+    }
+}
+
+/**
+ * Permet au client d'annuler un devis en attente ou validé en renseignant un motif explicite.
+ * Protégé contre les accès IDOR via `requireQuoteOwnershipOrAdmin`.
+ */
+export async function cancelClientQuoteAction(input: {
+    quoteId: string;
+    reason: string;
+}): Promise<{
+    data: { id: string; trackingCode: string; status: "CANCELLED" } | null;
+    error: string | null;
+}> {
+    try {
+        const parsed = cancelQuoteSchema.safeParse(input);
+        if (!parsed.success) {
+            return {
+                data: null,
+                error:
+                    parsed.error.issues[0]?.message ||
+                    "Motif d'annulation invalide.",
+            };
+        }
+
+        const quote = await prisma.quote.findUnique({
+            where: { id: parsed.data.quoteId },
+        });
+
+        if (!quote) {
+            return { data: null, error: "Devis introuvable." };
+        }
+
+        const { user } = await requireQuoteOwnershipOrAdmin(
+            quote.userId,
+            quote.email
+        );
+
+        if (quote.status === QuoteStatus.CANCELLED) {
+            return { data: null, error: "Ce devis est déjà annulé." };
+        }
+
+        const updated = await prisma.quote.update({
+            where: { id: quote.id },
+            data: {
+                status: QuoteStatus.CANCELLED,
+                cancellationReason: parsed.data.reason,
+                cancelledAt: new Date(),
+            },
+        });
+
+        await prisma.quoteHistory.create({
+            data: {
+                quoteId: quote.id,
+                action: "Annulation client",
+                description: `Motif : ${parsed.data.reason}`,
+                user: user.name || user.email,
+            },
+        });
+
+        revalidatePath("/espace-client");
+        revalidatePath(`/espace-client/quotes/${quote.id}`);
+        revalidatePath("/admin/quotes");
+        revalidatePath(`/admin/quotes/${quote.id}`);
+        revalidatePath("/admin/dashboard");
+
+        return {
+            data: {
+                id: updated.id,
+                trackingCode: formatQuoteReference(updated),
+                status: "CANCELLED",
+            },
+            error: null,
+        };
+    } catch (error: unknown) {
+        logger.error("cancelClientQuoteAction error", error);
+        return {
+            data: null,
+            error:
+                error instanceof Error
+                    ? error.message
+                    : "Impossible d'annuler ce devis.",
         };
     }
 }

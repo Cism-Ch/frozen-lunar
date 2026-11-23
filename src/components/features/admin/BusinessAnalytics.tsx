@@ -9,7 +9,7 @@ import {
     CardDescription,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BarChart3, TrendingUp, Truck, Layers } from "lucide-react";
+import { Ban, BarChart3, TrendingUp, Truck, Layers } from "lucide-react";
 import { Quote } from "@/lib/quote-storage";
 import { motion } from "@/components/ui/motion";
 
@@ -43,8 +43,27 @@ export function BusinessAnalytics({ quotes }: BusinessAnalyticsProps) {
                 String(q.status).toUpperCase() === "REJECTED" ||
                 q.status === "Refusé"
         ).length;
+        const cancelledQuotes = quotes.filter(
+            (q) =>
+                String(q.status).toUpperCase() === "CANCELLED" ||
+                q.status === "Annulé"
+        );
+        const cancelled = cancelledQuotes.length;
         const conversionRate =
             total > 0 ? Math.round((validated / total) * 100) : 0;
+        const cancellationRate =
+            total > 0 ? Math.round((cancelled / total) * 100) : 0;
+
+        // Motifs d'annulation les plus fréquents
+        const cancelReasonCounts: Record<string, number> = {};
+        cancelledQuotes.forEach((q) => {
+            const reason = q.cancellationReason?.trim() || "Motif non précisé";
+            cancelReasonCounts[reason] = (cancelReasonCounts[reason] || 0) + 1;
+        });
+        const topCancellationReasons = Object.entries(cancelReasonCounts)
+            .map(([reason, count]) => ({ reason, count }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 4);
 
         // 2. Répartition par canal (FORM vs CHAT)
         const chatSource = quotes.filter(
@@ -75,7 +94,10 @@ export function BusinessAnalytics({ quotes }: BusinessAnalyticsProps) {
         let validAmountCount = 0;
 
         quotes.forEach((q) => {
-            if (q.amount && q.amount !== "À calculer") {
+            const isCancelled =
+                String(q.status).toUpperCase() === "CANCELLED" ||
+                q.status === "Annulé";
+            if (!isCancelled && q.amount && q.amount !== "À calculer") {
                 const numericStr = q.amount.replace(/[^0-9]/g, "");
                 const val = parseInt(numericStr, 10);
                 if (!isNaN(val) && val > 0) {
@@ -113,7 +135,10 @@ export function BusinessAnalytics({ quotes }: BusinessAnalyticsProps) {
             validated,
             pending,
             rejected,
+            cancelled,
             conversionRate,
+            cancellationRate,
+            topCancellationReasons,
             formSource,
             chatSource,
             formPercent,
@@ -502,6 +527,61 @@ export function BusinessAnalytics({ quotes }: BusinessAnalyticsProps) {
                     </div>
                 </Card>
             </div>
+
+            {/* Suivi du Taux d'Annulation Client & Motifs */}
+            <Card className="border-border/60 shadow-xs">
+                <CardHeader className="pb-3">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex items-center gap-2">
+                            <Ban className="text-destructive h-5 w-5" />
+                            <div>
+                                <CardTitle className="text-base">
+                                    Suivi des Annulations Clients
+                                </CardTitle>
+                                <CardDescription className="text-xs">
+                                    Taux d&apos;annulation et principaux motifs
+                                    remontés depuis l&apos;Espace Client
+                                </CardDescription>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Badge
+                                variant="outline"
+                                className="border-destructive/30 bg-destructive/10 text-destructive font-mono text-sm font-bold"
+                            >
+                                Taux : {analytics.cancellationRate}% (
+                                {analytics.cancelled}/{analytics.total})
+                            </Badge>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    {analytics.topCancellationReasons.length === 0 ? (
+                        <p className="text-muted-foreground text-xs">
+                            Aucune annulation enregistrée sur la période.
+                        </p>
+                    ) : (
+                        <div className="grid gap-2.5 sm:grid-cols-2">
+                            {analytics.topCancellationReasons.map((item) => (
+                                <div
+                                    key={item.reason}
+                                    className="bg-muted/30 flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-xs"
+                                >
+                                    <span className="truncate font-medium">
+                                        {item.reason}
+                                    </span>
+                                    <Badge
+                                        variant="secondary"
+                                        className="shrink-0 font-mono"
+                                    >
+                                        {item.count}
+                                    </Badge>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
         </div>
     );
 }

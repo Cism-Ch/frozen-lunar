@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { supabase } from "@/lib/supabase";
 import {
     getOrCreateQuoteThreadAction,
@@ -55,6 +56,7 @@ export function OrderChat({ quoteId, viewerRole }: OrderChatProps) {
     const [input, setInput] = useState("");
     const [sending, setSending] = useState(false);
     const [toggling, setToggling] = useState(false);
+    const [confirmToggleOpen, setConfirmToggleOpen] = useState(false);
     const scrollRef = useRef<HTMLDivElement | null>(null);
 
     const scrollToBottom = useCallback(() => {
@@ -286,7 +288,7 @@ export function OrderChat({ quoteId, viewerRole }: OrderChatProps) {
                             size="sm"
                             variant={isHumanTakeover ? "outline" : "default"}
                             disabled={toggling}
-                            onClick={handleToggleTakeover}
+                            onClick={() => setConfirmToggleOpen(true)}
                             className="min-h-[38px] w-full gap-1.5 text-xs"
                         >
                             {toggling ? (
@@ -382,6 +384,28 @@ export function OrderChat({ quoteId, viewerRole }: OrderChatProps) {
                     </Button>
                 </form>
             </CardFooter>
+
+            <ConfirmDialog
+                open={confirmToggleOpen}
+                onOpenChange={setConfirmToggleOpen}
+                title={
+                    isHumanTakeover
+                        ? "Rendre la main à l'Assistant IA ?"
+                        : "Prendre la main sur cette discussion ?"
+                }
+                description={
+                    isHumanTakeover
+                        ? "L'Assistant IA HBC recommencera à répondre automatiquement aux prochains messages du client."
+                        : "L'Assistant IA sera mis en pause et le client sera informé qu'un validateur humain prend le relais."
+                }
+                confirmLabel={
+                    isHumanTakeover ? "Réactiver l'IA" : "Prendre la main"
+                }
+                onConfirm={() => {
+                    setConfirmToggleOpen(false);
+                    void handleToggleTakeover();
+                }}
+            />
         </Card>
     );
 }

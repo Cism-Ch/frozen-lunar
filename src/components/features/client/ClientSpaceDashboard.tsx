@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+    Ban,
     Building2,
     Calendar,
     CheckCircle2,
@@ -34,14 +35,25 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import { authClient } from "@/lib/auth-client";
 import { generateQuotePDF } from "@/lib/pdf-generator";
 import { safeFormatDate } from "@/lib/date-utils";
 import {
+    cancelClientQuoteAction,
     getClientDashboardAction,
     reorderClientQuoteAction,
     upsertCompanyProfileAction,
@@ -49,6 +61,14 @@ import {
     type ClientQuoteSummaryDTO,
     type SavedAddressItem,
 } from "@/app/actions/client-space-actions";
+
+const PRESET_CANCELLATION_REASONS = [
+    "Changement de date de transport",
+    "Projet reporté ou annulé",
+    "Erreur dans les informations saisies",
+    "Besoin logistique / véhicule modifié",
+    "Autre motif (préciser ci-dessous)",
+] as const;
 
 export function ClientSpaceDashboard() {
     const router = useRouter();
@@ -64,7 +84,10 @@ export function ClientSpaceDashboard() {
     const [authPassword, setAuthPassword] = useState("");
     const [authBusy, setAuthBusy] = useState(false);
 
-    // Formulaire profil entreprise & adresses
+    // Formulaire profil Particulier ou Entreprise & adresses
+    const [accountType, setAccountType] = useState<"INDIVIDUAL" | "COMPANY">(
+        "INDIVIDUAL"
+    );
     const [companyName, setCompanyName] = useState("");
     const [rccmNumber, setRccmNumber] = useState("");
     const [nccNumber, setNccNumber] = useState("");
@@ -79,9 +102,22 @@ export function ClientSpaceDashboard() {
     const [savingProfile, setSavingProfile] = useState(false);
     const [reorderingId, setReorderingId] = useState<string | null>(null);
 
+    // Modales centrées : Annulation, Recommande 1-clic & Déconnexion
+    const [cancelTarget, setCancelTarget] =
+        useState<ClientQuoteSummaryDTO | null>(null);
+    const [selectedCancelPreset, setSelectedCancelPreset] = useState<string>(
+        PRESET_CANCELLATION_REASONS[0]
+    );
+    const [customCancelReason, setCustomCancelReason] = useState("");
+    const [isCancelling, setIsCancelling] = useState(false);
+    const [reorderTarget, setReorderTarget] =
+        useState<ClientQuoteSummaryDTO | null>(null);
+    const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+
     const applyDashboardData = useCallback((data: ClientDashboardDTO) => {
         setDashboard(data);
         if (data.profile) {
+            setAccountType(data.profile.accountType);
             setCompanyName(data.profile.companyName);
             setRccmNumber(data.profile.rccmNumber || "");
             setNccNumber(data.profile.nccNumber || "");
@@ -90,6 +126,7 @@ export function ClientSpaceDashboard() {
             setDefaultDropoff(data.profile.defaultDropoff || "");
             setSavedAddresses(data.profile.savedAddresses);
         } else {
+            setAccountType("INDIVIDUAL");
             setCompanyName(data.user.name || "");
         }
     }, []);
@@ -191,9 +228,10 @@ export function ClientSpaceDashboard() {
         setSavingProfile(true);
         try {
             const res = await upsertCompanyProfileAction({
+                accountType,
                 companyName,
-                rccmNumber,
-                nccNumber,
+                rccmNumber: accountType === "COMPANY" ? rccmNumber : "",
+                nccNumber: accountType === "COMPANY" ? nccNumber : "",
                 phone,
                 defaultPickup,
                 defaultDropoff,
@@ -201,14 +239,49 @@ export function ClientSpaceDashboard() {
             });
             if (res.error || !res.data) {
                 toast.error(
-                    res.error || "Impossible d'enregistrer le profil."
+                    res.error || "Impossible d'enregistrer votre profil."
                 );
                 return;
             }
-            toast.success("Profil entreprise & adresses enregistrés");
+            toast.success("Profil et adresses favorites enregistrés");
             await loadDashboard();
         } finally {
             setSavingProfile(false);
+        }
+    };
+
+    const handleConfirmCancelQuote = async () => {
+        if (!cancelTarget) return;
+        const isOther = selectedCancelPreset.startsWith("Autre");
+        const finalReason = isOther
+            ? customCancelReason.trim()
+            : customCancelReason.trim()
+              ? `${selectedCancelPreset} — ${customCancelReason.trim()}`
+              : selectedCancelPreset;
+
+        if (finalReason.length < 3) {
+            toast.error("Veuillez préciser le motif d'annulation.");
+            return;
+        }
+
+        setIsCancelling(true);
+        try {
+            const res = await cancelClientQuoteAction({
+                quoteId: cancelTarget.id,
+                reason: finalReason,
+            });
+            if (res.error || !res.data) {
+                toast.error(res.error || "Impossible d'annuler ce devis.");
+                return;
+            }
+            toast.success(
+                `Devis ${res.data.trackingCode} annulé. Notre équipe a été informée.`
+            );
+            setCancelTarget(null);
+            setCustomCancelReason("");
+            await loadDashboard();
+        } finally {
+            setIsCancelling(false);
         }
     };
 
@@ -221,17 +294,19 @@ export function ClientSpaceDashboard() {
                 return;
             }
             toast.success(
-                `Nouvelle commande #${res.data.newQuoteId.slice(0, 8)} créée en 1 clic !`
+                `Nouvelle commande ${res.data.trackingCode} créée en 1 clic !`
             );
             await loadDashboard();
         } finally {
             setReorderingId(null);
+            setReorderTarget(null);
         }
     };
 
     const handleDownloadPdf = (q: ClientQuoteSummaryDTO) => {
         generateQuotePDF({
             id: q.id,
+            trackingCode: q.trackingCode,
             date: q.date,
             client: q.clientName,
             email: q.email,
@@ -242,7 +317,11 @@ export function ClientSpaceDashboard() {
             pickup: q.pickupLocation,
             dropoff: q.dropoffLocation,
             transportDate: q.transportDate,
-            status: q.statusLabel as "En attente" | "Validé" | "Refusé",
+            status: q.statusLabel as
+                | "En attente"
+                | "Validé"
+                | "Refusé"
+                | "Annulé",
             amount: q.amount,
             userNotes: q.userNotes || undefined,
             source: "form",
@@ -407,14 +486,14 @@ export function ClientSpaceDashboard() {
                         Actualiser
                     </Button>
                     <Button asChild className="min-h-[44px] gap-2">
-                        <Link href="/#devis">
+                        <Link href="/devis">
                             <Plus className="h-4 w-4" />
                             Nouveau devis
                         </Link>
                     </Button>
                     <Button
                         variant="ghost"
-                        onClick={handleSignOut}
+                        onClick={() => setLogoutConfirmOpen(true)}
                         className="min-h-[44px] gap-2"
                     >
                         <LogOut className="h-4 w-4" />
@@ -515,8 +594,8 @@ export function ClientSpaceDashboard() {
                                     <CardContent className="flex flex-col justify-between gap-4 p-5 lg:flex-row lg:items-center">
                                         <div className="space-y-2">
                                             <div className="flex flex-wrap items-center gap-2">
-                                                <span className="font-mono text-xs font-bold">
-                                                    #{q.id.slice(0, 8)}
+                                                <span className="bg-muted rounded px-2 py-0.5 font-mono text-xs font-bold">
+                                                    {q.trackingCode}
                                                 </span>
                                                 <Badge
                                                     variant="outline"
@@ -526,7 +605,10 @@ export function ClientSpaceDashboard() {
                                                             : q.status ===
                                                                 "REJECTED"
                                                               ? "border-destructive/40 bg-destructive/10 text-destructive"
-                                                              : "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+                                                              : q.status ===
+                                                                  "CANCELLED"
+                                                                ? "border-muted-foreground/30 bg-muted text-muted-foreground"
+                                                                : "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300"
                                                     }
                                                 >
                                                     {q.status ===
@@ -536,6 +618,10 @@ export function ClientSpaceDashboard() {
                                                     {q.status ===
                                                         "REJECTED" && (
                                                         <XCircle className="mr-1 h-3 w-3" />
+                                                    )}
+                                                    {q.status ===
+                                                        "CANCELLED" && (
+                                                        <Ban className="mr-1 h-3 w-3" />
                                                     )}
                                                     {q.status === "PENDING" && (
                                                         <Clock className="mr-1 h-3 w-3" />
@@ -581,6 +667,16 @@ export function ClientSpaceDashboard() {
                                                     )}
                                                 </span>
                                             </div>
+                                            {q.status === "CANCELLED" &&
+                                                q.cancellationReason && (
+                                                    <p className="text-destructive/90 text-xs">
+                                                        <strong>
+                                                            Motif d&apos;annulation
+                                                            :
+                                                        </strong>{" "}
+                                                        {q.cancellationReason}
+                                                    </p>
+                                                )}
                                         </div>
 
                                         <div className="flex flex-wrap items-center gap-2">
@@ -618,7 +714,7 @@ export function ClientSpaceDashboard() {
                                                     reorderingId === q.id
                                                 }
                                                 onClick={() =>
-                                                    handleReorder(q.id)
+                                                    setReorderTarget(q)
                                                 }
                                                 className="min-h-[40px] gap-1.5"
                                             >
@@ -629,6 +725,28 @@ export function ClientSpaceDashboard() {
                                                 )}
                                                 Recommander (1-Clic)
                                             </Button>
+
+                                            {(q.status === "PENDING" ||
+                                                q.status === "VALIDATED") && (
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        setCancelTarget(q);
+                                                        setSelectedCancelPreset(
+                                                            PRESET_CANCELLATION_REASONS[0]
+                                                        );
+                                                        setCustomCancelReason(
+                                                            ""
+                                                        );
+                                                    }}
+                                                    className="text-destructive hover:bg-destructive/10 hover:text-destructive min-h-[40px] gap-1.5"
+                                                >
+                                                    <Ban className="h-3.5 w-3.5" />
+                                                    Annuler
+                                                </Button>
+                                            )}
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -641,12 +759,12 @@ export function ClientSpaceDashboard() {
                     <Card>
                         <CardHeader>
                             <CardTitle>
-                                Coordonnées Entreprise &amp; Entrepôts Favoris
+                                Mon Profil &amp; Adresses Favorites
                             </CardTitle>
                             <CardDescription>
-                                Conservez vos références RCCM/NCC et vos lieux
-                                d&apos;enlèvement habituels pour accélérer vos
-                                commandes régulières.
+                                Choisissez votre type de compte (Particulier ou
+                                Entreprise) pour pré-remplir automatiquement vos
+                                prochaines demandes de devis.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -654,10 +772,47 @@ export function ClientSpaceDashboard() {
                                 onSubmit={handleSaveProfile}
                                 className="space-y-6"
                             >
+                                {/* Sélecteur Particulier vs Entreprise */}
+                                <div className="space-y-2">
+                                    <Label>Type de compte *</Label>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setAccountType("INDIVIDUAL")
+                                            }
+                                            className={`flex min-h-[48px] items-center justify-center gap-2 rounded-xl border-2 px-4 py-2.5 text-sm font-semibold transition-all ${
+                                                accountType === "INDIVIDUAL"
+                                                    ? "border-primary bg-primary/10 text-primary"
+                                                    : "border-border hover:border-primary/40"
+                                            }`}
+                                        >
+                                            <User className="h-4 w-4" />
+                                            Particulier
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setAccountType("COMPANY")
+                                            }
+                                            className={`flex min-h-[48px] items-center justify-center gap-2 rounded-xl border-2 px-4 py-2.5 text-sm font-semibold transition-all ${
+                                                accountType === "COMPANY"
+                                                    ? "border-primary bg-primary/10 text-primary"
+                                                    : "border-border hover:border-primary/40"
+                                            }`}
+                                        >
+                                            <Building2 className="h-4 w-4" />
+                                            Entreprise
+                                        </button>
+                                    </div>
+                                </div>
+
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <div className="space-y-1.5">
                                         <Label htmlFor="cp-name">
-                                            Raison sociale / Nom *
+                                            {accountType === "COMPANY"
+                                                ? "Raison sociale de l'entreprise *"
+                                                : "Nom et Prénoms *"}
                                         </Label>
                                         <Input
                                             id="cp-name"
@@ -665,6 +820,11 @@ export function ClientSpaceDashboard() {
                                             value={companyName}
                                             onChange={(e) =>
                                                 setCompanyName(e.target.value)
+                                            }
+                                            placeholder={
+                                                accountType === "COMPANY"
+                                                    ? "Ex: Ivoire Construction SARL"
+                                                    : "Ex: Kouamé Jean-Baptiste"
                                             }
                                             className="min-h-[44px]"
                                         />
@@ -686,37 +846,41 @@ export function ClientSpaceDashboard() {
                                     </div>
                                 </div>
 
-                                <div className="grid gap-4 sm:grid-cols-2">
-                                    <div className="space-y-1.5">
-                                        <Label htmlFor="cp-rccm">
-                                            Numéro RCCM (optionnel)
-                                        </Label>
-                                        <Input
-                                            id="cp-rccm"
-                                            value={rccmNumber}
-                                            onChange={(e) =>
-                                                setRccmNumber(e.target.value)
-                                            }
-                                            placeholder="CI-ABJ-03-..."
-                                            className="min-h-[44px]"
-                                        />
+                                {accountType === "COMPANY" && (
+                                    <div className="grid gap-4 sm:grid-cols-2">
+                                        <div className="space-y-1.5">
+                                            <Label htmlFor="cp-rccm">
+                                                Numéro RCCM (optionnel)
+                                            </Label>
+                                            <Input
+                                                id="cp-rccm"
+                                                value={rccmNumber}
+                                                onChange={(e) =>
+                                                    setRccmNumber(
+                                                        e.target.value
+                                                    )
+                                                }
+                                                placeholder="CI-ABJ-03-..."
+                                                className="min-h-[44px]"
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <Label htmlFor="cp-ncc">
+                                                N° Compte Contribuable NCC
+                                                (optionnel)
+                                            </Label>
+                                            <Input
+                                                id="cp-ncc"
+                                                value={nccNumber}
+                                                onChange={(e) =>
+                                                    setNccNumber(e.target.value)
+                                                }
+                                                placeholder="Ex: 2401589-K"
+                                                className="min-h-[44px]"
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="space-y-1.5">
-                                        <Label htmlFor="cp-ncc">
-                                            N° Compte Contribuable NCC
-                                            (optionnel)
-                                        </Label>
-                                        <Input
-                                            id="cp-ncc"
-                                            value={nccNumber}
-                                            onChange={(e) =>
-                                                setNccNumber(e.target.value)
-                                            }
-                                            placeholder="Ex: 2401589-K"
-                                            className="min-h-[44px]"
-                                        />
-                                    </div>
-                                </div>
+                                )}
 
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <div className="space-y-1.5">
@@ -835,13 +999,134 @@ export function ClientSpaceDashboard() {
                                     ) : (
                                         <Save className="h-4 w-4" />
                                     )}
-                                    Enregistrer mon profil entreprise
+                                    Enregistrer mon profil
                                 </Button>
                             </form>
                         </CardContent>
                     </Card>
                 </TabsContent>
             </Tabs>
+
+            {/* Modale centrée d'annulation de devis avec motifs présélectionnés ou libre */}
+            <Dialog
+                open={!!cancelTarget}
+                onOpenChange={(open) => {
+                    if (!open) setCancelTarget(null);
+                }}
+            >
+                <DialogContent className="sm:max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Ban className="text-destructive h-5 w-5" />
+                            Annuler le devis {cancelTarget?.trackingCode} ?
+                        </DialogTitle>
+                        <DialogDescription>
+                            Indiquez le motif de votre annulation afin
+                            d&apos;informer notre équipe d&apos;exploitation et
+                            d&apos;améliorer notre suivi.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-4 py-2">
+                        <div className="space-y-2">
+                            <Label>Sélectionnez un motif</Label>
+                            <div className="grid gap-2">
+                                {PRESET_CANCELLATION_REASONS.map((preset) => (
+                                    <button
+                                        key={preset}
+                                        type="button"
+                                        onClick={() =>
+                                            setSelectedCancelPreset(preset)
+                                        }
+                                        className={`rounded-xl border px-3.5 py-2.5 text-left text-xs font-medium transition-all ${
+                                            selectedCancelPreset === preset
+                                                ? "border-destructive bg-destructive/10 text-destructive"
+                                                : "border-border hover:border-destructive/40"
+                                        }`}
+                                    >
+                                        {preset}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <Label htmlFor="cancel-custom-reason">
+                                Précision complémentaire{" "}
+                                {selectedCancelPreset.startsWith("Autre")
+                                    ? "*"
+                                    : "(optionnel)"}
+                            </Label>
+                            <Textarea
+                                id="cancel-custom-reason"
+                                rows={3}
+                                value={customCancelReason}
+                                onChange={(e) =>
+                                    setCustomCancelReason(e.target.value)
+                                }
+                                placeholder="Ex: Nous décalons la livraison à la semaine prochaine..."
+                            />
+                        </div>
+                    </div>
+
+                    <DialogFooter className="gap-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setCancelTarget(null)}
+                            disabled={isCancelling}
+                        >
+                            Conserver le devis
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            onClick={handleConfirmCancelQuote}
+                            disabled={isCancelling}
+                            className="gap-2"
+                        >
+                            {isCancelling && (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            )}
+                            Confirmer l&apos;annulation
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Modale centrée de confirmation Recommande 1-Clic */}
+            <ConfirmDialog
+                open={!!reorderTarget}
+                onOpenChange={(open) => {
+                    if (!open) setReorderTarget(null);
+                }}
+                title={`Recommander le transport ${reorderTarget?.trackingCode || ""} ?`}
+                description={
+                    reorderTarget
+                        ? `Un nouveau devis identique (${reorderTarget.itemType} : ${reorderTarget.pickupLocation} → ${reorderTarget.dropoffLocation}) sera créé immédiatement pour dans 48h.`
+                        : ""
+                }
+                confirmLabel="Confirmer la commande"
+                onConfirm={() => {
+                    if (reorderTarget) {
+                        void handleReorder(reorderTarget.id);
+                    }
+                }}
+            />
+
+            {/* Modale centrée de confirmation Déconnexion */}
+            <ConfirmDialog
+                open={logoutConfirmOpen}
+                onOpenChange={setLogoutConfirmOpen}
+                title="Se déconnecter de l'Espace Client ?"
+                description="Vous devrez saisir votre email et mot de passe pour accéder à nouveau à vos devis et discussions."
+                confirmLabel="Se déconnecter"
+                variant="destructive"
+                onConfirm={() => {
+                    setLogoutConfirmOpen(false);
+                    void handleSignOut();
+                }}
+            />
         </div>
     );
 }

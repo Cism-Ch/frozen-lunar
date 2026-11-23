@@ -1,6 +1,6 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Clock, XCircle } from "lucide-react";
+import { Ban, CheckCircle, Clock, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type QuoteStatusType =
@@ -10,6 +10,8 @@ export type QuoteStatusType =
     | "PENDING"
     | "Refusé"
     | "REJECTED"
+    | "Annulé"
+    | "CANCELLED"
     | string;
 
 interface QuoteStatusBadgeProps {
@@ -32,6 +34,8 @@ export function QuoteStatusBadge({
         normalized === "Validé" || normalized.toUpperCase() === "VALIDATED";
     const isRefuse =
         normalized === "Refusé" || normalized.toUpperCase() === "REJECTED";
+    const isAnnule =
+        normalized === "Annulé" || normalized.toUpperCase() === "CANCELLED";
     const isEnAttente =
         normalized === "En attente" || normalized.toUpperCase() === "PENDING";
 
@@ -61,6 +65,21 @@ export function QuoteStatusBadge({
             >
                 {showIcon && <XCircle className="mr-1 h-3 w-3 shrink-0" />}
                 Refusé
+            </Badge>
+        );
+    }
+
+    if (isAnnule) {
+        return (
+            <Badge
+                variant="outline"
+                className={cn(
+                    "border-muted-foreground/30 bg-muted text-muted-foreground font-medium tracking-wide shadow-2xs",
+                    className
+                )}
+            >
+                {showIcon && <Ban className="mr-1 h-3 w-3 shrink-0" />}
+                Annulé
             </Badge>
         );
     }
