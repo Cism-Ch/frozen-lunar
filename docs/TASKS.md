@@ -9,15 +9,15 @@
 
 ```
 +-------------------------+  +-------------------------+  +-------------------------+
-| [>] IN PROGRESS         |  |  [?] ROADMAP            |  |       [X] ARCHIVES      |
+| [>] IN PROGRESS (SP 18) |  |  [?] ROADMAP (SP 19-20) |  |       [X] ARCHIVES      |
 +-------------------------+  +-------------------------+  +-------------------------+
-| (None)                  |  |                         |  | [x] SP 01..05 (Archived)|
-|                         |  |                         |  | [x] SP 06..11 (Archived)|
+| [-] TASK-ADM-03..05     |  | [ ] TASK-QTE-01..04     |  | [x] SP 01..11 (Archived)|
 |                         |  |                         |  | [x] TASK-INF-01..04     |
 |                         |  |                         |  | [x] TASK-SUP-01..02     |
 |                         |  |                         |  | [x] TASK-CLT-01..03     |
 |                         |  |                         |  | [x] TASK-PRT-03..04     |
 |                         |  |                         |  | [x] TASK-ADM-01..02     |
+|                         |  |                         |  | [x] TASK-UIX-01..03     |
 +-------------------------+  +-------------------------+  +-------------------------+
 ```
 
@@ -118,3 +118,29 @@
   - **Target files:** `src/app/admin/assistant/page.tsx`, `src/components/features/admin/AdminCopilotClient.tsx`, `src/components/features/admin/SidebarContent.tsx`
   - **Acceptance criteria:**
     - [x] Dedicated admin chat interface with quick task prompts, structured result cards, and centered `ConfirmDialog` before every database write action (`100/100` RSI PASS, `pnpm next build` + 122/122 tests PASS).
+
+---
+
+## Completed Sprint 17: Premium Palette, Raleway, Floating Adaptive Header & Hero Redesign
+
+- [x] **`TASK-UIX-01` - Premium Color Palette (`#001F3D`, `#6081A0`, `#FF6600`, `#FF7C24`) & Raleway Typography**
+  - **Target files:** `src/app/layout.tsx`, `src/app/globals.css`
+  - **Criteria:** [x] Raleway loaded via `next/font/google`; new CSS/Tailwind tokens active in light & dark mode with WCAG AA contrast.
+
+- [x] **`TASK-UIX-02` - Floating Translucent Adaptive Header, Drawer Compression & Client `UserAccountMenu`**
+  - **Target files:** `src/components/layout/Header.tsx`, `src/components/layout/UserAccountMenu.tsx`
+  - **Criteria:** [x] Borderless floating translucent header, menu icons, manual + automatic (`ResizeObserver` hysteresis) title↔icon toggle, mobile drawer compression toggle, and Better-Auth user connection status menu.
+
+- [x] **`TASK-UIX-03` - Hero Cover Redesign & Heavy Freight Illustration**
+  - **Target files:** `public/images/hero-freight.jpg`, `src/components/features/HeroSection.tsx`, `src/app/page.tsx`
+  - **Criteria:** [x] Cover-styled Hero with heavy freight illustration matching input style, gradient glow, glassmorphism HUD elements, and subtle watermark (`100/100` RSI PASS).
+
+## Active Sprint 18 & Roadmap Sprints 19-20
+
+- [-] **`TASK-ADM-03` (SP 18)** - Reusable `<PasswordInput />` deployed across all password forms.
+- [-] **`TASK-ADM-04` (SP 18)** - Production audit & fixes for `/admin/settings` & `/espace-client` profile links.
+- [-] **`TASK-ADM-05` (SP 18)** - Patch demo data (8 CI quotes, dynamic dates, `HBC-YYYY-XXXX`, aligned `supplementaryInfo`).
+- [ ] **`TASK-QTE-01` (SP 19)** - Replace `QuoteDetailsSheet` with responsive centered `QuoteDetailsModal` (equal auto X/Y margins).
+- [ ] **`TASK-QTE-02` (SP 19)** - Redesign `/admin/quotes` list with KPIs, `HBC-YYYY-XXXX`, amount column, and `CANCELLED` filter.
+- [ ] **`TASK-QTE-03` (SP 20)** - Server AI pricing engine (`assistQuotePricingAction` & `saveStructuredPricingAction`).
+- [ ] **`TASK-QTE-04` (SP 20)** - Rebuild `/admin/quotes/[id]` workspace & interactive `QuotePricingStudio`.

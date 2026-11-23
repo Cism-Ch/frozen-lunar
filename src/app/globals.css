@@ -71,8 +71,10 @@
     --color-muted: var(--muted);
     --color-secondary-foreground: var(--secondary-foreground);
     --color-secondary: var(--secondary);
+    --color-secondary-steel: var(--secondary-steel);
     --color-primary-foreground: var(--primary-foreground);
     --color-primary: var(--primary);
+    --color-primary-accent: var(--primary-accent);
     --color-popover-foreground: var(--popover-foreground);
     --color-popover: var(--popover);
     --color-card-foreground: var(--card-foreground);
@@ -106,12 +108,14 @@
     --popover: hsl(0 0% 100%);
     --popover-foreground: hsl(0 0% 9%);
 
-    /* Industrial Orange Primary */
+    /* Industrial Orange Primary (#FF6600) + Vibrant Variant (#FF7C24) */
     --primary: hsl(24 100% 50%);
+    --primary-accent: #FF7C24;
     --primary-foreground: hsl(0 0% 100%);
 
-    /* Deep Blue Secondary */
-    --secondary: hsl(210 100% 20%);
+    /* Deep Navy Secondary (#001F3D) + Steel Blue Variant (#6081A0) */
+    --secondary: #001F3D;
+    --secondary-steel: #6081A0;
     --secondary-foreground: hsl(0 0% 100%);
 
     --muted: hsl(0 0% 96%);
@@ -168,10 +172,14 @@
     --popover: hsl(0 0% 10%);
     --popover-foreground: hsl(0 0% 98%);
 
+    /* Industrial Orange Primary (#FF6600) + Vibrant Variant (#FF7C24) */
     --primary: hsl(24 100% 50%);
+    --primary-accent: #FF7C24;
     --primary-foreground: hsl(0 0% 100%);
 
-    --secondary: hsl(210 100% 20%);
+    /* Deep Navy Secondary (#001F3D) + Steel Blue Variant (#6081A0) */
+    --secondary: #001F3D;
+    --secondary-steel: #6081A0;
     --secondary-foreground: hsl(0 0% 100%);
 
     --muted: hsl(0 0% 14%);

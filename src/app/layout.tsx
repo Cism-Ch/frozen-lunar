@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Raleway } from "next/font/google";
 import "./globals.css";
 import { LayoutWrapper } from "@/components/layout/LayoutWrapper";
 import { JsonLd } from "@/components/layout/JsonLd";
 import { COMPANY_CONFIG } from "@/lib/company-config";
 
-const inter = Inter({
+const raleway = Raleway({
     subsets: ["latin"],
+    weight: ["300", "400", "500", "600", "700", "800"],
     variable: "--font-sans",
     display: "swap",
     fallback: ["system-ui", "arial"],
@@ -65,7 +66,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="fr" suppressHydrationWarning>
-            <body className={`${inter.variable} font-sans antialiased`}>
+            <body className={`${raleway.variable} font-sans antialiased`}>
                 <JsonLd />
                 <LayoutWrapper>{children}</LayoutWrapper>
             </body>
