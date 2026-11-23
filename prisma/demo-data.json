@@ -1,88 +1,161 @@
 [
     {
         "clientName": "SOGEA-SATOM Côte d'Ivoire",
-        "email": "logistique@sogea-satom.ci",
+        "email": "logistique@sogea-satom.demo.ci",
         "phone": "+225 07 48 16 30 00",
         "itemType": "Charpentes métalliques lourdes (22m)",
         "pickupLocation": "Port Autonome d'Abidjan, Vridi, Abidjan",
-        "dropoffLocation": "Chantier Zone Industrielle PK24, Anyama, Abidjan",
-        "transportDate": "2026-07-28T08:00:00.000Z",
+        "dropoffLocation": "Zone Industrielle PK24, Anyama, Abidjan",
+        "daysOffset": 3,
         "status": "VALIDATED",
-        "amount": "2 850 000 FCFA",
+        "amount": "2 850 000 FCFA HT",
         "userNotes": "Livraison matinale impérative avant 9h. Convoi exceptionnel avec escorte.",
         "source": "FORM",
         "supplementaryInfo": {
-            "weightTonnes": 18.5,
-            "urgent": true,
-            "craneRequired": true
+            "category": "structure",
+            "structureType": "Charpente métallique industrielle",
+            "length": "22 mètres",
+            "weight": "18,5 tonnes",
+            "urgency": "urgent",
+            "requiresCrane": true
         }
     },
     {
-        "clientName": "Bolloré Logistics CI (AGL)",
-        "email": "exploitation@agl-ci.example.ci",
+        "clientName": "AGL Côte d'Ivoire (Ex-Bolloré)",
+        "email": "exploitation@agl.demo.ci",
         "phone": "+225 05 72 81 40 50",
         "itemType": "Container Maritime 40ft High Cube",
         "pickupLocation": "Terminal à Conteneurs de Vridi, Abidjan",
-        "dropoffLocation": "Zone Industrielle de Yamoussoukro, Côte d'Ivoire",
-        "transportDate": "2026-07-29T10:30:00.000Z",
+        "dropoffLocation": "Zone Industrielle de Yamoussoukro",
+        "daysOffset": 5,
         "status": "PENDING",
-        "amount": "1 250 000 FCFA",
-        "userNotes": "Châssis porte-conteneur 40 pieds à prévoir sur site.",
+        "amount": "À calculer",
+        "userNotes": "Châssis porte-conteneur 40 pieds à prévoir sur site. Bon à délivrer prêt.",
         "source": "CHAT",
         "supplementaryInfo": {
-            "containerType": "40ft HC",
-            "hazardous": false
+            "category": "container",
+            "containerSize": "40 pieds High Cube",
+            "containerType": "Dry Standard",
+            "isEmpty": false,
+            "hazardous": false,
+            "weight": "24 tonnes"
         }
     },
     {
         "clientName": "PFO Africa BTP",
-        "email": "approvisionnement@pfo-africa.example.ci",
+        "email": "approvisionnement@pfo-africa.demo.ci",
         "phone": "+225 01 40 92 11 22",
         "itemType": "Modules préfabriqués de chantier (4 unités)",
         "pickupLocation": "Zone Industrielle Yopougon, Abidjan",
         "dropoffLocation": "Base de vie Chantier Autoroute, Bouaké",
-        "transportDate": "2026-07-30T07:30:00.000Z",
+        "daysOffset": 7,
         "status": "VALIDATED",
-        "amount": "3 600 000 FCFA",
+        "amount": "3 600 000 FCFA HT",
         "userNotes": "Transport par camion plateau grande longueur avec grue de déchargement.",
         "source": "FORM",
         "supplementaryInfo": {
-            "unitsCount": 4,
-            "escortCar": true
+            "category": "structure",
+            "structureType": "Bungalows préfabriqués (4 unités)",
+            "dimensions": "6m x 2,4m x 2,6m",
+            "requiresCrane": true,
+            "accessInfo": "Plateforme stabilisée accessible 40T"
         }
     },
     {
         "clientName": "Kaydan Groupe Immobilier",
-        "email": "direction.travaux@kaydan.example.ci",
+        "email": "direction.travaux@kaydan.demo.ci",
         "phone": "+225 07 85 55 12 34",
-        "itemType": "Matériaux de construction & Palettes de fer à béton",
+        "itemType": "Matériaux de construction & Fer à béton",
         "pickupLocation": "Dépôt Matériaux Koumassi, Abidjan",
         "dropoffLocation": "Chantier Résidence Riviera Palmeraie, Cocody, Abidjan",
-        "transportDate": "2026-08-01T09:00:00.000Z",
+        "daysOffset": 2,
         "status": "VALIDATED",
-        "amount": "450 000 FCFA",
-        "userNotes": "Accès chantier dégagé pour semi-remorque 30T.",
+        "amount": "480 000 FCFA HT",
+        "userNotes": "Accès chantier dégagé pour semi-remorque 30T dès 07h30.",
         "source": "FORM",
         "supplementaryInfo": {
-            "palettes": 24,
-            "weightTonnes": 22
+            "category": "materials",
+            "materialType": "Palettes de fer à béton & ciment",
+            "packaging": "24 palettes cerclées",
+            "weight": "22 tonnes"
         }
     },
     {
         "clientName": "CFAO Equipment Côte d'Ivoire",
-        "email": "operations@cfao-equipment.example.ci",
+        "email": "operations@cfao-equipment.demo.ci",
         "phone": "+225 27 21 35 60 80",
         "itemType": "Pelle hydraulique sur chenilles 25T",
         "pickupLocation": "Port de San-Pédro, Côte d'Ivoire",
-        "dropoffLocation": "Site Minier Régional, Korhogo, Côte d'Ivoire",
-        "transportDate": "2026-08-03T06:00:00.000Z",
+        "dropoffLocation": "Site Minier Régional, Korhogo",
+        "daysOffset": 9,
         "status": "PENDING",
-        "amount": "4 900 000 FCFA",
-        "userNotes": "Porte-char surbaissé obligatoire, autorisation de circulation grand gabarit.",
+        "amount": "À calculer",
+        "userNotes": "Porte-char surbaissé obligatoire, autorisation de circulation grand gabarit requise.",
         "source": "CHAT",
         "supplementaryInfo": {
-            "weightTonnes": 25,
-            "requiresLowLoader": true
+            "category": "machinery",
+            "machineType": "Pelle hydraulique sur chenilles",
+            "weight": "25 tonnes",
+            "dimensions": "9,5m x 3,1m x 3,2m",
+            "urgency": "urgent"
+        }
+    },
+    {
+        "clientName": "Kouadio Konan Marc (Particulier)",
+        "email": "marc.kouadio@particulier.demo.ci",
+        "phone": "+225 07 09 44 18 72",
+        "itemType": "Matériaux de construction villa (Ciment & Tôles)",
+        "pickupLocation": "Zone 4C, Marcory, Abidjan",
+        "dropoffLocation": "Quartier Résidentiel, Grand-Bassam",
+        "daysOffset": 4,
+        "status": "PENDING",
+        "amount": "À calculer",
+        "userNotes": "Livraison pour chantier résidentiel particulier, route bitumée jusqu'au portail.",
+        "source": "FORM",
+        "supplementaryInfo": {
+            "category": "materials",
+            "materialType": "Ciment 12T + tôles bac alu",
+            "weight": "14 tonnes",
+            "accessInfo": "Accès porteur 15T recommandé"
+        }
+    },
+    {
+        "clientName": "Ivoire Agro-Industrie SA",
+        "email": "supply@ivoire-agro.demo.ci",
+        "phone": "+225 05 44 21 90 10",
+        "itemType": "Container Frigorifique 20ft (Anacarde)",
+        "pickupLocation": "Usine de Transformation, Bouaké",
+        "dropoffLocation": "Port Autonome d'Abidjan, Treichville",
+        "daysOffset": -2,
+        "status": "CANCELLED",
+        "amount": "950 000 FCFA HT",
+        "cancellationReason": "Report de la date de transport par le client",
+        "userNotes": "Expédition reportée à la prochaine fenêtre navire.",
+        "source": "FORM",
+        "supplementaryInfo": {
+            "category": "container",
+            "containerSize": "20 pieds",
+            "containerType": "Reefer (Frigorifique)",
+            "weight": "16 tonnes"
+        }
+    },
+    {
+        "clientName": "Société Minière du Bandama",
+        "email": "achat@bandama-mining.demo.ci",
+        "phone": "+225 01 71 33 88 05",
+        "itemType": "Produits chimiques industriels (Classe ADR)",
+        "pickupLocation": "Zone Industrielle Vridi, Abidjan",
+        "dropoffLocation": "Site d'Extraction, Séguéla",
+        "daysOffset": -5,
+        "status": "REJECTED",
+        "amount": "À calculer",
+        "userNotes": "Demande nécessitant citerne ADR spécialisée non disponible sur ce créneau.",
+        "source": "CHAT",
+        "supplementaryInfo": {
+            "category": "other",
+            "hazardous": true,
+            "weight": "19 tonnes",
+            "urgency": "very_urgent"
         }
     }
 ]

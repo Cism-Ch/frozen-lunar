@@ -45,6 +45,7 @@ import {
 } from "@/components/ui/dialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -113,6 +114,13 @@ export function ClientSpaceDashboard() {
     const [reorderTarget, setReorderTarget] =
         useState<ClientQuoteSummaryDTO | null>(null);
     const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState<"quotes" | "profile">(() => {
+        if (typeof window === "undefined") return "quotes";
+        return new URLSearchParams(window.location.search).get("tab") ===
+            "profile"
+            ? "profile"
+            : "quotes";
+    });
 
     const applyDashboardData = useCallback((data: ClientDashboardDTO) => {
         setDashboard(data);
@@ -417,9 +425,8 @@ export function ClientSpaceDashboard() {
 
                             <div className="space-y-1.5">
                                 <Label htmlFor="c-pass">Mot de passe</Label>
-                                <Input
+                                <PasswordInput
                                     id="c-pass"
-                                    type="password"
                                     required
                                     minLength={8}
                                     value={authPassword}
@@ -552,8 +559,14 @@ export function ClientSpaceDashboard() {
                 </Card>
             </div>
 
-            {/* Onglets : Commandes vs Profil Entreprise */}
-            <Tabs defaultValue="quotes" className="space-y-6">
+            {/* Onglets : Commandes vs Mon Profil & Adresses */}
+            <Tabs
+                value={activeTab}
+                onValueChange={(v) =>
+                    setActiveTab(v === "profile" ? "profile" : "quotes")
+                }
+                className="space-y-6"
+            >
                 <TabsList>
                     <TabsTrigger value="quotes" className="min-h-[40px] gap-2">
                         <FileText className="h-4 w-4" />
@@ -561,7 +574,7 @@ export function ClientSpaceDashboard() {
                     </TabsTrigger>
                     <TabsTrigger value="profile" className="min-h-[40px] gap-2">
                         <User className="h-4 w-4" />
-                        Profil Entreprise &amp; Adresses
+                        Mon Profil &amp; Adresses
                     </TabsTrigger>
                 </TabsList>
 

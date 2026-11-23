@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Truck, ArrowRight, Loader2, Quote, AlertCircle } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -171,10 +172,9 @@ function LoginForm() {
                                             Mot de passe oublié ?
                                         </Link>
                                     </div>
-                                    <Input
+                                    <PasswordInput
                                         id="password"
                                         name="password"
-                                        type="password"
                                         disabled={isLoading}
                                         className="bg-muted/30 h-11"
                                         required

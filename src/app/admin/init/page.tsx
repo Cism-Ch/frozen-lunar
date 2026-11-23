@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import {
     Card,
@@ -226,10 +227,9 @@ export default function AdminInitPage() {
 
                         <div className="space-y-2">
                             <Label htmlFor="password">Mot de passe</Label>
-                            <Input
+                            <PasswordInput
                                 id="password"
                                 name="password"
-                                type="password"
                                 placeholder="Minimum 8 caractères"
                                 autoComplete="new-password"
                                 required
@@ -242,10 +242,9 @@ export default function AdminInitPage() {
                             <Label htmlFor="confirmPassword">
                                 Confirmer le mot de passe
                             </Label>
-                            <Input
+                            <PasswordInput
                                 id="confirmPassword"
                                 name="confirmPassword"
-                                type="password"
                                 placeholder="Répétez le mot de passe"
                                 autoComplete="new-password"
                                 required

@@ -7,10 +7,20 @@ import { handleError } from "@/lib/error-handler";
 import demoQuotes from "../../../prisma/demo-data.json";
 import { QuoteStatus, QuoteSource } from "@prisma/client";
 import { logger } from "@/lib/logger";
+import { generateTrackingCode } from "@/lib/tracking-code";
+
+// Anciens emails démo obsolètes à purger également lors du nettoyage
+const LEGACY_DEMO_EMAILS = [
+    "logistique@sogea-satom.ci",
+    "exploitation@agl-ci.example.ci",
+    "approvisionnement@pfo-africa.example.ci",
+    "direction.travaux@kaydan.example.ci",
+    "operations@cfao-equipment.example.ci",
+];
 
 /**
- * Server Action pour injecter les données de démonstration dans la base PostgreSQL
- * simulant de vrais utilisateurs enregistrés.
+ * Server Action pour injecter 8 devis de démonstration modernes (Côte d'Ivoire)
+ * avec dates dynamiques relatives à la date du jour et codes HBC-YYYY-XXXX.
  */
 export async function injectDemoDataAction() {
     try {
@@ -18,7 +28,6 @@ export async function injectDemoDataAction() {
         let insertedCount = 0;
 
         for (const item of demoQuotes) {
-            // Vérifier si un devis similaire existe déjà pour éviter le sur-remplissage
             const existing = await prisma.quote.findFirst({
                 where: {
                     email: item.email,
@@ -28,24 +37,39 @@ export async function injectDemoDataAction() {
             });
 
             if (!existing) {
+                const targetDate = new Date();
+                targetDate.setDate(
+                    targetDate.getDate() + (item.daysOffset ?? 3)
+                );
+                targetDate.setHours(8, 30, 0, 0);
+
+                const isCancelled = item.status === "CANCELLED";
+                const trackingCode = generateTrackingCode();
+
                 const quote = await prisma.quote.create({
                     data: {
+                        trackingCode,
                         clientName: item.clientName,
                         email: item.email,
                         phone: item.phone,
                         itemType: item.itemType,
                         pickupLocation: item.pickupLocation,
                         dropoffLocation: item.dropoffLocation,
-                        transportDate: new Date(item.transportDate),
+                        transportDate: targetDate,
                         status: item.status as QuoteStatus,
                         amount: item.amount,
                         userNotes: item.userNotes,
                         source: item.source as QuoteSource,
                         supplementaryInfo: item.supplementaryInfo || {},
+                        cancellationReason: isCancelled
+                            ? item.cancellationReason ||
+                              "Report de la date de transport"
+                            : null,
+                        cancelledAt: isCancelled ? new Date() : null,
                         history: {
                             create: {
                                 action: "Création initiale",
-                                description: `Demande de devis démo enregistrée via ${item.source === "CHAT" ? "Assistant IA" : "Formulaire Web"}`,
+                                description: `Demande démo ${trackingCode} enregistrée via ${item.source === "CHAT" ? "Assistant IA" : "Formulaire Web"}`,
                                 user: item.clientName,
                             },
                         },
@@ -58,7 +82,6 @@ export async function injectDemoDataAction() {
             }
         }
 
-        // Réinitialiser le cache des routes admin pour rafraîchir l'interface
         revalidatePath("/admin/dashboard");
         revalidatePath("/admin/quotes");
 
@@ -79,12 +102,14 @@ export async function injectDemoDataAction() {
 }
 
 /**
- * Server Action pour réinitialiser les devis de démonstration
+ * Server Action pour purger tous les devis de démonstration (nouveaux + anciens obsolètes).
  */
 export async function clearDemoDataAction() {
     try {
         await requireAdmin();
-        const demoEmails = demoQuotes.map((q) => q.email);
+        const demoEmails = Array.from(
+            new Set([...demoQuotes.map((q) => q.email), ...LEGACY_DEMO_EMAILS])
+        );
 
         const deleteResult = await prisma.quote.deleteMany({
             where: {

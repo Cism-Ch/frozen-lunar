@@ -40,7 +40,7 @@ export async function prepareWhatsAppQuoteMessageAction(
 
         const result = await generateWhatsAppMessage(
             {
-                id: quote.id,
+                id: quote.trackingCode || quote.id,
                 client: quote.clientName,
                 phone: quote.phone,
                 email: quote.email,

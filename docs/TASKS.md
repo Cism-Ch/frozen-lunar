@@ -9,14 +9,14 @@
 
 ```
 +-------------------------+  +-------------------------+  +-------------------------+
-| [>] IN PROGRESS (SP 18) |  |  [?] ROADMAP (SP 19-20) |  |       [X] ARCHIVES      |
+| [>] IN PROGRESS (SP 19) |  |  [?] ROADMAP (SP 20)    |  |       [X] ARCHIVES      |
 +-------------------------+  +-------------------------+  +-------------------------+
-| [-] TASK-ADM-03..05     |  | [ ] TASK-QTE-01..04     |  | [x] SP 01..11 (Archived)|
+| [-] TASK-QTE-01..02     |  | [ ] TASK-QTE-03..04     |  | [x] SP 01..11 (Archived)|
 |                         |  |                         |  | [x] TASK-INF-01..04     |
 |                         |  |                         |  | [x] TASK-SUP-01..02     |
 |                         |  |                         |  | [x] TASK-CLT-01..03     |
 |                         |  |                         |  | [x] TASK-PRT-03..04     |
-|                         |  |                         |  | [x] TASK-ADM-01..02     |
+|                         |  |                         |  | [x] TASK-ADM-01..05     |
 |                         |  |                         |  | [x] TASK-UIX-01..03     |
 +-------------------------+  +-------------------------+  +-------------------------+
 ```
@@ -135,12 +135,12 @@
   - **Target files:** `public/images/hero-freight.jpg`, `src/components/features/HeroSection.tsx`, `src/app/page.tsx`
   - **Criteria:** [x] Cover-styled Hero with heavy freight illustration matching input style, gradient glow, glassmorphism HUD elements, and subtle watermark (`100/100` RSI PASS).
 
-## Active Sprint 18 & Roadmap Sprints 19-20
+## Completed Sprint 18 & Active Sprint 19
 
-- [-] **`TASK-ADM-03` (SP 18)** - Reusable `<PasswordInput />` deployed across all password forms.
-- [-] **`TASK-ADM-04` (SP 18)** - Production audit & fixes for `/admin/settings` & `/espace-client` profile links.
-- [-] **`TASK-ADM-05` (SP 18)** - Patch demo data (8 CI quotes, dynamic dates, `HBC-YYYY-XXXX`, aligned `supplementaryInfo`).
-- [ ] **`TASK-QTE-01` (SP 19)** - Replace `QuoteDetailsSheet` with responsive centered `QuoteDetailsModal` (equal auto X/Y margins).
-- [ ] **`TASK-QTE-02` (SP 19)** - Redesign `/admin/quotes` list with KPIs, `HBC-YYYY-XXXX`, amount column, and `CANCELLED` filter.
+- [x] **`TASK-ADM-03` (SP 18)** - Reusable `<PasswordInput />` deployed across all password forms.
+- [x] **`TASK-ADM-04` (SP 18)** - Production audit & fixes for `/admin/settings` & `/espace-client` profile links.
+- [x] **`TASK-ADM-05` (SP 18)** - Patch demo data (8 CI quotes, dynamic dates, `HBC-YYYY-XXXX`, aligned `supplementaryInfo`, `100/100` RSI PASS).
+- [-] **`TASK-QTE-01` (SP 19)** - Replace `QuoteDetailsSheet` with responsive centered `QuoteDetailsModal` (equal auto X/Y margins).
+- [-] **`TASK-QTE-02` (SP 19)** - Redesign `/admin/quotes` list with KPIs, `HBC-YYYY-XXXX`, amount column, and `CANCELLED` filter.
 - [ ] **`TASK-QTE-03` (SP 20)** - Server AI pricing engine (`assistQuotePricingAction` & `saveStructuredPricingAction`).
 - [ ] **`TASK-QTE-04` (SP 20)** - Rebuild `/admin/quotes/[id]` workspace & interactive `QuotePricingStudio`.

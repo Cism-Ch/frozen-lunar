@@ -12,6 +12,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import {
     Select,
@@ -129,11 +130,10 @@ export function AddUserDialog() {
                             >
                                 Mot de passe
                             </Label>
-                            <Input
+                            <PasswordInput
                                 id="password"
                                 name="password"
-                                type="password"
-                                className="col-span-3"
+                                wrapperClassName="col-span-3"
                                 placeholder="••••••••"
                                 required
                                 minLength={8}

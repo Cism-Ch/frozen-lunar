@@ -36,6 +36,17 @@ const updateCompanySettingsSchema = z.object({
         .string()
         .min(5, "Le numéro NCC (Compte Contribuable) est requis")
         .max(40, "Numéro NCC trop long"),
+    contactEmail: z
+        .string()
+        .email("Adresse email commerciale invalide")
+        .toLowerCase()
+        .trim()
+        .optional(),
+    contactPhone: z
+        .string()
+        .min(6, "Le numéro de téléphone commercial est requis")
+        .max(30, "Numéro trop long")
+        .optional(),
 });
 
 const updateWhatsAppSettingsSchema = z.object({
@@ -45,8 +56,9 @@ const updateWhatsAppSettingsSchema = z.object({
         .max(30, "Numéro trop long"),
     hfModel: z
         .string()
-        .min(3, "Le modèle IA Hugging Face est requis")
-        .max(120, "Identifiant du modèle trop long"),
+        .max(120, "Identifiant du modèle trop long")
+        .optional()
+        .default("gemini-2.5-flash"),
     whatsappTemplate: z
         .string()
         .min(10, "Le modèle de message doit comporter au moins 10 caractères")
@@ -229,6 +241,8 @@ export async function updateCompanySettingsAction(input: unknown): Promise<{
         address: string;
         siret: string;
         vatNumber: string;
+        contactEmail: string;
+        contactPhone: string;
     } | null;
     error: string | null;
 }> {
@@ -243,6 +257,12 @@ export async function updateCompanySettingsAction(input: unknown): Promise<{
                 address: validated.address,
                 siret: validated.siret,
                 vatNumber: validated.vatNumber,
+                ...(validated.contactEmail
+                    ? { contactEmail: validated.contactEmail }
+                    : {}),
+                ...(validated.contactPhone
+                    ? { contactPhone: validated.contactPhone }
+                    : {}),
             },
             create: {
                 id: "default",
@@ -250,6 +270,12 @@ export async function updateCompanySettingsAction(input: unknown): Promise<{
                 address: validated.address,
                 siret: validated.siret,
                 vatNumber: validated.vatNumber,
+                ...(validated.contactEmail
+                    ? { contactEmail: validated.contactEmail }
+                    : {}),
+                ...(validated.contactPhone
+                    ? { contactPhone: validated.contactPhone }
+                    : {}),
             },
         });
 
@@ -263,6 +289,8 @@ export async function updateCompanySettingsAction(input: unknown): Promise<{
                 address: updated.address,
                 siret: updated.siret,
                 vatNumber: updated.vatNumber,
+                contactEmail: updated.contactEmail,
+                contactPhone: updated.contactPhone,
             },
             error: null,
         };
@@ -313,7 +341,7 @@ export async function updateWhatsAppSettingsAction(
         });
 
         revalidatePath("/admin/settings");
-        revalidatePath("/admin/devis");
+        revalidatePath("/admin/quotes");
 
         return {
             data: { success: true },

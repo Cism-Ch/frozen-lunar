@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
@@ -25,11 +27,10 @@ import {
     MessageCircle,
     Sparkles,
     Loader2,
-    Eye,
-    EyeOff,
     CheckCircle2,
     ShieldAlert,
     HelpCircle,
+    ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import { FadeIn, AnimatedCard, motion } from "@/components/ui/motion";
@@ -68,7 +69,6 @@ export function SettingsClient({ initialData }: SettingsClientProps) {
     const [waNumber, setWaNumber] = useState(
         initialData.settings.whatsappNumber
     );
-    const [hfModel, setHfModel] = useState(initialData.settings.hfModel);
     const [waTemplate, setWaTemplate] = useState(
         initialData.settings.whatsappTemplate
     );
@@ -90,14 +90,20 @@ export function SettingsClient({ initialData }: SettingsClientProps) {
     const [address, setAddress] = useState(initialData.settings.address);
     const [siret, setSiret] = useState(initialData.settings.siret);
     const [vatNumber, setVatNumber] = useState(initialData.settings.vatNumber);
+    const [contactEmail, setContactEmail] = useState(
+        initialData.settings.contactEmail
+    );
+    const [contactPhone, setContactPhone] = useState(
+        initialData.settings.contactPhone
+    );
     const [isSavingCompany, setIsSavingCompany] = useState(false);
 
     // 5. Sécurité (Changement de mot de passe)
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [confirmPasswordDialogOpen, setConfirmPasswordDialogOpen] =
+        useState(false);
     const [isChangingPassword, setIsChangingPassword] = useState(false);
 
     // Handlers
@@ -155,7 +161,7 @@ export function SettingsClient({ initialData }: SettingsClientProps) {
         try {
             const res = await updateWhatsAppSettingsAction({
                 whatsappNumber: waNumber,
-                hfModel: hfModel,
+                hfModel: initialData.settings.hfModel || "gemini-2.5-flash",
                 whatsappTemplate: waTemplate,
                 whatsappAiAutoGenerate: waAiAutoGenerate,
                 whatsappAutoAuditLog: waAutoAuditLog,
@@ -185,6 +191,8 @@ export function SettingsClient({ initialData }: SettingsClientProps) {
                 address,
                 siret,
                 vatNumber,
+                contactEmail,
+                contactPhone,
             });
 
             if (res.error) {
@@ -197,6 +205,8 @@ export function SettingsClient({ initialData }: SettingsClientProps) {
                 setAddress(res.data.address);
                 setSiret(res.data.siret);
                 setVatNumber(res.data.vatNumber);
+                setContactEmail(res.data.contactEmail);
+                setContactPhone(res.data.contactPhone);
             }
         } catch {
             toast.error(
@@ -207,7 +217,7 @@ export function SettingsClient({ initialData }: SettingsClientProps) {
         }
     };
 
-    const handleChangePassword = async (e: React.FormEvent) => {
+    const handlePasswordFormSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!currentPassword) {
@@ -229,6 +239,10 @@ export function SettingsClient({ initialData }: SettingsClientProps) {
             return;
         }
 
+        setConfirmPasswordDialogOpen(true);
+    };
+
+    const executeChangePassword = async () => {
         setIsChangingPassword(true);
         try {
             const res = await changeAdminPasswordAction({
@@ -244,6 +258,7 @@ export function SettingsClient({ initialData }: SettingsClientProps) {
                 setCurrentPassword("");
                 setNewPassword("");
                 setConfirmPassword("");
+                setConfirmPasswordDialogOpen(false);
             }
         } catch {
             toast.error(
@@ -521,14 +536,15 @@ export function SettingsClient({ initialData }: SettingsClientProps) {
                                             <div>
                                                 <CardTitle className="flex items-center gap-2">
                                                     <MessageCircle className="h-5 w-5 text-emerald-500" />
-                                                    WhatsApp & IA Hugging Face
+                                                    WhatsApp &amp; Assistant IA
                                                 </CardTitle>
                                                 <CardDescription>
                                                     Configurez
                                                     l&apos;automatisation
-                                                    Click-to-Chat 100% gratuite
-                                                    et le modèle d&apos;IA open
-                                                    source.
+                                                    Click-to-Chat et les
+                                                    messages pré-remplis par
+                                                    notre moteur IA (Gemini 2.5
+                                                    / OpenRouter).
                                                 </CardDescription>
                                             </div>
                                             <div className="flex items-center gap-2">
@@ -540,10 +556,10 @@ export function SettingsClient({ initialData }: SettingsClientProps) {
                                                 </Badge>
                                                 <Badge
                                                     variant="outline"
-                                                    className="border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                                                    className="border-primary/30 bg-primary/10 text-primary"
                                                 >
                                                     <Sparkles className="mr-1 h-3 w-3" />{" "}
-                                                    Hugging Face
+                                                    Gemini 2.5 / OpenRouter
                                                 </Badge>
                                             </div>
                                         </div>
@@ -575,32 +591,26 @@ export function SettingsClient({ initialData }: SettingsClientProps) {
                                             </p>
                                         </motion.div>
 
-                                        <motion.div
-                                            className="grid gap-2"
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: 0.2 }}
-                                        >
-                                            <Label htmlFor="hfModel">
-                                                Modèle IA Open Source (Hugging
-                                                Face)
-                                            </Label>
-                                            <Input
-                                                id="hfModel"
-                                                value={hfModel}
-                                                onChange={(e) =>
-                                                    setHfModel(e.target.value)
-                                                }
-                                                placeholder="mistralai/Mistral-7B-Instruct-v0.3"
-                                                required
-                                            />
-                                            <p className="text-muted-foreground text-xs">
-                                                Modèle utilisé via l&apos;API
-                                                Hugging Face Inference pour
-                                                générer et adapter le message de
-                                                relance.
-                                            </p>
-                                        </motion.div>
+                                        <div className="bg-muted/30 flex items-center justify-between gap-3 rounded-xl border p-3.5 text-xs">
+                                            <div className="space-y-0.5">
+                                                <p className="text-foreground font-semibold">
+                                                    Moteur IA de production
+                                                    actif
+                                                </p>
+                                                <p className="text-muted-foreground">
+                                                    Cascade automatique : Gemini
+                                                    2.5 Flash → OpenRouter →
+                                                    Template déterministe
+                                                    ci-dessous.
+                                                </p>
+                                            </div>
+                                            <Badge
+                                                variant="secondary"
+                                                className="shrink-0 font-mono text-[11px]"
+                                            >
+                                                Production Ready
+                                            </Badge>
+                                        </div>
 
                                         <motion.div
                                             className="grid gap-2"
@@ -655,8 +665,8 @@ export function SettingsClient({ initialData }: SettingsClientProps) {
                                                         htmlFor="wa-ai"
                                                         className="cursor-pointer text-sm font-medium"
                                                     >
-                                                        Génération IA 1-Clic via
-                                                        Hugging Face
+                                                        Génération IA 1-Clic des
+                                                        relances WhatsApp
                                                     </Label>
                                                     <p className="text-muted-foreground text-xs">
                                                         Prépare automatiquement
@@ -838,6 +848,41 @@ export function SettingsClient({ initialData }: SettingsClientProps) {
                                                 />
                                             </div>
                                         </motion.div>
+                                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="contactEmail">
+                                                    Email commercial public
+                                                </Label>
+                                                <Input
+                                                    id="contactEmail"
+                                                    type="email"
+                                                    value={contactEmail}
+                                                    onChange={(e) =>
+                                                        setContactEmail(
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    placeholder="contact@hbclogistique.com"
+                                                    required
+                                                />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="contactPhone">
+                                                    Téléphone commercial
+                                                </Label>
+                                                <Input
+                                                    id="contactPhone"
+                                                    value={contactPhone}
+                                                    onChange={(e) =>
+                                                        setContactPhone(
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    placeholder="+225 07 00 00 00 00"
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
                                     </CardContent>
                                     <CardFooter>
                                         <Button
@@ -863,7 +908,7 @@ export function SettingsClient({ initialData }: SettingsClientProps) {
                     <TabsContent value="security">
                         <AnimatedCard hoverEffect="subtle">
                             <Card>
-                                <form onSubmit={handleChangePassword}>
+                                <form onSubmit={handlePasswordFormSubmit}>
                                     <CardHeader>
                                         <div className="flex items-center justify-between">
                                             <div>
@@ -881,6 +926,22 @@ export function SettingsClient({ initialData }: SettingsClientProps) {
                                         </div>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
+                                        <div className="bg-muted/30 flex flex-wrap items-center justify-between gap-2 rounded-lg border p-3 text-xs">
+                                            <div className="flex items-center gap-2">
+                                                <ShieldCheck className="h-4 w-4 text-emerald-500" />
+                                                <span className="font-semibold">
+                                                    Session active :{" "}
+                                                    {initialData.admin.email}
+                                                </span>
+                                            </div>
+                                            <Badge
+                                                variant="outline"
+                                                className="font-mono text-[11px] uppercase"
+                                            >
+                                                Rôle : {initialData.admin.role}
+                                            </Badge>
+                                        </div>
+
                                         <div className="flex items-start gap-2 rounded-lg border border-amber-500/20 bg-amber-500/10 p-3 text-xs text-amber-800 dark:text-amber-300">
                                             <HelpCircle className="mt-0.5 h-4 w-4 shrink-0" />
                                             <div>
@@ -900,101 +961,39 @@ export function SettingsClient({ initialData }: SettingsClientProps) {
                                             </div>
                                         </div>
 
-                                        <motion.div
-                                            className="grid gap-2"
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: 0.1 }}
-                                        >
+                                        <div className="grid gap-2">
                                             <Label htmlFor="current">
                                                 Mot de passe actuel
                                             </Label>
-                                            <div className="relative">
-                                                <Input
-                                                    id="current"
-                                                    type={
-                                                        showCurrentPassword
-                                                            ? "text"
-                                                            : "password"
-                                                    }
-                                                    value={currentPassword}
-                                                    onChange={(e) =>
-                                                        setCurrentPassword(
-                                                            e.target.value
-                                                        )
-                                                    }
-                                                    placeholder="Entrez votre mot de passe actuel"
-                                                    className="pr-10"
-                                                    required
-                                                />
-                                                <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="text-muted-foreground hover:text-foreground absolute top-0 right-0 h-full px-3"
-                                                    onClick={() =>
-                                                        setShowCurrentPassword(
-                                                            !showCurrentPassword
-                                                        )
-                                                    }
-                                                    tabIndex={-1}
-                                                >
-                                                    {showCurrentPassword ? (
-                                                        <EyeOff className="h-4 w-4" />
-                                                    ) : (
-                                                        <Eye className="h-4 w-4" />
-                                                    )}
-                                                </Button>
-                                            </div>
-                                        </motion.div>
+                                            <PasswordInput
+                                                id="current"
+                                                value={currentPassword}
+                                                onChange={(e) =>
+                                                    setCurrentPassword(
+                                                        e.target.value
+                                                    )
+                                                }
+                                                placeholder="Entrez votre mot de passe actuel"
+                                                required
+                                            />
+                                        </div>
 
-                                        <motion.div
-                                            className="grid gap-2"
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: 0.2 }}
-                                        >
+                                        <div className="grid gap-2">
                                             <Label htmlFor="new">
                                                 Nouveau mot de passe (min. 12
                                                 car.)
                                             </Label>
-                                            <div className="relative">
-                                                <Input
-                                                    id="new"
-                                                    type={
-                                                        showNewPassword
-                                                            ? "text"
-                                                            : "password"
-                                                    }
-                                                    value={newPassword}
-                                                    onChange={(e) =>
-                                                        setNewPassword(
-                                                            e.target.value
-                                                        )
-                                                    }
-                                                    placeholder="Au moins 12 caractères"
-                                                    className="pr-10"
-                                                    required
-                                                />
-                                                <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="text-muted-foreground hover:text-foreground absolute top-0 right-0 h-full px-3"
-                                                    onClick={() =>
-                                                        setShowNewPassword(
-                                                            !showNewPassword
-                                                        )
-                                                    }
-                                                    tabIndex={-1}
-                                                >
-                                                    {showNewPassword ? (
-                                                        <EyeOff className="h-4 w-4" />
-                                                    ) : (
-                                                        <Eye className="h-4 w-4" />
-                                                    )}
-                                                </Button>
-                                            </div>
+                                            <PasswordInput
+                                                id="new"
+                                                value={newPassword}
+                                                onChange={(e) =>
+                                                    setNewPassword(
+                                                        e.target.value
+                                                    )
+                                                }
+                                                placeholder="Au moins 12 caractères"
+                                                required
+                                            />
                                             {newPassword && (
                                                 <div className="text-xs">
                                                     {newPassword.length >=
@@ -1016,25 +1015,15 @@ export function SettingsClient({ initialData }: SettingsClientProps) {
                                                     )}
                                                 </div>
                                             )}
-                                        </motion.div>
+                                        </div>
 
-                                        <motion.div
-                                            className="grid gap-2"
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: 0.3 }}
-                                        >
+                                        <div className="grid gap-2">
                                             <Label htmlFor="confirm">
                                                 Confirmer le nouveau mot de
                                                 passe
                                             </Label>
-                                            <Input
+                                            <PasswordInput
                                                 id="confirm"
-                                                type={
-                                                    showNewPassword
-                                                        ? "text"
-                                                        : "password"
-                                                }
                                                 value={confirmPassword}
                                                 onChange={(e) =>
                                                     setConfirmPassword(
@@ -1052,7 +1041,7 @@ export function SettingsClient({ initialData }: SettingsClientProps) {
                                                         correspondent pas.
                                                     </p>
                                                 )}
-                                        </motion.div>
+                                        </div>
                                     </CardContent>
                                     <CardFooter>
                                         <Button
@@ -1079,6 +1068,17 @@ export function SettingsClient({ initialData }: SettingsClientProps) {
                     </TabsContent>
                 </Tabs>
             </FadeIn>
+
+            <ConfirmDialog
+                open={confirmPasswordDialogOpen}
+                onOpenChange={setConfirmPasswordDialogOpen}
+                title="Confirmer le changement de mot de passe ?"
+                description="Votre mot de passe administrateur sera immédiatement mis à jour. Assurez-vous de l'avoir conservé dans un gestionnaire de mots de passe sécurisé."
+                confirmLabel="Mettre à jour"
+                cancelLabel="Annuler"
+                isLoading={isChangingPassword}
+                onConfirm={executeChangePassword}
+            />
         </div>
     );
 }

@@ -30,7 +30,7 @@ function getTestUsers() {
         {
             role: "admin",
             name: "Super Admin",
-            email: "admin@hbc-logistique.fr",
+            email: "admin@hbc-logistique.ci",
             password:
                 process.env.SEED_ADMIN_PASSWORD ||
                 `Adm_${crypto.randomBytes(8).toString("hex")}!9A`,
@@ -38,7 +38,7 @@ function getTestUsers() {
         {
             role: "developer",
             name: "Dev One",
-            email: "dev-00@hbc-logistique.fr",
+            email: "dev-00@hbc-logistique.ci",
             password:
                 process.env.SEED_DEV_PASSWORD ||
                 `Dev_${crypto.randomBytes(8).toString("hex")}!9A`,
@@ -46,7 +46,7 @@ function getTestUsers() {
         {
             role: "developer",
             name: "Dev Two",
-            email: "dev-01@hbc-logistique.fr",
+            email: "dev-01@hbc-logistique.ci",
             password:
                 process.env.SEED_DEV_PASSWORD ||
                 `Dev_${crypto.randomBytes(8).toString("hex")}!9A`,
@@ -54,7 +54,7 @@ function getTestUsers() {
         {
             role: "moderator",
             name: "Moderator",
-            email: "mod@hbc-logistique.fr",
+            email: "mod@hbc-logistique.ci",
             password:
                 process.env.SEED_MOD_PASSWORD ||
                 `Mod_${crypto.randomBytes(8).toString("hex")}!9A`,
