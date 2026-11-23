@@ -1,9 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
+    BookOpen,
     Building2,
     CheckCircle2,
+    ExternalLink,
     FileCheck,
     FileUp,
     Handshake,
@@ -12,6 +15,7 @@ import {
     ShieldCheck,
     Trash2,
     Truck,
+    User,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -25,16 +29,23 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import {
+    CI_ROAD_SAFETY_CHARTER_ARTICLES,
+    CI_ROAD_SAFETY_CHARTER_INTRO,
+    CI_ROAD_SAFETY_CHARTER_TITLE,
+} from "@/lib/ci-road-charter";
 import { submitPartnerApplicationAction } from "@/app/actions/partner-actions";
 import {
     compressFileForUpload,
@@ -43,7 +54,6 @@ import {
 } from "@/lib/file-compression";
 import {
     PARTNER_OPERATING_ZONES,
-    UEMOA_CEDEAO_COUNTRIES,
     VEHICLE_CATEGORY_META,
     type FleetVehicleCategory,
 } from "@/lib/fleet-catalog";
@@ -62,17 +72,23 @@ export function PartnerApplicationWizard() {
         companyName: string;
     } | null>(null);
 
-    // Champs Étape 1 : Entreprise & Identité OHADA
+    // Champs Étape 1 : Type (Particulier vs Entreprise) & Identité
+    const [partnerType, setPartnerType] = useState<"INDIVIDUAL" | "COMPANY">(
+        "INDIVIDUAL"
+    );
     const [companyName, setCompanyName] = useState("");
-    const [country, setCountry] =
-        useState<(typeof UEMOA_CEDEAO_COUNTRIES)[number]>("Côte d'Ivoire");
     const [city, setCity] = useState("");
     const [rccmNumber, setRccmNumber] = useState("");
     const [nccNumber, setNccNumber] = useState("");
+    const [idDocumentNumber, setIdDocumentNumber] = useState("");
     const [contactName, setContactName] = useState("");
     const [email, setEmail] = useState("");
     const [phone, setPhone] = useState("");
     const [whatsapp, setWhatsapp] = useState("");
+
+    // Modales Charte & Confirmation soumission
+    const [charterOpen, setCharterOpen] = useState(false);
+    const [confirmSubmitOpen, setConfirmSubmitOpen] = useState(false);
 
     // Champs Étape 2 : Flotte & Corridors
     const [totalVehicles, setTotalVehicles] = useState("2");
@@ -159,20 +175,33 @@ export function PartnerApplicationWizard() {
     };
 
     const validateStep1 = (): boolean => {
-        if (companyName.trim().length < 2) {
-            toast.error("Veuillez renseigner la raison sociale.");
-            return false;
-        }
-        if (rccmNumber.trim().length < 4) {
-            toast.error("Veuillez renseigner votre numéro RCCM.");
-            return false;
+        if (partnerType === "COMPANY") {
+            if (companyName.trim().length < 2) {
+                toast.error("Veuillez renseigner la raison sociale.");
+                return false;
+            }
+            if (rccmNumber.trim().length < 4) {
+                toast.error("Veuillez renseigner votre numéro RCCM.");
+                return false;
+            }
+            if (contactName.trim().length < 2) {
+                toast.error("Veuillez indiquer le nom du responsable.");
+                return false;
+            }
+        } else {
+            if (contactName.trim().length < 2) {
+                toast.error("Veuillez renseigner votre nom et prénoms.");
+                return false;
+            }
+            if (idDocumentNumber.trim().length < 4) {
+                toast.error(
+                    "Veuillez renseigner votre numéro de CNI ou de permis de conduire."
+                );
+                return false;
+            }
         }
         if (city.trim().length < 2) {
-            toast.error("Veuillez indiquer votre ville d'implantation.");
-            return false;
-        }
-        if (contactName.trim().length < 2) {
-            toast.error("Veuillez indiquer le nom du responsable.");
+            toast.error("Veuillez indiquer votre ville en Côte d'Ivoire.");
             return false;
         }
         if (!email.includes("@")) {
@@ -204,22 +233,22 @@ export function PartnerApplicationWizard() {
         return true;
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!acceptOhadaCharter) {
-            toast.error(
-                "Veuillez accepter la charte de conformité OHADA pour soumettre votre dossier."
-            );
-            return;
-        }
-
+    const executeSubmit = async () => {
         setIsSubmitting(true);
         try {
             const res = await submitPartnerApplicationAction({
-                companyName,
-                rccmNumber,
-                nccNumber,
-                country,
+                partnerType,
+                companyName:
+                    partnerType === "COMPANY"
+                        ? companyName.trim()
+                        : contactName.trim(),
+                rccmNumber: partnerType === "COMPANY" ? rccmNumber.trim() : "",
+                nccNumber: partnerType === "COMPANY" ? nccNumber.trim() : "",
+                idDocumentNumber:
+                    partnerType === "INDIVIDUAL"
+                        ? idDocumentNumber.trim()
+                        : "",
+                country: "Côte d'Ivoire",
                 city,
                 contactName,
                 email,
@@ -244,7 +273,19 @@ export function PartnerApplicationWizard() {
             toast.success("Candidature partenaire envoyée avec succès !");
         } finally {
             setIsSubmitting(false);
+            setConfirmSubmitOpen(false);
         }
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!acceptOhadaCharter) {
+            toast.error(
+                "Veuillez accepter la Charte de Qualité et de Sécurité Routière de Côte d'Ivoire."
+            );
+            return;
+        }
+        setConfirmSubmitOpen(true);
     };
 
     if (submittedResult) {
@@ -367,100 +408,171 @@ export function PartnerApplicationWizard() {
                 <form onSubmit={handleSubmit}>
                     <CardContent className="space-y-6 p-6">
                         {step === 1 && (
-                            <div className="space-y-4">
-                                <div className="grid gap-4 sm:grid-cols-2">
-                                    <div className="space-y-1.5">
-                                        <Label htmlFor="p-company">
-                                            Raison sociale *
-                                        </Label>
-                                        <Input
-                                            id="p-company"
-                                            value={companyName}
-                                            onChange={(e) =>
-                                                setCompanyName(e.target.value)
+                            <div className="space-y-5">
+                                {/* Sélecteur Particulier vs Entreprise */}
+                                <div className="space-y-2">
+                                    <Label>Vous êtes : *</Label>
+                                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setPartnerType("INDIVIDUAL")
                                             }
-                                            placeholder="Ex: Ivoire Trans-BTP SARL"
-                                            className="min-h-[44px]"
-                                        />
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <Label>Pays d&apos;immatriculation *</Label>
-                                        <Select
-                                            value={country}
-                                            onValueChange={(val) =>
-                                                setCountry(
-                                                    val as (typeof UEMOA_CEDEAO_COUNTRIES)[number]
-                                                )
-                                            }
+                                            className={`flex min-h-[56px] items-center gap-3 rounded-xl border-2 px-4 py-3 text-left transition-all ${
+                                                partnerType === "INDIVIDUAL"
+                                                    ? "border-primary bg-primary/10 text-primary"
+                                                    : "border-border hover:border-primary/40"
+                                            }`}
                                         >
-                                            <SelectTrigger className="min-h-[44px]">
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {UEMOA_CEDEAO_COUNTRIES.map(
-                                                    (c) => (
-                                                        <SelectItem
-                                                            key={c}
-                                                            value={c}
-                                                        >
-                                                            {c}
-                                                        </SelectItem>
-                                                    )
-                                                )}
-                                            </SelectContent>
-                                        </Select>
+                                            <User className="h-5 w-5 shrink-0" />
+                                            <div>
+                                                <p className="text-sm font-semibold">
+                                                    Particulier
+                                                </p>
+                                                <p className="text-muted-foreground text-xs">
+                                                    Propriétaire de véhicule /
+                                                    Chauffeur indépendant
+                                                </p>
+                                            </div>
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setPartnerType("COMPANY")
+                                            }
+                                            className={`flex min-h-[56px] items-center gap-3 rounded-xl border-2 px-4 py-3 text-left transition-all ${
+                                                partnerType === "COMPANY"
+                                                    ? "border-primary bg-primary/10 text-primary"
+                                                    : "border-border hover:border-primary/40"
+                                            }`}
+                                        >
+                                            <Building2 className="h-5 w-5 shrink-0" />
+                                            <div>
+                                                <p className="text-sm font-semibold">
+                                                    Entreprise
+                                                </p>
+                                                <p className="text-muted-foreground text-xs">
+                                                    Société de transport /
+                                                    Loueur d&apos;engins
+                                                </p>
+                                            </div>
+                                        </button>
                                     </div>
                                 </div>
 
-                                <div className="grid gap-4 sm:grid-cols-3">
-                                    <div className="space-y-1.5">
-                                        <Label htmlFor="p-city">
-                                            Ville / Base *
-                                        </Label>
-                                        <Input
-                                            id="p-city"
-                                            value={city}
-                                            onChange={(e) =>
-                                                setCity(e.target.value)
-                                            }
-                                            placeholder="Ex: Abidjan - Yopougon"
-                                            className="min-h-[44px]"
-                                        />
+                                {partnerType === "COMPANY" ? (
+                                    <>
+                                        <div className="grid gap-4 sm:grid-cols-2">
+                                            <div className="space-y-1.5">
+                                                <Label htmlFor="p-company">
+                                                    Raison sociale *
+                                                </Label>
+                                                <Input
+                                                    id="p-company"
+                                                    value={companyName}
+                                                    onChange={(e) =>
+                                                        setCompanyName(
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    placeholder="Ex: Ivoire Trans-BTP SARL"
+                                                    className="min-h-[44px]"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <Label htmlFor="p-city">
+                                                    Ville en Côte d&apos;Ivoire
+                                                    *
+                                                </Label>
+                                                <Input
+                                                    id="p-city"
+                                                    value={city}
+                                                    onChange={(e) =>
+                                                        setCity(e.target.value)
+                                                    }
+                                                    placeholder="Ex: Abidjan - Yopougon"
+                                                    className="min-h-[44px]"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="grid gap-4 sm:grid-cols-2">
+                                            <div className="space-y-1.5">
+                                                <Label htmlFor="p-rccm">
+                                                    Numéro RCCM *
+                                                </Label>
+                                                <Input
+                                                    id="p-rccm"
+                                                    value={rccmNumber}
+                                                    onChange={(e) =>
+                                                        setRccmNumber(
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    placeholder="CI-ABJ-03-2024-B12-..."
+                                                    className="min-h-[44px]"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <Label htmlFor="p-ncc">
+                                                    N° NCC (optionnel)
+                                                </Label>
+                                                <Input
+                                                    id="p-ncc"
+                                                    value={nccNumber}
+                                                    onChange={(e) =>
+                                                        setNccNumber(
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    placeholder="Ex: 2401589-K"
+                                                    className="min-h-[44px]"
+                                                />
+                                            </div>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="grid gap-4 sm:grid-cols-2">
+                                        <div className="space-y-1.5">
+                                            <Label htmlFor="p-id-doc">
+                                                N° CNI ou Permis de conduire *
+                                            </Label>
+                                            <Input
+                                                id="p-id-doc"
+                                                value={idDocumentNumber}
+                                                onChange={(e) =>
+                                                    setIdDocumentNumber(
+                                                        e.target.value
+                                                    )
+                                                }
+                                                placeholder="Ex: CI001234567 ou Permis C/D/E"
+                                                className="min-h-[44px]"
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <Label htmlFor="p-city">
+                                                Ville en Côte d&apos;Ivoire *
+                                            </Label>
+                                            <Input
+                                                id="p-city"
+                                                value={city}
+                                                onChange={(e) =>
+                                                    setCity(e.target.value)
+                                                }
+                                                placeholder="Ex: Abidjan - Cocody / Bouaké"
+                                                className="min-h-[44px]"
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="space-y-1.5">
-                                        <Label htmlFor="p-rccm">
-                                            Numéro RCCM *
-                                        </Label>
-                                        <Input
-                                            id="p-rccm"
-                                            value={rccmNumber}
-                                            onChange={(e) =>
-                                                setRccmNumber(e.target.value)
-                                            }
-                                            placeholder="CI-ABJ-03-2024-B12-..."
-                                            className="min-h-[44px]"
-                                        />
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <Label htmlFor="p-ncc">
-                                            N° NCC / IFU (optionnel)
-                                        </Label>
-                                        <Input
-                                            id="p-ncc"
-                                            value={nccNumber}
-                                            onChange={(e) =>
-                                                setNccNumber(e.target.value)
-                                            }
-                                            placeholder="Ex: 2401589-K"
-                                            className="min-h-[44px]"
-                                        />
-                                    </div>
-                                </div>
+                                )}
 
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <div className="space-y-1.5">
                                         <Label htmlFor="p-contact">
-                                            Responsable d&apos;exploitation *
+                                            {partnerType === "COMPANY"
+                                                ? "Responsable d'exploitation *"
+                                                : "Nom et Prénoms *"}
                                         </Label>
                                         <Input
                                             id="p-contact"
@@ -468,13 +580,13 @@ export function PartnerApplicationWizard() {
                                             onChange={(e) =>
                                                 setContactName(e.target.value)
                                             }
-                                            placeholder="Nom & Prénom"
+                                            placeholder="Ex: Kouassi Yao"
                                             className="min-h-[44px]"
                                         />
                                     </div>
                                     <div className="space-y-1.5">
                                         <Label htmlFor="p-email">
-                                            Email professionnel *
+                                            Adresse email *
                                         </Label>
                                         <Input
                                             id="p-email"
@@ -483,7 +595,7 @@ export function PartnerApplicationWizard() {
                                             onChange={(e) =>
                                                 setEmail(e.target.value)
                                             }
-                                            placeholder="exploitation@entreprise.ci"
+                                            placeholder="contact@exemple.ci"
                                             className="min-h-[44px]"
                                         />
                                     </div>
@@ -709,32 +821,68 @@ export function PartnerApplicationWizard() {
                                     )}
                                 </div>
 
-                                <div className="flex items-start gap-3 rounded-xl border p-4">
-                                    <Checkbox
-                                        id="p-charter"
-                                        checked={acceptOhadaCharter}
-                                        onCheckedChange={(val) =>
-                                            setAcceptOhadaCharter(val === true)
-                                        }
-                                        className="mt-0.5"
-                                    />
-                                    <Label
-                                        htmlFor="p-charter"
-                                        className="text-xs leading-relaxed font-normal"
-                                    >
-                                        J&apos;atteste sur l&apos;honneur que
-                                        l&apos;entreprise{" "}
-                                        <strong>
-                                            {companyName || "candidate"}
-                                        </strong>{" "}
-                                        est régulièrement immatriculée en Côte
-                                        d&apos;Ivoire (RCCM), dispose
-                                        d&apos;assurances et visites techniques
-                                        (SICTA) en cours de validité, et
-                                        s&apos;engage à respecter la charte de
-                                        qualité et de sécurité routière HBC
-                                        Logistique.
-                                    </Label>
+                                <div className="space-y-3 rounded-xl border p-4">
+                                    <div className="flex items-start gap-3">
+                                        <Checkbox
+                                            id="p-charter"
+                                            checked={acceptOhadaCharter}
+                                            onCheckedChange={(val) =>
+                                                setAcceptOhadaCharter(
+                                                    val === true
+                                                )
+                                            }
+                                            className="mt-0.5"
+                                        />
+                                        <Label
+                                            htmlFor="p-charter"
+                                            className="text-xs leading-relaxed font-normal"
+                                        >
+                                            J&apos;atteste sur l&apos;honneur
+                                            que mes véhicules disposent
+                                            d&apos;assurances (Code CIMA) et de
+                                            visites techniques (SICTA) en cours
+                                            de validité en Côte d&apos;Ivoire,
+                                            et je m&apos;engage à respecter la{" "}
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setCharterOpen(true)
+                                                }
+                                                className="text-primary inline-flex items-center gap-1 font-semibold underline underline-offset-2 hover:opacity-80"
+                                            >
+                                                Charte de Qualité et de Sécurité
+                                                Routière en vigueur en Côte
+                                                d&apos;Ivoire
+                                            </button>
+                                            .
+                                        </Label>
+                                    </div>
+                                    <div className="flex flex-wrap items-center gap-2 pl-7">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => setCharterOpen(true)}
+                                            className="h-8 gap-1.5 text-xs"
+                                        >
+                                            <BookOpen className="h-3.5 w-3.5" />
+                                            Lire la charte complète
+                                        </Button>
+                                        <Button
+                                            asChild
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-8 gap-1.5 text-xs"
+                                        >
+                                            <Link
+                                                href="/legal/charte-qualite-securite"
+                                                target="_blank"
+                                            >
+                                                <ExternalLink className="h-3.5 w-3.5" />
+                                                Ouvrir dans un nouvel onglet
+                                            </Link>
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -791,6 +939,87 @@ export function PartnerApplicationWizard() {
                     </CardFooter>
                 </form>
             </Card>
+
+            {/* Modale centrée de lecture de la Charte de Qualité & Sécurité Routière (Côte d'Ivoire) */}
+            <Dialog open={charterOpen} onOpenChange={setCharterOpen}>
+                <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2 text-lg">
+                            <ShieldCheck className="text-primary h-5 w-5 shrink-0" />
+                            {CI_ROAD_SAFETY_CHARTER_TITLE}
+                        </DialogTitle>
+                        <DialogDescription className="text-xs leading-relaxed">
+                            {CI_ROAD_SAFETY_CHARTER_INTRO}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-4 py-2">
+                        {CI_ROAD_SAFETY_CHARTER_ARTICLES.map((article) => (
+                            <div
+                                key={article.number}
+                                className="space-y-2 rounded-xl border p-4"
+                            >
+                                <div className="flex items-center gap-2">
+                                    <Badge variant="secondary">
+                                        {article.number}
+                                    </Badge>
+                                    <h3 className="text-sm font-semibold">
+                                        {article.title}
+                                    </h3>
+                                </div>
+                                <p className="text-muted-foreground text-xs leading-relaxed">
+                                    {article.summary}
+                                </p>
+                                <ul className="space-y-1 text-xs">
+                                    {article.obligations.map((obs) => (
+                                        <li
+                                            key={obs}
+                                            className="flex items-start gap-2"
+                                        >
+                                            <CheckCircle2 className="text-primary mt-0.5 h-3.5 w-3.5 shrink-0" />
+                                            <span>{obs}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        ))}
+                    </div>
+
+                    <DialogFooter className="gap-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setCharterOpen(false)}
+                        >
+                            Fermer
+                        </Button>
+                        <Button
+                            type="button"
+                            onClick={() => {
+                                setAcceptOhadaCharter(true);
+                                setCharterOpen(false);
+                                toast.success(
+                                    "Charte acceptée — vous pouvez soumettre votre dossier."
+                                );
+                            }}
+                        >
+                            J&apos;ai lu et j&apos;accepte la charte
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Modale centrée de confirmation d'envoi du dossier partenaire */}
+            <ConfirmDialog
+                open={confirmSubmitOpen}
+                onOpenChange={setConfirmSubmitOpen}
+                title="Confirmer l'envoi de votre dossier partenaire ?"
+                description={`Votre dossier (${partnerType === "INDIVIDUAL" ? "Particulier" : "Entreprise"} — ${partnerType === "COMPANY" ? companyName : contactName}, ${totalVehicles} véhicule(s)) sera transmis à l'équipe HBC Logistique pour validation.`}
+                confirmLabel="Confirmer et envoyer"
+                onConfirm={() => {
+                    void executeSubmit();
+                }}
+            />
         </div>
     );
 }

@@ -13,94 +13,113 @@ import { PartnerApplicationEmail } from "@/components/emails/PartnerApplicationE
 import { UEMOA_CEDEAO_COUNTRIES } from "@/lib/fleet-catalog";
 import { logger } from "@/lib/logger";
 
-const partnerApplicationSchema = z.object({
-    companyName: z
-        .string()
-        .trim()
-        .min(2, "La raison sociale est requise")
-        .max(150),
-    rccmNumber: z
-        .string()
-        .trim()
-        .min(4, "Le numéro RCCM est requis (ex: CI-ABJ-03-...)")
-        .max(80),
-    nccNumber: z
-        .string()
-        .trim()
-        .max(60)
-        .optional()
-        .or(z.literal("")),
-    country: z
-        .enum(UEMOA_CEDEAO_COUNTRIES, {
-            message: "Veuillez sélectionner un pays de la zone UEMOA / CEDEAO",
-        })
-        .default("Côte d'Ivoire"),
-    city: z
-        .string()
-        .trim()
-        .min(2, "La ville d'implantation est requise")
-        .max(100),
-    contactName: z
-        .string()
-        .trim()
-        .min(2, "Le nom du responsable est requis")
-        .max(120),
-    email: z.string().trim().email("Adresse email professionnelle invalide"),
-    phone: z
-        .string()
-        .trim()
-        .min(8, "Un numéro de téléphone valide (+225...) est requis")
-        .max(40),
-    whatsapp: z
-        .string()
-        .trim()
-        .max(40)
-        .optional()
-        .or(z.literal("")),
-    fleetCategories: z
-        .array(z.string().trim().min(1).max(80))
-        .min(1, "Sélectionnez au moins une catégorie de véhicules"),
-    fleetSummary: z
-        .string()
-        .trim()
-        .min(
-            10,
-            "Décrivez brièvement votre parc (modèles, tonnages, années...)"
-        )
-        .max(2000),
-    totalVehicles: z.coerce
-        .number()
-        .int()
-        .min(1, "Le parc doit compter au moins 1 véhicule")
-        .max(500),
-    operatingZones: z
-        .array(z.string().trim().min(1).max(120))
-        .min(1, "Sélectionnez au moins une zone ou un corridor d'intervention"),
-    kycDocumentKeys: z
-        .array(
-            z
-                .string()
-                .trim()
-                .refine(
-                    (k) => k.startsWith("partners-kyc/") && !k.includes(".."),
-                    "Clé de document KYC non autorisée"
-                )
-        )
-        .max(5, "Maximum 5 documents KYC par dossier")
-        .default([]),
-    acceptOhadaCharter: z.literal(true, {
-        message:
-            "Vous devez accepter la charte de conformité OHADA et sécurité routière",
-    }),
-});
+const partnerApplicationSchema = z
+    .object({
+        partnerType: z.enum(["INDIVIDUAL", "COMPANY"]).default("COMPANY"),
+        companyName: z
+            .string()
+            .trim()
+            .min(2, "Le nom complet ou la raison sociale est requis")
+            .max(150),
+        rccmNumber: z.string().trim().max(80).optional().or(z.literal("")),
+        nccNumber: z.string().trim().max(60).optional().or(z.literal("")),
+        idDocumentNumber: z
+            .string()
+            .trim()
+            .max(80)
+            .optional()
+            .or(z.literal("")),
+        country: z
+            .enum(UEMOA_CEDEAO_COUNTRIES, {
+                message: "Veuillez sélectionner la Côte d'Ivoire",
+            })
+            .default("Côte d'Ivoire"),
+        city: z
+            .string()
+            .trim()
+            .min(2, "La ville d'implantation est requise")
+            .max(100),
+        contactName: z
+            .string()
+            .trim()
+            .min(2, "Le nom du contact est requis")
+            .max(120),
+        email: z.string().trim().email("Adresse email valide requise"),
+        phone: z
+            .string()
+            .trim()
+            .min(8, "Un numéro de téléphone valide (+225...) est requis")
+            .max(40),
+        whatsapp: z.string().trim().max(40).optional().or(z.literal("")),
+        fleetCategories: z
+            .array(z.string().trim().min(1).max(80))
+            .min(1, "Sélectionnez au moins une catégorie de véhicules"),
+        fleetSummary: z
+            .string()
+            .trim()
+            .min(
+                10,
+                "Décrivez brièvement votre parc (modèles, tonnages, années...)"
+            )
+            .max(2000),
+        totalVehicles: z.coerce
+            .number()
+            .int()
+            .min(1, "Le parc doit compter au moins 1 véhicule")
+            .max(500),
+        operatingZones: z
+            .array(z.string().trim().min(1).max(120))
+            .min(1, "Sélectionnez au moins une zone d'intervention en Côte d'Ivoire"),
+        kycDocumentKeys: z
+            .array(
+                z
+                    .string()
+                    .trim()
+                    .refine(
+                        (k) => k.startsWith("partners-kyc/") && !k.includes(".."),
+                        "Clé de document KYC non autorisée"
+                    )
+            )
+            .max(5, "Maximum 5 documents par dossier")
+            .default([]),
+        acceptOhadaCharter: z.literal(true, {
+            message:
+                "Vous devez accepter la Charte de Qualité et de Sécurité Routière",
+        }),
+    })
+    .superRefine((data, ctx) => {
+        if (
+            data.partnerType === "COMPANY" &&
+            (!data.rccmNumber || data.rccmNumber.trim().length < 4)
+        ) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ["rccmNumber"],
+                message: "Le numéro RCCM est requis pour une entreprise.",
+            });
+        }
+        if (
+            data.partnerType === "INDIVIDUAL" &&
+            (!data.idDocumentNumber || data.idDocumentNumber.trim().length < 4)
+        ) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ["idDocumentNumber"],
+                message:
+                    "Le numéro de CNI ou de permis de conduire est requis pour un particulier.",
+            });
+        }
+    });
 
 export type PartnerApplicationInput = z.input<typeof partnerApplicationSchema>;
 
 export interface PartnerApplicationItem {
     id: string;
+    partnerType: "INDIVIDUAL" | "COMPANY";
     companyName: string;
     rccmNumber: string | null;
     nccNumber: string | null;
+    idDocumentNumber: string | null;
     country: string;
     city: string;
     contactName: string;
@@ -158,9 +177,12 @@ async function isPartnerRateLimited(identifier: string): Promise<boolean> {
 function toPartnerItem(app: PartnerApplication): PartnerApplicationItem {
     return {
         id: app.id,
+        partnerType:
+            app.partnerType === "INDIVIDUAL" ? "INDIVIDUAL" : "COMPANY",
         companyName: app.companyName,
         rccmNumber: app.rccmNumber,
         nccNumber: app.nccNumber,
+        idDocumentNumber: app.idDocumentNumber,
         country: app.country,
         city: app.city,
         contactName: app.contactName,
@@ -213,9 +235,16 @@ export async function submitPartnerApplicationAction(
 
         const created = await prisma.partnerApplication.create({
             data: {
+                partnerType: v.partnerType,
                 companyName: v.companyName,
-                rccmNumber: v.rccmNumber,
-                nccNumber: v.nccNumber || null,
+                rccmNumber:
+                    v.partnerType === "COMPANY" ? v.rccmNumber || null : null,
+                nccNumber:
+                    v.partnerType === "COMPANY" ? v.nccNumber || null : null,
+                idDocumentNumber:
+                    v.partnerType === "INDIVIDUAL"
+                        ? v.idDocumentNumber || null
+                        : null,
                 country: v.country,
                 city: v.city,
                 contactName: v.contactName,

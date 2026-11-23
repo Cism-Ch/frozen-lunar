@@ -4,6 +4,25 @@ vi.mock("next/cache", () => ({
     revalidatePath: vi.fn(),
 }));
 
+vi.mock("@/lib/redis", () => ({
+    redis: {
+        incr: vi.fn().mockResolvedValue(1),
+        expire: vi.fn().mockResolvedValue(1),
+    },
+    resolveUpstashRedisConfig: () => ({
+        url: null,
+        token: null,
+        isConfigured: false,
+        normalizedFromTcp: false,
+    }),
+}));
+
+vi.mock("@/lib/email", () => ({
+    EMAIL_SENDER: "onboarding@resend.dev",
+    isResendConfigured: () => false,
+    resend: { emails: { send: vi.fn() } },
+}));
+
 vi.mock("@/lib/auth-guard", () => ({
     requireAdmin: vi.fn().mockResolvedValue({
         id: "admin-1",
@@ -52,6 +71,28 @@ describe("Africa Partner Onboarding & Private KYC Security", () => {
             totalVehicles: 5,
             operatingZones: ["Grand Abidjan & Zones Industrielles"],
             kycDocumentKeys: ["partners-kyc/1700000_rccm.pdf"],
+            acceptOhadaCharter: true,
+        });
+
+        expect(res.error).toBeNull();
+        expect(res.data?.id).toBe("prt-123");
+    });
+
+    it("accepts an INDIVIDUAL partner application with CNI/Permis and no RCCM", async () => {
+        const res = await submitPartnerApplicationAction({
+            partnerType: "INDIVIDUAL",
+            companyName: "Konan Kouadio",
+            idDocumentNumber: "CI009988776",
+            country: "Côte d'Ivoire",
+            city: "Bouaké",
+            contactName: "Konan Kouadio",
+            email: "konan.chauffeur@gmail.com",
+            phone: "+225 05 11 22 33 44",
+            fleetCategories: ["Utilitaires & Tout-Terrain"],
+            fleetSummary: "1 Pick-up 4x4 Toyota Hilux en excellent état",
+            totalVehicles: 1,
+            operatingZones: ["Bouaké & Gbêkê"],
+            kycDocumentKeys: ["partners-kyc/1700001_cni.webp"],
             acceptOhadaCharter: true,
         });
 

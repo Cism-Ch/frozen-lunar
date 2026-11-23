@@ -75,6 +75,10 @@ export function AdminPartnersClient({
     const [notesById, setNotesById] = useState<Record<string, string>>({});
     const [deleteTarget, setDeleteTarget] =
         useState<PartnerApplicationItem | null>(null);
+    const [reviewConfirm, setReviewConfirm] = useState<{
+        app: PartnerApplicationItem;
+        nextStatus: "APPROVED" | "REJECTED";
+    } | null>(null);
 
     const filtered = useMemo(() => {
         const q = search.trim().toLowerCase();
@@ -237,18 +241,42 @@ export function AdminPartnersClient({
                                 <CardHeader className="pb-3">
                                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                         <div>
-                                            <CardTitle className="text-lg">
-                                                {app.companyName}
-                                            </CardTitle>
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <CardTitle className="text-lg">
+                                                    {app.companyName}
+                                                </CardTitle>
+                                                <Badge variant="secondary">
+                                                    {app.partnerType ===
+                                                    "INDIVIDUAL"
+                                                        ? "Particulier"
+                                                        : "Entreprise"}
+                                                </Badge>
+                                            </div>
                                             <CardDescription className="mt-1 flex flex-wrap items-center gap-2 text-xs">
                                                 <span className="inline-flex items-center gap-1">
                                                     <MapPin className="h-3.5 w-3.5" />
                                                     {app.city}, {app.country}
                                                 </span>
-                                                <span>•</span>
-                                                <span className="font-mono">
-                                                    RCCM : {app.rccmNumber}
-                                                </span>
+                                                {app.rccmNumber && (
+                                                    <>
+                                                        <span>•</span>
+                                                        <span className="font-mono">
+                                                            RCCM :{" "}
+                                                            {app.rccmNumber}
+                                                        </span>
+                                                    </>
+                                                )}
+                                                {app.idDocumentNumber && (
+                                                    <>
+                                                        <span>•</span>
+                                                        <span className="font-mono">
+                                                            CNI/Permis :{" "}
+                                                            {
+                                                                app.idDocumentNumber
+                                                            }
+                                                        </span>
+                                                    </>
+                                                )}
                                                 {app.nccNumber && (
                                                     <>
                                                         <span>•</span>
@@ -409,10 +437,11 @@ export function AdminPartnersClient({
                                                             "REJECTED"
                                                     }
                                                     onClick={() =>
-                                                        handleStatusChange(
+                                                        setReviewConfirm({
                                                             app,
-                                                            "REJECTED"
-                                                        )
+                                                            nextStatus:
+                                                                "REJECTED",
+                                                        })
                                                     }
                                                     className="min-h-[40px] gap-1.5"
                                                 >
@@ -428,10 +457,11 @@ export function AdminPartnersClient({
                                                             "APPROVED"
                                                     }
                                                     onClick={() =>
-                                                        handleStatusChange(
+                                                        setReviewConfirm({
                                                             app,
-                                                            "APPROVED"
-                                                        )
+                                                            nextStatus:
+                                                                "APPROVED",
+                                                        })
                                                     }
                                                     className="min-h-[40px] gap-1.5"
                                                 >
@@ -447,6 +477,40 @@ export function AdminPartnersClient({
                     })}
                 </div>
             )}
+
+            <ConfirmDialog
+                open={!!reviewConfirm}
+                onOpenChange={(open) => {
+                    if (!open) setReviewConfirm(null);
+                }}
+                title={
+                    reviewConfirm?.nextStatus === "APPROVED"
+                        ? `Agréer ${reviewConfirm.app.companyName} ?`
+                        : `Refuser la candidature de ${reviewConfirm?.app.companyName || ""} ?`
+                }
+                description={
+                    reviewConfirm?.nextStatus === "APPROVED"
+                        ? "Ce transporteur sera marqué comme Partenaire Agréé HBC Logistique."
+                        : "Ce dossier sera marqué comme refusé avec vos notes de conformité."
+                }
+                confirmLabel={
+                    reviewConfirm?.nextStatus === "APPROVED"
+                        ? "Confirmer l'agrément"
+                        : "Confirmer le refus"
+                }
+                variant={
+                    reviewConfirm?.nextStatus === "REJECTED"
+                        ? "destructive"
+                        : "default"
+                }
+                onConfirm={() => {
+                    if (reviewConfirm) {
+                        const { app, nextStatus } = reviewConfirm;
+                        setReviewConfirm(null);
+                        void handleStatusChange(app, nextStatus);
+                    }
+                }}
+            />
 
             <ConfirmDialog
                 open={!!deleteTarget}
