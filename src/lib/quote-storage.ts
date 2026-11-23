@@ -6,6 +6,28 @@ export interface QuoteHistoryEvent {
     user: string;
 }
 
+export interface QuotePricingLine {
+    id: string;
+    label: string;
+    category: "base" | "distance" | "handling" | "insurance" | "margin" | "other";
+    amountFcfa: number;
+}
+
+export interface QuotePricingBreakdown {
+    vehicleName?: string;
+    estimatedDistanceKm?: number;
+    estimatedDuration?: string;
+    lines: QuotePricingLine[];
+    includeVat: boolean;
+    vatRate: number;
+    subtotalHt: number;
+    vatAmount: number;
+    totalTtc: number;
+    aiReasoning?: string;
+    aiSource?: string;
+    updatedAt: string;
+}
+
 export interface QuoteSupplementaryInfo {
     category: "materials" | "container" | "machinery" | "structure" | "other";
     // Matériaux
@@ -30,6 +52,8 @@ export interface QuoteSupplementaryInfo {
     specialRequirements?: string;
     accessInfo?: string;
     urgency?: "standard" | "urgent" | "very_urgent";
+    attachments?: string[];
+    pricingBreakdown?: QuotePricingBreakdown;
 }
 
 export interface Quote {
