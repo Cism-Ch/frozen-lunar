@@ -1,6 +1,6 @@
 import { HeadBucketCommand } from "@aws-sdk/client-s3";
 import prisma from "@/lib/prisma";
-import { redis } from "@/lib/redis";
+import { redis, resolveUpstashRedisConfig } from "@/lib/redis";
 import { s3Client } from "@/lib/storage";
 import { EMAIL_SENDER, isResendConfigured, resend } from "@/lib/email";
 import { getGeminiApiKey, getGeminiModel } from "@/lib/gemini";
@@ -59,9 +59,7 @@ const ALERT_LOCK_TTL_SECONDS = 1800; // 30 minutes
 const memoryAlertLocks = new Map<string, number>();
 
 export function isRedisConfigured(): boolean {
-    const url = process.env.UPSTASH_REDIS_REST_URL?.trim() || "";
-    const token = process.env.UPSTASH_REDIS_REST_TOKEN?.trim() || "";
-    return url.startsWith("https://") && token.length > 0;
+    return resolveUpstashRedisConfig().isConfigured;
 }
 
 function isTigrisConfigured(): boolean {
@@ -189,15 +187,19 @@ async function probeUpstashRedis(): Promise<ServiceHealthItem> {
                     : "Cache et rate-limiting opérationnels.",
             checkedAt,
         };
-    } catch {
+    } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message.toLowerCase() : "";
+        const isAuthErr = msg.includes("401") || msg.includes("unauthorized") || msg.includes("wrongpass");
         return {
             id: "upstash-redis",
             name: "Upstash Redis",
             category: "infrastructure",
             critical: true,
-            status: "outage",
+            status: isAuthErr ? "degraded" : "outage",
             latencyMs: Date.now() - startedAt,
-            message: "Service Redis injoignable.",
+            message: isAuthErr
+                ? "Jeton REST Redis refusé (vérifiez UPSTASH_REDIS_REST_TOKEN dans Upstash Console)."
+                : "Service Redis injoignable.",
             checkedAt,
         };
     }

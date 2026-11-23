@@ -99,7 +99,7 @@ export type PartnerApplicationInput = z.input<typeof partnerApplicationSchema>;
 export interface PartnerApplicationItem {
     id: string;
     companyName: string;
-    rccmNumber: string;
+    rccmNumber: string | null;
     nccNumber: string | null;
     country: string;
     city: string;

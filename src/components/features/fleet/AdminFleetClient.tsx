@@ -9,8 +9,14 @@ import {
     Trash2,
     Truck,
     Loader2,
+    Upload,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+    compressFileForUpload,
+    formatFileSize,
+    MAX_SERVER_UPLOAD_BYTES,
+} from "@/lib/file-compression";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -112,11 +118,68 @@ export function AdminFleetClient({ initialVehicles }: AdminFleetClientProps) {
         useState<FleetVehicleItem | null>(null);
     const [form, setForm] = useState<VehicleFormState>(EMPTY_FORM);
     const [isSaving, setIsSaving] = useState(false);
+    const [isUploadingImage, setIsUploadingImage] = useState(false);
 
     // Confirmation suppression
     const [deleteTarget, setDeleteTarget] = useState<FleetVehicleItem | null>(
         null
     );
+
+    const handleVehicleImageUpload = async (
+        e: React.ChangeEvent<HTMLInputElement>
+    ) => {
+        const rawFile = e.target.files?.[0];
+        e.target.value = "";
+        if (!rawFile) return;
+
+        setIsUploadingImage(true);
+        try {
+            const { file, wasCompressed, originalSize, finalSize } =
+                await compressFileForUpload(rawFile, {
+                    maxDimension: 1400,
+                    quality: 0.84,
+                });
+
+            if (file.size > MAX_SERVER_UPLOAD_BYTES) {
+                toast.error(
+                    `Image trop lourde (${formatFileSize(file.size)}). Maximum 4 Mo.`
+                );
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("folder", "fleet-images");
+
+            const res = await fetch("/api/upload", {
+                method: "POST",
+                body: formData,
+            });
+            const json = (await res.json()) as {
+                success?: boolean;
+                publicUrl?: string | null;
+                error?: string;
+            };
+
+            if (!res.ok || !json.success || !json.publicUrl) {
+                toast.error(
+                    json.error || "Impossible de téléverser l'image véhicule."
+                );
+                return;
+            }
+
+            setForm((prev) => ({ ...prev, imageUrl: json.publicUrl! }));
+            toast.success(
+                wasCompressed
+                    ? `Photo optimisée (${formatFileSize(originalSize)} → ${formatFileSize(finalSize)}) et importée`
+                    : "Photo du véhicule téléversée avec succès"
+            );
+        } catch {
+            toast.error("Erreur lors du téléversement de l'image.");
+        } finally {
+            setIsUploadingImage(false);
+        }
+    };
 
     const reloadVehicles = async () => {
         const res = await getAdminFleetAction();
@@ -683,22 +746,54 @@ export function AdminFleetClient({ initialVehicles }: AdminFleetClientProps) {
                             </div>
                         </div>
 
-                        <div className="space-y-1.5">
+                        <div className="space-y-2">
                             <Label htmlFor="v-image">
-                                URL de l&apos;image d&apos;illustration (https://...)
+                                Photo d&apos;illustration (Lien URL ou
+                                téléversement direct)
                             </Label>
-                            <Input
-                                id="v-image"
-                                type="url"
-                                value={form.imageUrl}
-                                onChange={(e) =>
-                                    setForm((prev) => ({
-                                        ...prev,
-                                        imageUrl: e.target.value,
-                                    }))
-                                }
-                                placeholder="https://upload.wikimedia.org/..."
-                            />
+                            <div className="flex flex-col gap-2 sm:flex-row">
+                                <Input
+                                    id="v-image"
+                                    value={form.imageUrl}
+                                    onChange={(e) =>
+                                        setForm((prev) => ({
+                                            ...prev,
+                                            imageUrl: e.target.value,
+                                        }))
+                                    }
+                                    placeholder="https://... ou /api/fleet-image/..."
+                                    className="flex-1"
+                                />
+                                <Label
+                                    htmlFor="v-image-upload"
+                                    className="bg-secondary text-secondary-foreground hover:bg-secondary/80 inline-flex min-h-[40px] shrink-0 cursor-pointer items-center justify-center gap-2 rounded-md px-3.5 text-xs font-medium"
+                                >
+                                    {isUploadingImage ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                        <Upload className="h-4 w-4" />
+                                    )}
+                                    Téléverser photo
+                                </Label>
+                                <input
+                                    id="v-image-upload"
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/webp"
+                                    onChange={handleVehicleImageUpload}
+                                    disabled={isUploadingImage}
+                                    className="hidden"
+                                />
+                            </div>
+                            {form.imageUrl.trim() && (
+                                <div className="bg-muted relative h-28 w-full overflow-hidden rounded-lg border">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                        src={form.imageUrl.trim()}
+                                        alt="Aperçu véhicule"
+                                        className="h-full w-full object-cover"
+                                    />
+                                </div>
+                            )}
                         </div>
 
                         <div className="space-y-1.5">

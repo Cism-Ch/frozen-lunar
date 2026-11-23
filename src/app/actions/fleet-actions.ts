@@ -68,10 +68,16 @@ const vehicleInputSchema = z
         imageUrl: z
             .string()
             .trim()
-            .url("URL d'image invalide (doit commencer par https://)")
+            .refine(
+                (val) =>
+                    val === "" ||
+                    val.startsWith("https://") ||
+                    val.startsWith("http://") ||
+                    val.startsWith("/api/fleet-image/"),
+                "URL d'image invalide (lien https:// ou image téléversée)"
+            )
             .nullable()
-            .optional()
-            .or(z.literal("")),
+            .optional(),
         specs: z.array(z.string().trim().min(1).max(160)).max(10).default([]),
         recommendedFor: z.array(z.string().trim().min(1).max(60)).default([]),
         isActive: z.boolean().default(true),

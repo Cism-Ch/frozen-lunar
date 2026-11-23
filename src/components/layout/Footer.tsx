@@ -153,10 +153,6 @@ export function Footer() {
                                 },
                                 { name: "CGV", href: "/legal/cgv" },
                                 {
-                                    name: "Statut des services",
-                                    href: "/status",
-                                },
-                                {
                                     name: "Espace Admin",
                                     href: "/admin/dashboard",
                                 },

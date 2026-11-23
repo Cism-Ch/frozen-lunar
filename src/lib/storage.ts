@@ -77,6 +77,53 @@ export function getPublicUrl(key: string): string {
 }
 
 /**
+ * Indique si Tigris S3 est configuré côté serveur.
+ */
+export function isTigrisConfigured(): boolean {
+    return hasTigrisConfig;
+}
+
+/**
+ * Téléverse directement un Buffer depuis le serveur vers Tigris S3 (évite les blocages CORS navigateur).
+ */
+export async function uploadBufferToStorage(
+    key: string,
+    body: Buffer,
+    contentType: string
+): Promise<{ storedInS3: boolean; key: string }> {
+    if (!hasTigrisConfig) {
+        logger.info("ℹ️ Tigris non configuré. Upload serveur simulé en local.", {
+            key,
+        });
+        return { storedInS3: false, key };
+    }
+
+    const command = new PutObjectCommand({
+        Bucket: S3_BUCKET_NAME,
+        Key: key,
+        Body: body,
+        ContentType: contentType,
+    });
+    await s3Client.send(command);
+    return { storedInS3: true, key };
+}
+
+/**
+ * Lit un objet depuis Tigris S3 (utilisé par le proxy d'images flotte).
+ */
+export async function getObjectFromStorage(key: string) {
+    if (!hasTigrisConfig) {
+        return null;
+    }
+
+    const command = new GetObjectCommand({
+        Bucket: S3_BUCKET_NAME,
+        Key: key,
+    });
+    return await s3Client.send(command);
+}
+
+/**
  * Génère une URL pré-signée temporaire en lecture (GET) pour les documents privés (ex: KYC partenaires).
  * @param key Clé S3 du document privé
  * @param expiresIn Durée de validité en secondes (défaut : 300s)

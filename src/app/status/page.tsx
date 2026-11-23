@@ -1,20 +1,11 @@
-import type { Metadata } from "next";
-import { getSystemHealthReport } from "@/lib/health-check";
-import { StatusDashboard } from "@/components/features/status/StatusDashboard";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-    title: "Statut des Services & Uptime | HBC Logistique",
-    description:
-        "Consultez en temps réel la disponibilité et les temps de réponse des services et dépendances techniques de HBC Logistique.",
-};
-
-export default async function PublicStatusPage() {
-    const initialReport = await getSystemHealthReport({
-        bypassCache: false,
-        triggerAlerts: true,
-    });
-
-    return <StatusDashboard mode="public" initialReport={initialReport} />;
+/**
+ * La supervision des services est réservée exclusivement aux administrateurs.
+ * Toute visite sur `/status` redirige vers la console sécurisée `/admin/status`.
+ */
+export default function StatusRedirectPage() {
+    redirect("/admin/status");
 }

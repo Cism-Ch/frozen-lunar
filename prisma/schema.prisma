@@ -78,9 +78,10 @@ model Verification {
 // --- Modèles de Métier (Quotes & Logistique) ---
 
 enum QuoteStatus {
-  PENDING // En attente
+  PENDING   // En attente
   VALIDATED // Validé
-  REJECTED // Refusé
+  REJECTED  // Refusé
+  CANCELLED // Annulé par le client
 }
 
 enum QuoteSource {
@@ -120,19 +121,22 @@ model Vehicle {
 }
 
 model Quote {
-  id              String      @id @default(cuid())
-  date            DateTime    @default(now())
-  clientName      String
-  email           String
-  phone           String
-  itemType        String
-  pickupLocation  String
-  dropoffLocation String
-  transportDate   DateTime
-  status          QuoteStatus @default(PENDING)
-  amount          String      @default("À calculer")
-  userNotes       String?
-  source          QuoteSource @default(FORM)
+  id                 String      @id @default(cuid())
+  trackingCode       String?     @unique
+  date               DateTime    @default(now())
+  clientName         String
+  email              String
+  phone              String
+  itemType           String
+  pickupLocation     String
+  dropoffLocation    String
+  transportDate      DateTime
+  status             QuoteStatus @default(PENDING)
+  amount             String      @default("À calculer")
+  userNotes          String?
+  cancellationReason String?     @db.Text
+  cancelledAt        DateTime?
+  source             QuoteSource @default(FORM)
 
   // Optional client user account owner (IDOR isolation)
   userId          String?
@@ -226,11 +230,13 @@ enum PartnerApplicationStatus {
 }
 
 model PartnerApplication {
-  id              String                   @id @default(cuid())
-  companyName     String
-  rccmNumber      String
-  nccNumber       String?
-  country         String                   @default("Côte d'Ivoire")
+  id               String                   @id @default(cuid())
+  partnerType      String                   @default("COMPANY") // INDIVIDUAL | COMPANY
+  companyName      String
+  rccmNumber       String?
+  nccNumber        String?
+  idDocumentNumber String?                  // N° CNI ou Permis pour Particulier
+  country          String                   @default("Côte d'Ivoire")
   city            String
   contactName     String
   email           String
@@ -257,6 +263,7 @@ model CompanyProfile {
   id             String   @id @default(cuid())
   userId         String   @unique
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountType    String   @default("INDIVIDUAL") // INDIVIDUAL | COMPANY
   companyName    String
   rccmNumber     String?
   nccNumber      String?
@@ -308,6 +315,18 @@ model SupportMessage {
   createdAt  DateTime          @default(now())
 
   @@map("support_message")
+}
+
+// --- Suivi Persistant des Notifications Admin Acquittées ---
+
+model AdminNotificationRead {
+  id              String   @id @default(cuid())
+  userId          String
+  notificationKey String
+  readAt          DateTime @default(now())
+
+  @@unique([userId, notificationKey])
+  @@map("admin_notification_read")
 }
 
 

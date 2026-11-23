@@ -320,7 +320,13 @@ export function resolveVehicleImageUrl(vehicle: {
     imageUrl?: string | null;
 }): string {
     const raw = vehicle.imageUrl?.trim();
-    if (raw && (raw.startsWith("https://") || raw.startsWith("http://"))) {
+    if (
+        raw &&
+        (raw.startsWith("https://") ||
+            raw.startsWith("http://") ||
+            raw.startsWith("/api/fleet-image/") ||
+            raw.startsWith("/images/"))
+    ) {
         return raw;
     }
     const catalogMatch = AFRICAN_FLEET_CATALOG.find(

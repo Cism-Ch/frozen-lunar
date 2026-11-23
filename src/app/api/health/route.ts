@@ -51,13 +51,31 @@ async function isRateLimited(ip: string): Promise<boolean> {
 }
 
 /**
- * Endpoint public de supervision d'état des dépendances (`/api/health`).
+ * Endpoint de supervision d'état des dépendances (`/api/health`).
+ * - Strictement réservé aux administrateurs authentifiés (`role === "admin"`).
  * - Protégé par rate-limiting IP (30 req/min) et cache Redis 30s.
- * - `?refresh=1` n'est autorisé que pour un administrateur authentifié.
  * - N'expose aucun secret, clé API ou détail technique sensible.
  */
 export async function GET(request: NextRequest) {
     try {
+        const session = await auth.api.getSession({
+            headers: await headers(),
+        });
+
+        if (!session?.user) {
+            return NextResponse.json(
+                { error: "Authentification requise." },
+                { status: 401, headers: { "Cache-Control": "no-store" } }
+            );
+        }
+
+        if (session.user.role !== "admin") {
+            return NextResponse.json(
+                { error: "Accès réservé aux administrateurs." },
+                { status: 403, headers: { "Cache-Control": "no-store" } }
+            );
+        }
+
         const ip = getClientIp(request);
         if (await isRateLimited(ip)) {
             return NextResponse.json(
@@ -71,22 +89,8 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        const wantsRefresh =
+        const bypassCache =
             request.nextUrl.searchParams.get("refresh") === "1";
-        let bypassCache = false;
-
-        if (wantsRefresh) {
-            try {
-                const session = await auth.api.getSession({
-                    headers: await headers(),
-                });
-                if (session?.user?.role === "admin") {
-                    bypassCache = true;
-                }
-            } catch {
-                bypassCache = false;
-            }
-        }
 
         const report = await getSystemHealthReport({
             bypassCache,

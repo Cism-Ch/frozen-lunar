@@ -36,7 +36,11 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { submitPartnerApplicationAction } from "@/app/actions/partner-actions";
-import { getPresignedUploadUrlAction } from "@/app/actions/upload-management";
+import {
+    compressFileForUpload,
+    formatFileSize,
+    MAX_SERVER_UPLOAD_BYTES,
+} from "@/lib/file-compression";
 import {
     PARTNER_OPERATING_ZONES,
     UEMOA_CEDEAO_COUNTRIES,
@@ -95,52 +99,60 @@ export function PartnerApplicationWizard() {
     const handleKycFileSelect = async (
         e: React.ChangeEvent<HTMLInputElement>
     ) => {
-        const file = e.target.files?.[0];
+        const rawFile = e.target.files?.[0];
         e.target.value = "";
-        if (!file) return;
+        if (!rawFile) return;
 
         if (kycDocs.length >= 5) {
-            toast.error("Maximum 5 documents KYC par dossier.");
+            toast.error("Maximum 5 documents par dossier.");
             return;
         }
 
         setIsUploading(true);
         try {
-            const presigned = await getPresignedUploadUrlAction({
-                fileName: file.name,
-                fileType: file.type || "application/pdf",
-                fileSize: file.size,
-                folder: "partners-kyc",
-            });
+            const { file, wasCompressed, originalSize, finalSize } =
+                await compressFileForUpload(rawFile);
 
-            if (!presigned.success || !presigned.key || !presigned.uploadUrl) {
+            if (file.size > MAX_SERVER_UPLOAD_BYTES) {
                 toast.error(
-                    presigned.error ||
-                        "Impossible de préparer le téléversement KYC."
+                    `Fichier trop volumineux (${formatFileSize(file.size)}). Maximum 4 Mo.`
                 );
                 return;
             }
 
-            // En mode dev sans Tigris configuré, l'URL commence par http://localhost:3000/api/mock-upload
-            if (!presigned.uploadUrl.includes("/api/mock-upload")) {
-                const uploadRes = await fetch(presigned.uploadUrl, {
-                    method: "PUT",
-                    headers: { "Content-Type": file.type || "application/pdf" },
-                    body: file,
-                });
-                if (!uploadRes.ok) {
-                    toast.error("Échec du transfert vers le coffre-fort S3.");
-                    return;
-                }
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("folder", "partners-kyc");
+
+            const uploadRes = await fetch("/api/upload", {
+                method: "POST",
+                body: formData,
+            });
+            const json = (await uploadRes.json()) as {
+                success?: boolean;
+                key?: string;
+                error?: string;
+            };
+
+            if (!uploadRes.ok || !json.success || !json.key) {
+                toast.error(
+                    json.error ||
+                        "Impossible de téléverser la pièce justificative."
+                );
+                return;
             }
 
             setKycDocs((prev) => [
                 ...prev,
-                { key: presigned.key!, name: file.name },
+                { key: json.key!, name: file.name },
             ]);
-            toast.success(`Document KYC ajouté (${file.name})`);
+            toast.success(
+                wasCompressed
+                    ? `Document optimisé (${formatFileSize(originalSize)} → ${formatFileSize(finalSize)}) et ajouté`
+                    : `Document ajouté (${file.name})`
+            );
         } catch {
-            toast.error("Erreur lors du téléversement du document KYC.");
+            toast.error("Erreur lors du téléversement du document.");
         } finally {
             setIsUploading(false);
         }

@@ -23,8 +23,10 @@ const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 Mo
 
 const ALLOWED_UPLOAD_FOLDERS = [
     "attachments",
+    "quotes",
     "quotes-uploads",
     "partners-kyc",
+    "fleet-images",
 ] as const;
 
 const presignedUrlSchema = z.object({

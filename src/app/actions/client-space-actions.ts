@@ -61,7 +61,7 @@ export interface ClientQuoteSummaryDTO {
     pickupLocation: string;
     dropoffLocation: string;
     transportDate: string;
-    status: "PENDING" | "VALIDATED" | "REJECTED";
+    status: "PENDING" | "VALIDATED" | "REJECTED" | "CANCELLED";
     statusLabel: string;
     amount: string;
     userNotes: string | null;
@@ -87,6 +87,8 @@ function statusToLabel(status: QuoteStatus): string {
             return "Validé";
         case QuoteStatus.REJECTED:
             return "Refusé";
+        case QuoteStatus.CANCELLED:
+            return "Annulé";
         case QuoteStatus.PENDING:
         default:
             return "En attente";

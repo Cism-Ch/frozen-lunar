@@ -2,7 +2,11 @@
 
 import React, { useState, useRef } from "react";
 import { Upload, FileText, CheckCircle2, X, Loader2 } from "lucide-react";
-import { getPresignedUploadUrlAction } from "@/app/actions/upload-management";
+import {
+    compressFileForUpload,
+    formatFileSize,
+    MAX_SERVER_UPLOAD_BYTES,
+} from "@/lib/file-compression";
 import { toast } from "sonner";
 import { logger } from "@/lib/logger";
 
@@ -34,69 +38,72 @@ export function FileUpload({
     const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const handleFileSelect = async (file: File) => {
-        if (!file) return;
-
-        // Size check
-        if (file.size > maxSizeMb * 1024 * 1024) {
-            toast.error(
-                `La taille du fichier dépasse la limite de ${maxSizeMb} Mo`
-            );
-            return;
-        }
+    const handleFileSelect = async (rawFile: File) => {
+        if (!rawFile) return;
 
         setIsUploading(true);
-        setProgress(20);
+        setProgress(15);
 
         try {
-            // 1. Demander une URL pré-signée via Server Action
-            const presignedResult = await getPresignedUploadUrlAction({
-                fileName: file.name,
-                fileType: file.type,
-                fileSize: file.size,
-                folder,
-            });
+            // 1. Compression automatique côté client pour les images (allège sous 4 Mo)
+            const { file, wasCompressed, originalSize, finalSize } =
+                await compressFileForUpload(rawFile);
 
-            if (!presignedResult.success || !presignedResult.uploadUrl) {
-                throw new Error(
-                    presignedResult.error ||
-                        "Impossible d'obtenir l'URL d'upload"
+            const effectiveMaxBytes = Math.min(
+                maxSizeMb * 1024 * 1024,
+                MAX_SERVER_UPLOAD_BYTES
+            );
+
+            if (file.size > effectiveMaxBytes) {
+                toast.error(
+                    `Le fichier dépasse la limite autorisée de ${formatFileSize(effectiveMaxBytes)} (${formatFileSize(file.size)}).`
                 );
+                return;
             }
 
-            setProgress(50);
+            setProgress(45);
 
-            // 2. Transférer directement vers S3 / Tigris (ou mock dev)
-            if (presignedResult.uploadUrl.includes("mock-upload")) {
-                // Simulation pour environnement local dev
-                await new Promise((resolve) => setTimeout(resolve, 800));
-            } else {
-                const uploadResponse = await fetch(presignedResult.uploadUrl, {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": file.type,
-                    },
-                    body: file,
-                });
+            // 2. Téléversement serveur sécurisé via POST /api/upload (zéro erreur CORS)
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("folder", folder);
 
-                if (!uploadResponse.ok) {
-                    throw new Error(
-                        "Échec du téléversement du fichier sur le serveur S3"
-                    );
-                }
+            const uploadResponse = await fetch("/api/upload", {
+                method: "POST",
+                body: formData,
+            });
+
+            const json = (await uploadResponse.json()) as {
+                success?: boolean;
+                key?: string;
+                publicUrl?: string | null;
+                fileName?: string;
+                fileSize?: number;
+                error?: string;
+            };
+
+            if (!uploadResponse.ok || !json.success || !json.key) {
+                throw new Error(
+                    json.error ||
+                        "Échec du téléversement du fichier sur le serveur."
+                );
             }
 
             setProgress(100);
 
             const fileData: UploadedFile = {
-                fileName: file.name,
-                publicUrl: presignedResult.publicUrl || "",
-                key: presignedResult.key || "",
-                fileSize: file.size,
+                fileName: json.fileName || file.name,
+                publicUrl: json.publicUrl || "",
+                key: json.key,
+                fileSize: json.fileSize || file.size,
             };
 
             setUploadedFile(fileData);
-            toast.success(`Fichier ${file.name} téléversé avec succès`);
+            toast.success(
+                wasCompressed
+                    ? `Fichier optimisé (${formatFileSize(originalSize)} → ${formatFileSize(finalSize)}) et téléversé`
+                    : `Fichier ${file.name} téléversé avec succès`
+            );
             onUploadSuccess?.(fileData);
         } catch (error: unknown) {
             logger.error("Upload Error", error);

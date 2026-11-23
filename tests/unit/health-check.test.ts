@@ -20,6 +20,12 @@ vi.mock("@/lib/redis", () => ({
         get: vi.fn(),
         set: vi.fn(),
     },
+    resolveUpstashRedisConfig: () => ({
+        url: null,
+        token: null,
+        isConfigured: false,
+        normalizedFromTcp: false,
+    }),
 }));
 
 import {

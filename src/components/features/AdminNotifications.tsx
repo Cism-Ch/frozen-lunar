@@ -83,7 +83,9 @@ export function AdminNotifications() {
         e.stopPropagation();
         setIsLoading(true);
         try {
-            const result = await markAllNotificationsAsReadAction();
+            const result = await markAllNotificationsAsReadAction(
+                notifications.map((n) => n.id)
+            );
             if (result.success) {
                 setNotifications((prev) =>
                     prev.map((n) => ({ ...n, read: true }))

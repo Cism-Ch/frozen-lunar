@@ -85,7 +85,7 @@ export function AdminPartnersClient({
             if (!q) return true;
             return (
                 app.companyName.toLowerCase().includes(q) ||
-                app.rccmNumber.toLowerCase().includes(q) ||
+                (app.rccmNumber || "").toLowerCase().includes(q) ||
                 app.city.toLowerCase().includes(q) ||
                 app.contactName.toLowerCase().includes(q)
             );
