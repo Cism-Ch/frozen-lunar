@@ -13,6 +13,7 @@ import {
     Home,
     Activity,
     Handshake,
+    Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -34,6 +35,11 @@ const navItems = [
         title: "Tableau de bord",
         href: "/admin/dashboard",
         icon: LayoutDashboard,
+    },
+    {
+        title: "Copilote IA",
+        href: "/admin/assistant",
+        icon: Sparkles,
     },
     {
         title: "Devis",

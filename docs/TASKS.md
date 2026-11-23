@@ -9,14 +9,15 @@
 
 ```
 +-------------------------+  +-------------------------+  +-------------------------+
-| [>] IN PROGRESS (SP 16) |  |  [?] ROADMAP            |  |       [X] ARCHIVES      |
+| [>] IN PROGRESS         |  |  [?] ROADMAP            |  |       [X] ARCHIVES      |
 +-------------------------+  +-------------------------+  +-------------------------+
-| [-] TASK-ADM-01..02     |  |                         |  | [x] SP 01..05 (Archived)|
+| (None)                  |  |                         |  | [x] SP 01..05 (Archived)|
 |                         |  |                         |  | [x] SP 06..11 (Archived)|
 |                         |  |                         |  | [x] TASK-INF-01..04     |
 |                         |  |                         |  | [x] TASK-SUP-01..02     |
 |                         |  |                         |  | [x] TASK-CLT-01..03     |
 |                         |  |                         |  | [x] TASK-PRT-03..04     |
+|                         |  |                         |  | [x] TASK-ADM-01..02     |
 +-------------------------+  +-------------------------+  +-------------------------+
 ```
 
@@ -104,16 +105,16 @@
 
 ---
 
-## In-Progress Sprint 16: Admin AI Copilot Executor (`/admin/assistant`)
+## Completed Sprint 16: Admin AI Copilot Executor (`/admin/assistant`)
 
-- [-] **`TASK-ADM-01` - Secure Admin AI Copilot Actions & Tool Registry**
+- [x] **`TASK-ADM-01` - Secure Admin AI Copilot Actions & Tool Registry**
   - **Priority:** HIGH
   - **Target files:** `src/app/actions/admin-agent-actions.ts`, `tests/unit/admin-agent.test.ts`
   - **Acceptance criteria:**
-    - [ ] `requireAdmin()` + Zod tool registry supporting immediate read tools and confirmation-gated write tools (stock, price, quote status, partner status) with `<untrusted_data>` prompt-injection isolation.
+    - [x] `requireAdmin()` + Zod tool registry supporting immediate read tools and confirmation-gated write tools (stock, price, quote status, partner status) with `<untrusted_data>` prompt-injection isolation.
 
-- [-] **`TASK-ADM-02` - Admin AI Copilot Chat Interface (`/admin/assistant`)**
+- [x] **`TASK-ADM-02` - Admin AI Copilot Chat Interface (`/admin/assistant`)**
   - **Priority:** HIGH
   - **Target files:** `src/app/admin/assistant/page.tsx`, `src/components/features/admin/AdminCopilotClient.tsx`, `src/components/features/admin/SidebarContent.tsx`
   - **Acceptance criteria:**
-    - [ ] Dedicated admin chat interface with quick task prompts, structured result cards, and centered `ConfirmDialog` before every database write action.
+    - [x] Dedicated admin chat interface with quick task prompts, structured result cards, and centered `ConfirmDialog` before every database write action (`100/100` RSI PASS, `pnpm next build` + 122/122 tests PASS).
