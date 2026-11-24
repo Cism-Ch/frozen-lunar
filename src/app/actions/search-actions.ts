@@ -13,13 +13,14 @@ const searchQuerySchema = z
 
 export interface SearchQuoteResult {
     id: string;
+    trackingCode?: string | null;
     client: string;
     email: string;
     phone: string;
     pickup: string;
     dropoff: string;
     itemType: string;
-    status: "En attente" | "Validé" | "Refusé";
+    status: "En attente" | "Validé" | "Refusé" | "Annulé";
     source: "form" | "chat";
     date: string;
 }
@@ -91,6 +92,38 @@ const STATIC_NAVIGATION_ROUTES: SearchNavigationItem[] = [
         icon: "settings",
     },
     {
+        id: "nav-fleet",
+        title: "Flotte & Stocks",
+        description: "Parc véhicules, tarifs FCFA, photos et disponibilités",
+        href: "/admin/fleet",
+        category: "Opérations",
+        icon: "quotes",
+    },
+    {
+        id: "nav-partners",
+        title: "Partenaires Transport",
+        description: "Candidatures transporteurs particuliers et entreprises",
+        href: "/admin/partners",
+        category: "Opérations",
+        icon: "users",
+    },
+    {
+        id: "nav-assistant",
+        title: "Copilote IA Admin",
+        description: "Assistant intelligent pour consulter et piloter l'activité",
+        href: "/admin/assistant",
+        category: "Général",
+        icon: "dashboard",
+    },
+    {
+        id: "nav-status",
+        title: "Statut des services",
+        description: "Diagnostic temps réel PostgreSQL, Redis, S3, IA et Email",
+        href: "/admin/status",
+        category: "Configuration",
+        icon: "settings",
+    },
+    {
         id: "nav-home",
         title: "Site Public HBC Logistics",
         description: "Retourner à la page d'accueil publique du site",
@@ -102,12 +135,14 @@ const STATIC_NAVIGATION_ROUTES: SearchNavigationItem[] = [
 
 function mapQuoteStatus(
     status: QuoteStatus
-): "En attente" | "Validé" | "Refusé" {
+): "En attente" | "Validé" | "Refusé" | "Annulé" {
     switch (status) {
         case QuoteStatus.VALIDATED:
             return "Validé";
         case QuoteStatus.REJECTED:
             return "Refusé";
+        case QuoteStatus.CANCELLED:
+            return "Annulé";
         case QuoteStatus.PENDING:
         default:
             return "En attente";
@@ -166,6 +201,12 @@ export async function searchAdminAction(
                     OR: [
                         { id: { contains: query, mode: "insensitive" } },
                         {
+                            trackingCode: {
+                                contains: query,
+                                mode: "insensitive",
+                            },
+                        },
+                        {
                             clientName: {
                                 contains: query,
                                 mode: "insensitive",
@@ -192,6 +233,7 @@ export async function searchAdminAction(
                 orderBy: { date: "desc" },
                 select: {
                     id: true,
+                    trackingCode: true,
                     clientName: true,
                     email: true,
                     phone: true,
@@ -230,6 +272,7 @@ export async function searchAdminAction(
 
         const mappedQuotes: SearchQuoteResult[] = quotesFound.map((q) => ({
             id: q.id,
+            trackingCode: q.trackingCode ?? null,
             client: q.clientName,
             email: q.email,
             phone: q.phone,

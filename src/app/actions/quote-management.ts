@@ -13,6 +13,7 @@ import {
 import { handleError } from "@/lib/error-handler";
 import { emailQueue, pdfQueue } from "@/lib/qstash";
 import { getOptionalUser, requireAdmin } from "@/lib/auth-guard";
+import { checkRateLimit } from "@/lib/rate-limit";
 import {
     formatQuoteReference,
     generateTrackingCode,
@@ -84,6 +85,7 @@ const supplementaryInfoSchema = z.object({
     specialRequirements: z.string().optional(),
     accessInfo: z.string().optional(),
     urgency: z.enum(["standard", "urgent", "very_urgent"]).optional(),
+    attachments: z.array(z.string().max(500)).max(10).optional(),
 });
 
 const createQuoteSchema = z.object({
@@ -168,6 +170,18 @@ export async function createQuoteAction(
     data: z.input<typeof createQuoteSchema>
 ) {
     try {
+        const rl = await checkRateLimit({
+            scope: "create-quote",
+            limit: 10,
+            windowSeconds: 600,
+        });
+        if (!rl.allowed) {
+            return {
+                success: false,
+                error: "Trop de demandes de devis récentes. Veuillez patienter quelques minutes.",
+            };
+        }
+
         const validated = createQuoteSchema.parse(data);
 
         // Convert transportDate to Date if it's a string

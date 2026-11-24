@@ -9,11 +9,12 @@
 
 ```
 +-------------------------+  +-------------------------+  +-------------------------+
-| [>] IN PROGRESS (SP 25) |  |  [?] ROADMAP (SP 26)    |  |       [X] ARCHIVES      |
+| [>] IN PROGRESS (SP 26) |  |  [?] ROADMAP            |  |       [X] ARCHIVES      |
 +-------------------------+  +-------------------------+  +-------------------------+
-| [-] TASK-BUG-01..03     |  | [ ] TASK-CLN-01..02     |  | [x] SP 01..11 (Archived)|
+| [-] TASK-CLN-01..02     |  | (None)                  |  | [x] SP 01..11 (Archived)|
 |                         |  |                         |  | [x] SP 12..23 (Archived)|
 |                         |  |                         |  | [x] TASK-SEC-01..03     |
+|                         |  |                         |  | [x] TASK-BUG-01..03     |
 +-------------------------+  +-------------------------+  +-------------------------+
 ```
 
@@ -35,15 +36,15 @@
 
 ---
 
-## Active Sprint 25: Critical Action & Data Consistency Fixes
+## Completed Sprint 25: Critical Action & Data Consistency Fixes
 
-- [-] **`TASK-BUG-01` (SP 25)** - Preserve uploaded `attachments` in `createQuoteAction` (`supplementaryInfoSchema`) + add rate limiting.
-- [-] **`TASK-BUG-02` (SP 25)** - Fix `searchAdminAction` (`trackingCode` search, `QuoteStatus.CANCELLED` mapping, missing admin navigation routes).
-- [-] **`TASK-BUG-03` (SP 25)** - Replace legacy `#id.slice(0,8)` with `HBC-YYYY-XXXX` in `thread-actions.ts` welcome message.
+- [x] **`TASK-BUG-01` (SP 25)** - Preserved uploaded `attachments` in `createQuoteAction` (`supplementaryInfoSchema`) + added rate limiting.
+- [x] **`TASK-BUG-02` (SP 25)** - Fixed `searchAdminAction` (`trackingCode` search, `QuoteStatus.CANCELLED` mapping, missing admin navigation routes).
+- [x] **`TASK-BUG-03` (SP 25)** - Replaced legacy `#id.slice(0,8)` with `HBC-YYYY-XXXX` in `thread-actions.ts` welcome message (`100/100` RSI PASS).
 
 ---
 
-## Roadmap Sprint 26: Admin UI Consistency & Dead Code Removal
+## Active Sprint 26: Admin UI Consistency & Dead Code Removal
 
-- [ ] **`TASK-CLN-01` (SP 26)** - Upgrade `src/app/admin/dashboard/page.tsx` from legacy `QuoteDetailsSheet` to responsive centered `QuoteDetailsModal` (live ID sync).
-- [ ] **`TASK-CLN-02` (SP 26)** - Remove dead legacy `src/components/features/QuoteDetailsSheet.tsx` & run full build/test/RSI verification.
+- [-] **`TASK-CLN-01` (SP 26)** - Upgrade `src/app/admin/dashboard/page.tsx` from legacy `QuoteDetailsSheet` to responsive centered `QuoteDetailsModal` (live ID sync).
+- [-] **`TASK-CLN-02` (SP 26)** - Remove dead legacy `src/components/features/QuoteDetailsSheet.tsx` & run full build/test/RSI verification.

@@ -9,6 +9,7 @@ import {
     requireQuoteOwnershipOrAdmin,
 } from "@/lib/auth-guard";
 import { generateSupportAiResponse } from "@/lib/gemini";
+import { formatQuoteReference } from "@/lib/tracking-code";
 import { logger } from "@/lib/logger";
 
 export interface SupportMessageDTO {
@@ -85,7 +86,11 @@ export async function getOrCreateQuoteThreadAction(
         });
 
         if (!thread) {
-            const welcomeText = `Bonjour ${quote.clientName}, bienvenue sur le suivi dédié de votre dossier #${quote.id.slice(0, 8)} (${quote.itemType} : ${quote.pickupLocation} vers ${quote.dropoffLocation}). Je suis l'assistant IA HBC Logistique ; posez-moi vos questions ou demandez un validateur humain à tout moment.`;
+            const quoteRef = formatQuoteReference({
+                trackingCode: quote.trackingCode,
+                id: quote.id,
+            });
+            const welcomeText = `Bonjour ${quote.clientName}, bienvenue sur le suivi dédié de votre dossier ${quoteRef} (${quote.itemType} : ${quote.pickupLocation} vers ${quote.dropoffLocation}). Je suis l'assistant IA HBC Logistique ; posez-moi vos questions ou demandez un validateur humain à tout moment.`;
 
             thread = await prisma.supportThread.create({
                 data: {
