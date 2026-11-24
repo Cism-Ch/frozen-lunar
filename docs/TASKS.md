@@ -12,7 +12,7 @@
 | [>] IN PROGRESS         |  |  [?] ROADMAP            |  |       [X] ARCHIVES      |
 +-------------------------+  +-------------------------+  +-------------------------+
 | (None)                  |  | (None)                  |  | [x] SP 01..11 (Archived)|
-|                         |  |                         |  | [x] TASK-INF-01..04     |
+|                         |  |                         |  | [x] TASK-INF-01..05     |
 |                         |  |                         |  | [x] TASK-SUP-01..03     |
 |                         |  |                         |  | [x] TASK-CLT-01..03     |
 |                         |  |                         |  | [x] TASK-PRT-03..04     |
@@ -159,3 +159,7 @@
 - [x] **`TASK-FLT-03` (SP 22)** - Shared mobile-first `1x6 / 2x6 / 3x6` fleet layout + pagination on `/flotte` & `/admin/fleet` + admin filter block & card image fix.
 - [x] **`TASK-USR-01` (SP 22)** - Separated Admin Team vs Client Accounts on `/admin/users` with role update, session revocation & email verification actions.
 - [x] **`TASK-SUP-03` (SP 22)** - Fixed premature Support AI fallback to Robot Mode (`1024`/`700` tokens, `15s` timeout, JSON mode + plain-text fallback, `100/100` RSI PASS, `pnpm next build` + 127/127 tests PASS).
+
+## Completed Sprint 23: Resilient Email Cascade (Resend -> Gmail SMTP Fallback)
+
+- [x] **`TASK-INF-05` (SP 23)** - Centralized `sendTransactionalEmail()` with automatic Resend -> Gmail SMTP (`nodemailer`) fallback using React Email rendering, wired across all email callers & verified (`100/100` RSI PASS, `pnpm next build` PASS).

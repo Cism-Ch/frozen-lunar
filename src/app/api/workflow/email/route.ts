@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifySignatureAppRouter } from "@upstash/qstash/dist/nextjs";
 import { z } from "zod";
-import { resend, EMAIL_SENDER } from "@/lib/email";
+import { sendTransactionalEmail, EMAIL_SENDER } from "@/lib/email";
 import { COMPANY_CONFIG } from "@/lib/company-config";
 import { QuoteRequestEmail } from "@/components/emails/QuoteRequestEmail";
 import { QuoteConfirmationEmail } from "@/components/emails/QuoteConfirmationEmail";
@@ -73,7 +73,7 @@ async function handler(req: NextRequest) {
         const payload = parsed.data;
 
         if (payload.type === "admin_alert") {
-            const { data, error } = await resend.emails.send({
+            const { data, error, provider } = await sendTransactionalEmail({
                 from: EMAIL_SENDER,
                 to: [payload.recipientEmail || adminEmail],
                 subject: `[ALERTE ${payload.severity.toUpperCase()}] ${payload.title}`,
@@ -90,7 +90,7 @@ async function handler(req: NextRequest) {
             });
 
             if (error) {
-                logger.error("Resend Admin Alert Error", error);
+                logger.error("Email Admin Alert Error", error);
                 return NextResponse.json(
                     { error: error.message },
                     { status: 500 }
@@ -99,12 +99,13 @@ async function handler(req: NextRequest) {
 
             return NextResponse.json({
                 status: "Admin alert email sent",
+                provider,
                 data,
             });
         }
 
         if (payload.type === "quote_status_update") {
-            const { data, error } = await resend.emails.send({
+            const { data, error, provider } = await sendTransactionalEmail({
                 from: EMAIL_SENDER,
                 to: [payload.email],
                 subject:
@@ -123,7 +124,7 @@ async function handler(req: NextRequest) {
             });
 
             if (error) {
-                logger.error("Resend Quote Status Error", error);
+                logger.error("Email Quote Status Error", error);
                 return NextResponse.json(
                     { error: error.message },
                     { status: 500 }
@@ -132,12 +133,13 @@ async function handler(req: NextRequest) {
 
             return NextResponse.json({
                 status: "Quote status email sent",
+                provider,
                 data,
             });
         }
 
         if (payload.type === "client_confirmation") {
-            const { data, error } = await resend.emails.send({
+            const { data, error, provider } = await sendTransactionalEmail({
                 from: EMAIL_SENDER,
                 to: [payload.email],
                 subject: `Confirmation de votre demande de devis #${payload.quoteId} - ${COMPANY_CONFIG.shortName}`,
@@ -152,7 +154,7 @@ async function handler(req: NextRequest) {
             });
 
             if (error) {
-                logger.error("Resend Client Confirmation Error", error);
+                logger.error("Email Client Confirmation Error", error);
                 return NextResponse.json(
                     { error: error.message },
                     { status: 500 }
@@ -161,12 +163,13 @@ async function handler(req: NextRequest) {
 
             return NextResponse.json({
                 status: "Client confirmation email sent",
+                provider,
                 data,
             });
         }
 
         // Par défaut: notification administrateur de nouveau devis
-        const { data, error } = await resend.emails.send({
+        const { data, error, provider } = await sendTransactionalEmail({
             from: EMAIL_SENDER,
             to: [adminEmail],
             subject: `[ADMIN] Nouvelle demande de devis : ${payload.itemType} (#${payload.quoteId})`,
@@ -183,12 +186,13 @@ async function handler(req: NextRequest) {
         });
 
         if (error) {
-            logger.error("Resend Admin Notification Error", error);
+            logger.error("Email Admin Notification Error", error);
             return NextResponse.json({ error: error.message }, { status: 500 });
         }
 
         return NextResponse.json({
             status: "Admin notification email sent",
+            provider,
             data,
         });
     } catch (err: unknown) {

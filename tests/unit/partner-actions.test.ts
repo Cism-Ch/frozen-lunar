@@ -20,6 +20,8 @@ vi.mock("@/lib/redis", () => ({
 vi.mock("@/lib/email", () => ({
     EMAIL_SENDER: "onboarding@resend.dev",
     isResendConfigured: () => false,
+    isAnyEmailProviderConfigured: () => false,
+    sendTransactionalEmail: vi.fn(),
     resend: { emails: { send: vi.fn() } },
 }));
 

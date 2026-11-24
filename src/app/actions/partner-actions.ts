@@ -7,7 +7,11 @@ import prisma from "@/lib/prisma";
 import { redis } from "@/lib/redis";
 import { isRedisConfigured } from "@/lib/health-check";
 import { requireAdmin } from "@/lib/auth-guard";
-import { EMAIL_SENDER, isResendConfigured, resend } from "@/lib/email";
+import {
+    EMAIL_SENDER,
+    isAnyEmailProviderConfigured,
+    sendTransactionalEmail,
+} from "@/lib/email";
 import { COMPANY_CONFIG } from "@/lib/company-config";
 import { PartnerApplicationEmail } from "@/components/emails/PartnerApplicationEmail";
 import { UEMOA_CEDEAO_COUNTRIES } from "@/lib/fleet-catalog";
@@ -260,15 +264,15 @@ export async function submitPartnerApplicationAction(
             },
         });
 
-        // Envoi non-bloquant des emails Resend (confirmation candidat + notification admin)
-        if (isResendConfigured()) {
+        // Envoi non-bloquant des emails (Resend -> Fallback Gmail SMTP)
+        if (isAnyEmailProviderConfigured()) {
             const categoryText = v.fleetCategories.join(", ");
             const adminEmail =
                 process.env.ADMIN_NOTIFICATION_EMAIL?.trim() ||
                 COMPANY_CONFIG.contact.email;
 
             void Promise.allSettled([
-                resend.emails.send({
+                sendTransactionalEmail({
                     from: EMAIL_SENDER,
                     to: [v.email],
                     subject: `Candidature partenaire reçue — ${COMPANY_CONFIG.shortName}`,
@@ -282,16 +286,16 @@ export async function submitPartnerApplicationAction(
                         isAdminCopy: false,
                     }),
                 }),
-                resend.emails.send({
+                sendTransactionalEmail({
                     from: EMAIL_SENDER,
                     to: [adminEmail],
-                    subject: `[PARTENAIRE AFRIQUE] Nouvelle candidature : ${v.companyName} (${v.city})`,
+                    subject: `[PARTENAIRE CI] Nouvelle candidature : ${v.companyName} (${v.city})`,
                     react: PartnerApplicationEmail({
                         companyName: v.companyName,
                         contactName: `${v.contactName} (${v.phone})`,
                         country: v.country,
                         city: v.city,
-                        category: `${categoryText} • RCCM: ${v.rccmNumber}`,
+                        category: `${categoryText}${v.rccmNumber ? ` • RCCM: ${v.rccmNumber}` : ""}`,
                         fleetSummary: `${v.totalVehicles} véhicule(s) • ${v.fleetSummary}`,
                         isAdminCopy: true,
                     }),

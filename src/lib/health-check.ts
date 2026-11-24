@@ -2,7 +2,12 @@ import { HeadBucketCommand } from "@aws-sdk/client-s3";
 import prisma from "@/lib/prisma";
 import { redis, resolveUpstashRedisConfig } from "@/lib/redis";
 import { s3Client } from "@/lib/storage";
-import { EMAIL_SENDER, isResendConfigured, resend } from "@/lib/email";
+import {
+    EMAIL_SENDER,
+    isAnyEmailProviderConfigured,
+    isResendConfigured,
+    sendTransactionalEmail,
+} from "@/lib/email";
 import { getGeminiApiKey, getGeminiModel } from "@/lib/gemini";
 import { getOpenRouterApiKey, getOpenRouterModel } from "@/lib/openrouter";
 import { COMPANY_CONFIG } from "@/lib/company-config";
@@ -738,7 +743,10 @@ export async function maybeSendCriticalOutageAlert(
         .join(" | ");
 
     try {
-        const { error } = await resend.emails.send({
+        if (!isAnyEmailProviderConfigured()) {
+            return false;
+        }
+        const { error } = await sendTransactionalEmail({
             from: EMAIL_SENDER,
             to: [adminEmail],
             subject: `[ALERTE CRITICAL] Incident dépendance : ${serviceNames}`,

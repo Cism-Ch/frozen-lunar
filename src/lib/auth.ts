@@ -1,7 +1,11 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import prisma from "@/lib/prisma";
-import { resend, EMAIL_SENDER } from "@/lib/email";
+import {
+    sendTransactionalEmail,
+    isAnyEmailProviderConfigured,
+    EMAIL_SENDER,
+} from "@/lib/email";
 import { PasswordResetEmail } from "@/components/emails/PasswordResetEmail";
 import { logger } from "@/lib/logger";
 
@@ -51,9 +55,9 @@ export const auth = betterAuth({
             const userRole = (user as { role?: string }).role || "user";
 
             try {
-                if (process.env.RESEND_KEY || process.env.AUTH_RESEND_KEY) {
-                    await resend.emails.send({
-                        from: `HBC Logistique <${EMAIL_SENDER}>`,
+                if (isAnyEmailProviderConfigured()) {
+                    const res = await sendTransactionalEmail({
+                        from: EMAIL_SENDER,
                         to: user.email,
                         subject:
                             userRole === "admin"
@@ -67,8 +71,8 @@ export const auth = betterAuth({
                         }),
                     });
                     logger.info(
-                        `📧 [RESET PASSWORD] Email envoyé avec succès à ${user.email} (rôle: ${userRole})`,
-                        { email: user.email, role: userRole }
+                        `📧 [RESET PASSWORD] Email envoyé avec succès à ${user.email} (${res.provider})`,
+                        { email: user.email, role: userRole, provider: res.provider }
                     );
                 } else if (process.env.NODE_ENV !== "production") {
                     logger.warn(

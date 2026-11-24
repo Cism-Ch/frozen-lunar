@@ -7,7 +7,12 @@ import {
     HealthReport,
     isRedisConfigured,
 } from "@/lib/health-check";
-import { EMAIL_SENDER, isResendConfigured, resend } from "@/lib/email";
+import {
+    EMAIL_SENDER,
+    isAnyEmailProviderConfigured,
+    isResendConfigured,
+    sendTransactionalEmail,
+} from "@/lib/email";
 import { COMPANY_CONFIG } from "@/lib/company-config";
 import { AdminAlertEmail } from "@/components/emails/AdminAlertEmail";
 import { logger } from "@/lib/logger";
@@ -100,10 +105,10 @@ export async function sendTestAlertEmailAction(input?: {
             };
         }
 
-        if (!isResendConfigured()) {
+        if (!isAnyEmailProviderConfigured()) {
             return {
                 data: null,
-                error: "Resend n'est pas configuré : vérifiez la variable d'environnement RESEND_KEY.",
+                error: "Aucun fournisseur email configuré : vérifiez RESEND_KEY ou GMAIL_USER + GMAIL_APP_PASSWORD.",
             };
         }
 
@@ -115,28 +120,30 @@ export async function sendTestAlertEmailAction(input?: {
 
         const sentAt = new Date().toISOString();
 
-        const { data, error } = await resend.emails.send({
+        const { data, error, provider } = await sendTransactionalEmail({
             from: EMAIL_SENDER,
             to: [recipient],
-            subject: `[TEST SUPERVISION] Vérification Resend — ${COMPANY_CONFIG.shortName}`,
+            subject: `[TEST SUPERVISION] Vérification Email — ${COMPANY_CONFIG.shortName}`,
             react: AdminAlertEmail({
-                title: "Test de délivrabilité des alertes Resend",
+                title: "Test de délivrabilité des alertes Email",
                 severity: "info",
                 source: `Console Admin (/admin/status) par ${admin.email}`,
                 summary:
-                    "Cet email confirme que le service Resend est correctement configuré et capable d'expédier les alertes d'indisponibilité de la plateforme.",
+                    "Cet email confirme que le service d'envoi (Resend ou Fallback Gmail SMTP) est opérationnel.",
                 details: `Expéditeur : ${EMAIL_SENDER} | Destinataire : ${recipient}`,
                 timestamp: sentAt,
             }),
         });
 
         if (error) {
-            logger.error("sendTestAlertEmailAction Resend error", error);
+            logger.error("sendTestAlertEmailAction error", error);
             return {
                 data: null,
-                error: `Resend a refusé l'envoi : ${error.message}`,
+                error: `Échec de l'envoi : ${error.message}`,
             };
         }
+
+        logger.info("Test alert email sent", { provider, recipient });
 
         return {
             data: {

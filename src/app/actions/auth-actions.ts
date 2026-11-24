@@ -4,7 +4,11 @@ import prisma from "@/lib/prisma";
 import crypto from "crypto";
 import { hashPassword } from "better-auth/crypto";
 import { revalidatePath } from "next/cache";
-import { resend, EMAIL_SENDER } from "@/lib/email";
+import {
+    sendTransactionalEmail,
+    isAnyEmailProviderConfigured,
+    EMAIL_SENDER,
+} from "@/lib/email";
 import { PasswordResetEmail } from "@/components/emails/PasswordResetEmail";
 import {
     requestPasswordResetSchema,
@@ -107,9 +111,9 @@ export async function requestPasswordResetAction(
 
         // Expédition du courriel
         try {
-            if (process.env.RESEND_KEY || process.env.AUTH_RESEND_KEY) {
-                await resend.emails.send({
-                    from: `HBC Logistique <${EMAIL_SENDER}>`,
+            if (isAnyEmailProviderConfigured()) {
+                const emailRes = await sendTransactionalEmail({
+                    from: EMAIL_SENDER,
                     to: user.email,
                     subject:
                         userRole === "admin"
@@ -123,12 +127,12 @@ export async function requestPasswordResetAction(
                     }),
                 });
                 logger.info(
-                    `📧 [RESET PASSWORD] Courriel de réinitialisation envoyé à ${user.email}`,
-                    { email: user.email, role: userRole }
+                    `📧 [RESET PASSWORD] Courriel de réinitialisation envoyé à ${user.email} (${emailRes.provider})`,
+                    { email: user.email, role: userRole, provider: emailRes.provider }
                 );
             } else {
                 logger.warn(
-                    `⚠️ [DEV RESET PASSWORD] RESEND_KEY non configurée. Lien direct généré pour ${user.email}`,
+                    `⚠️ [DEV RESET PASSWORD] Aucun fournisseur email configuré. Lien direct généré pour ${user.email}`,
                     { email: user.email, role: userRole, resetUrl }
                 );
             }
