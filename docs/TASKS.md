@@ -18,8 +18,26 @@
 |                         |  |                         |  | [x] TASK-CLN-01..02     |
 |                         |  |                         |  | [x] TASK-RSI-01         |
 |                         |  |                         |  | [x] TASK-QWS-01..04     |
+|                         |  |                         |  | [x] TASK-UX-01..02      |
+|                         |  |                         |  | [x] TASK-SUP-01         |
 +-------------------------+  +-------------------------+  +-------------------------+
 ```
+
+---
+
+## Completed Sprint 29: PDF Template Overhaul, Post-Quote Navigation Modal & Interactive Support Testing
+
+- [x] **`TASK-UX-01` - Executive A4 Quote PDF Template Overhaul (Zero Malformed/Overlapping Blocks)**
+  - **Target files:** `src/lib/pdf-generator.ts`, `src/lib/pdf.ts`
+  - **Criteria:** [x] Replaced fixed-Y colliding blocks with dynamic cursor layout (`splitTextToSize`), sanitized `\u202F`/`\u00A0` spaces for Helvetica compatibility, added brand header/cards/structured pricing table with footer pagination guard (`didDrawPage`).
+
+- [x] **`TASK-UX-02` - Post-Quote Submission Choice Modal (Stay vs View My Quotes)**
+  - **Target files:** `src/components/features/QuoteSummaryDialog.tsx`, `src/components/features/QuoteWizard.tsx`
+  - **Criteria:** [x] After validating a quote, displays a clear choice modal asking whether to stay on the page ("Rester ici (nouveau devis)") or navigate to `/espace-client` ("Afficher mes devis") with 44px touch targets and `trackingCode` display.
+
+- [x] **`TASK-SUP-01` - Interactive Support Agent Testing & Bug Fixes**
+  - **Target files:** `src/lib/support-agent/mock-responses.ts`, `src/lib/support-agent/quote-flow.ts`, `tests/unit/support-interactive.test.ts`
+  - **Criteria:** [x] Fixed `HBC-YYYY-XXXX` tracking reference truncation in `mock-responses.ts` and added email validation in `quote-flow.ts`; passed `vitest` (`27/27` files, `138/138` tests), `pnpm next build` (`35/35` routes), and `python evals/run_fullstack_eval.py --quick` (`100/100` PASS).
 
 ---
 

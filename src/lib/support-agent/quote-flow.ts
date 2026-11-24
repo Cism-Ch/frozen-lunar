@@ -503,7 +503,7 @@ export function formatQuoteSummary(data: Partial<QuoteFlowData>): string {
 export function processFlowAnswer(
     state: QuoteFlowState,
     answer: string
-): { newState: QuoteFlowState; complete: boolean } {
+): { newState: QuoteFlowState; complete: boolean; error?: string } {
     const newState = { ...state, data: { ...state.data } };
 
     switch (state.currentStep) {
@@ -537,10 +537,19 @@ export function processFlowAnswer(
             newState.currentStep = "contact_email";
             break;
 
-        case "contact_email":
-            newState.data.email = answer;
+        case "contact_email": {
+            const trimmedEmail = answer.trim();
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+                return {
+                    newState: state,
+                    complete: false,
+                    error: "Veuillez saisir une adresse email valide (ex: nom@entreprise.ci).",
+                };
+            }
+            newState.data.email = trimmedEmail;
             newState.currentStep = "contact_phone";
             break;
+        }
 
         case "contact_phone":
             newState.data.phone = answer;

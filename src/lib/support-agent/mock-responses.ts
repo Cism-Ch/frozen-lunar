@@ -213,10 +213,12 @@ export async function generateMockResponse(userMessage: string): Promise<
     let quickReplyContext = "initial";
     let suggestedActions: string[] | undefined;
 
-    // Direct check for tracking reference (e.g. HBC-12345)
-    const hbcMatch = userMessage.match(/hbc[-\s]?[0-9a-zA-Z]+/i);
+    // Direct check for tracking reference (e.g. HBC-12345 or HBC-2026-4412)
+    const hbcMatch = userMessage.match(
+        /hbc[-\s]?[0-9a-zA-Z]+(?:-[0-9a-zA-Z]+)*/i
+    );
     if (hbcMatch) {
-        const orderRef = hbcMatch[0].toUpperCase().replace(/\s+/, "-");
+        const orderRef = hbcMatch[0].toUpperCase().replace(/\s+/g, "-");
         message = `Votre référence **${orderRef}** a bien été prise en compte.\n\nStatut estimé : Convoi planifié et en cours de coordination avec notre transporteur partenaire. Vous pouvez contacter directement notre service d'exploitation pour obtenir la position GPS en temps réel du véhicule.`;
         conversationState.awaitingSelection = false;
         conversationState.lastCategory = "transport";

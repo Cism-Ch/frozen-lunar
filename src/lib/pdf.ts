@@ -1,5 +1,6 @@
 import { jsPDF } from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
+import { formatPdfFcfa, sanitizePdfText } from "@/lib/pdf-generator";
 
 interface QuoteData {
     id: string;
@@ -11,39 +12,92 @@ interface QuoteData {
 
 export class PdfService {
     static async generateQuotePdf(data: QuoteData): Promise<Buffer> {
-        // Note: jsPDF is primarily client-side. In Node.js, we might need a workaround or specific construct.
-        // For this implementation, we assume basic text generation works.
-        const doc = new jsPDF();
-
-        doc.setFontSize(20);
-        doc.text("Devis - HBC Logistique", 20, 20);
-
-        doc.setFontSize(12);
-        doc.text(`Devis N°: ${data.id}`, 20, 40);
-        doc.text(`Date: ${data.date}`, 20, 50);
-        doc.text(`Client: ${data.clientName}`, 20, 60);
-
-        // Simple table simulation
-        let y = 80;
-        doc.text("Description", 20, y);
-        doc.text("Quantité", 120, y);
-        doc.text("Prix", 160, y);
-        y += 10;
-        doc.line(20, y - 5, 190, y - 5);
-
-        data.items.forEach((item) => {
-            doc.text(item.description, 20, y);
-            doc.text(item.quantity.toString(), 120, y);
-            doc.text(`${item.price.toLocaleString("fr-FR")} FCFA`, 160, y);
-            y += 10;
+        const doc = new jsPDF({
+            orientation: "portrait",
+            unit: "mm",
+            format: "a4",
         });
 
-        doc.line(20, y, 190, y);
-        y += 10;
-        doc.setFontSize(14);
-        doc.text(`Total: ${data.total.toLocaleString("fr-FR")} FCFA`, 145, y);
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const marginX = 16;
 
-        // Output as ArrayBuffer and convert to Buffer for Node.js upload
+        // En-tête sobre aligné sur la charte HBC Logistique
+        doc.setFillColor(15, 23, 42);
+        doc.rect(0, 0, pageWidth, 28, "F");
+        doc.setFillColor(234, 88, 12);
+        doc.rect(0, 28, pageWidth, 2, "F");
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(16);
+        doc.setTextColor(255, 255, 255);
+        doc.text("HBC LOGISTIQUE", marginX, 14);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.text(
+            sanitizePdfText(`DEVIS N° ${data.id}`),
+            pageWidth - marginX,
+            13,
+            { align: "right" }
+        );
+        doc.text(
+            sanitizePdfText(`Date : ${data.date}`),
+            pageWidth - marginX,
+            19,
+            { align: "right" }
+        );
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        doc.setTextColor(15, 23, 42);
+        doc.text(
+            sanitizePdfText(`Client : ${data.clientName}`),
+            marginX,
+            40
+        );
+
+        autoTable(doc, {
+            startY: 48,
+            margin: { left: marginX, right: marginX, bottom: 25 },
+            head: [["DESCRIPTION", "QTÉ", "MONTANT (FCFA)"]],
+            body: [
+                ...data.items.map((item) => [
+                    sanitizePdfText(item.description),
+                    String(item.quantity),
+                    formatPdfFcfa(item.price),
+                ]),
+                [
+                    {
+                        content: "TOTAL",
+                        colSpan: 2,
+                        styles: {
+                            fontStyle: "bold",
+                            fillColor: [15, 23, 42],
+                            textColor: [255, 255, 255],
+                        },
+                    },
+                    {
+                        content: formatPdfFcfa(data.total),
+                        styles: {
+                            fontStyle: "bold",
+                            fillColor: [15, 23, 42],
+                            textColor: [255, 255, 255],
+                        },
+                    },
+                ],
+            ],
+            theme: "grid",
+            headStyles: {
+                fillColor: [15, 23, 42],
+                textColor: [255, 255, 255],
+                fontStyle: "bold",
+            },
+            columnStyles: {
+                1: { cellWidth: 20, halign: "center" },
+                2: { cellWidth: 48, halign: "right" },
+            },
+        });
+
         const arrayBuffer = doc.output("arraybuffer");
         return Buffer.from(arrayBuffer);
     }
