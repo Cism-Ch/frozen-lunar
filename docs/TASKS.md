@@ -16,8 +16,17 @@
 |                         |  |                         |  | [x] TASK-SEC-01..03     |
 |                         |  |                         |  | [x] TASK-BUG-01..03     |
 |                         |  |                         |  | [x] TASK-CLN-01..02     |
+|                         |  |                         |  | [x] TASK-RSI-01         |
 +-------------------------+  +-------------------------+  +-------------------------+
 ```
+
+---
+
+## Completed Sprint 27: RSI Procedural Memory Enrichment
+
+- [x] **`TASK-RSI-01` - Integrate Sprint 24-26 Lessons into RSI Rule Modules**
+  - **Target files:** `.agents/rules/modules/security_auth.md`, `.agents/rules/modules/api_backend.md`, `.agents/rules/modules/ui_frontend.md`, `.agents/rules/modules/pattern_recognition.md`
+  - **Criteria:** [x] Added `[R-SEC-05..06]`, `[R-API-05..06]`, `[R-UI-05..06]`, and `[R-PAT-07]` keeping every module strictly under 80 lines; validated via `python evals/run_fullstack_eval.py --quick` (`100/100` PASS).
 
 ---
 
