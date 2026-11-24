@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { adminInitSchema } from "@/lib/validation";
 import { handleError } from "@/lib/error-handler";
 import { ERROR_CODES, createErrorResponse } from "@/lib/error-codes";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { z } from "zod";
 import { logger } from "@/lib/logger";
 
@@ -26,6 +27,18 @@ import { logger } from "@/lib/logger";
  */
 export async function POST(request: NextRequest) {
     try {
+        const rl = await checkRateLimit({
+            scope: "admin-init",
+            limit: 5,
+            windowSeconds: 900,
+        });
+        if (!rl.allowed) {
+            return NextResponse.json(
+                { error: "Trop de tentatives d'initialisation." },
+                { status: 429 }
+            );
+        }
+
         // Vérifier si un administrateur existe déjà
         // Cette vérification empêche la création de multiples comptes admin via cette route
         const adminCount = await prisma.user.count({

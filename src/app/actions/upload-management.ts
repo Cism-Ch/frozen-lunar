@@ -6,6 +6,7 @@ import {
     getPrivateDownloadUrl,
 } from "@/lib/storage";
 import { requireAdmin } from "@/lib/auth-guard";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { handleError } from "@/lib/error-handler";
 import { ERROR_CODES } from "@/lib/error-codes";
 import { z } from "zod";
@@ -64,6 +65,35 @@ const kycKeySchema = z
 export async function getPresignedUploadUrlAction(input: unknown) {
     try {
         const validated = presignedUrlSchema.parse(input);
+
+        // Le dossier fleet-images est strictement réservé aux administrateurs
+        if (validated.folder === "fleet-images") {
+            try {
+                await requireAdmin();
+            } catch (authError: unknown) {
+                return {
+                    success: false,
+                    error:
+                        authError instanceof Error
+                            ? authError.message
+                            : "Accès administrateur requis pour les images de flotte.",
+                    code: ERROR_CODES.INSUFFICIENT_PERMISSIONS.code,
+                };
+            }
+        }
+
+        const rl = await checkRateLimit({
+            scope: "presigned-upload",
+            limit: 25,
+            windowSeconds: 600,
+        });
+        if (!rl.allowed) {
+            return {
+                success: false,
+                error: "Trop de requêtes de téléversement. Veuillez réessayer dans quelques minutes.",
+                code: "RATE_LIMITED",
+            };
+        }
 
         // Assainir strictement le nom du fichier (aucune traversée de répertoire possible)
         const sanitizedName = validated.fileName

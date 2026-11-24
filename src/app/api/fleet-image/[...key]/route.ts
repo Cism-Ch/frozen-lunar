@@ -36,12 +36,22 @@ export async function GET(
         }
 
         const bytes = await obj.Body.transformToByteArray();
-        const contentType = obj.ContentType || "image/webp";
+        const rawType = (obj.ContentType || "image/webp").toLowerCase();
+        const SAFE_IMAGE_MIMES = new Set([
+            "image/jpeg",
+            "image/jpg",
+            "image/png",
+            "image/webp",
+        ]);
+        const contentType = SAFE_IMAGE_MIMES.has(rawType)
+            ? rawType
+            : "application/octet-stream";
 
         return new NextResponse(Buffer.from(bytes), {
             status: 200,
             headers: {
                 "Content-Type": contentType,
+                "X-Content-Type-Options": "nosniff",
                 "Cache-Control": "public, max-age=86400, immutable",
             },
         });

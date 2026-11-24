@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { getPublicUrl, uploadBufferToStorage } from "@/lib/storage";
+import { verifyFileMagicBytes } from "@/lib/file-signature";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
 
 export const dynamic = "force-dynamic";
@@ -33,6 +35,22 @@ const MAX_UPLOAD_BYTES = 4 * 1024 * 1024; // 4 Mo (compatible plafond Vercel 4.5
  */
 export async function POST(request: NextRequest) {
     try {
+        // Protection anti-abus S3 (25 téléversements / 10 min par IP)
+        const rl = await checkRateLimit({
+            scope: "api-upload",
+            limit: 25,
+            windowSeconds: 600,
+        });
+        if (!rl.allowed) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "Trop de téléversements récents. Veuillez patienter quelques minutes.",
+                },
+                { status: 429 }
+            );
+        }
+
         const formData = await request.formData();
         const file = formData.get("file");
         const rawFolder = String(formData.get("folder") || "attachments").trim();
@@ -111,6 +129,17 @@ export async function POST(request: NextRequest) {
 
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
+
+        // Vérification défensive des magic bytes (anti-spoofing MIME)
+        if (!verifyFileMagicBytes(buffer, mimeType)) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "Le contenu réel du fichier ne correspond pas au format déclaré (PDF, JPG, PNG ou WEBP requis).",
+                },
+                { status: 400 }
+            );
+        }
 
         const uploadResult = await uploadBufferToStorage(key, buffer, mimeType);
 

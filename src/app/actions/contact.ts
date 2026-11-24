@@ -3,6 +3,7 @@
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-guard";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { revalidatePath } from "next/cache";
 import type { ContactMessage } from "@prisma/client";
 import {
@@ -22,6 +23,18 @@ export async function sendContactMessageAction(
     input: unknown
 ): Promise<ContactActionResult> {
     try {
+        const rl = await checkRateLimit({
+            scope: "contact-form",
+            limit: 5,
+            windowSeconds: 600,
+        });
+        if (!rl.allowed) {
+            return {
+                data: null,
+                error: "Trop de messages envoyés récemment. Veuillez patienter quelques minutes.",
+            };
+        }
+
         const validated = contactFormSchema.parse(input);
 
         // Persistance réelle dans la base de données PostgreSQL
