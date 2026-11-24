@@ -72,6 +72,45 @@ EPHEMERAL_GITIGNORE_ENTRIES = [
     "*.pyc",
 ]
 
+RSI_AGENTS_START = "<!-- RSI-PROTOCOL:START -->"
+RSI_AGENTS_END = "<!-- RSI-PROTOCOL:END -->"
+
+def sync_agents_md_safely(src_path: Path, target_dir: Path) -> dict:
+    """Safely updates AGENTS.md without losing custom project rules (merges bounded block or backs up existing file)."""
+    dst_path = target_dir / "AGENTS.md"
+    if dst_path.is_symlink():
+        return {"mode": "skipped_symlink", "backup_path": None}
+
+    src_text = src_path.read_text(encoding="utf-8")
+    if not dst_path.exists():
+        dst_path.write_text(src_text, encoding="utf-8")
+        return {"mode": "created", "backup_path": None}
+
+    dst_text = dst_path.read_text(encoding="utf-8", errors="ignore")
+    if dst_text == src_text:
+        return {"mode": "unchanged", "backup_path": None}
+
+    src_s = src_text.find(RSI_AGENTS_START)
+    src_e = src_text.find(RSI_AGENTS_END)
+    dst_s = dst_text.find(RSI_AGENTS_START)
+    dst_e = dst_text.find(RSI_AGENTS_END)
+
+    if src_s != -1 and src_e != -1 and dst_s != -1 and dst_e != -1 and dst_s < dst_e:
+        new_block = src_text[src_s : src_e + len(RSI_AGENTS_END)]
+        merged = dst_text[:dst_s] + new_block + dst_text[dst_e + len(RSI_AGENTS_END):]
+        dst_path.write_text(merged, encoding="utf-8")
+        return {"mode": "merged", "backup_path": None}
+
+    # Pre-existing custom or legacy AGENTS.md without RSI markers: backup before replacing
+    backups_dir = target_dir / "evals" / "backups"
+    backups_dir.mkdir(parents=True, exist_ok=True)
+    ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    backup_file = backups_dir / f"AGENTS.md.{ts}.bak"
+    shutil.copy2(dst_path, backup_file)
+    dst_path.write_text(src_text, encoding="utf-8")
+    rel_backup = str(backup_file.relative_to(target_dir)).replace("\\", "/")
+    return {"mode": "backed_up_and_replaced", "backup_path": rel_backup}
+
 def ensure_target_gitignore_hygiene(target_dir: Path) -> list[str]:
     """Ensures ephemeral RSI telemetry and log paths are ignored in the target project's .gitignore."""
     gitignore_path = target_dir / ".gitignore"
@@ -289,13 +328,32 @@ def sync_protocol_to_target(target_path_str: str, init_mode: bool = False) -> No
                 shutil.copy2(src_file, dst_file)
         print(f"[OK] Synced engine directory: {rel_dir}/")
 
-    # 2. Sync Core Engine Files
+    # 2. Sync Core Engine Files (AGENTS.md uses non-destructive merge/backup)
+    agents_backup_rel: str | None = None
     for rel_file in CORE_ENGINE_FILES:
         src = ROOT_DIR / rel_file
         dst = target_dir / rel_file
-        if src.exists():
-            shutil.copy2(src, dst)
-            print(f"[OK] Synced core contract file: {rel_file}")
+        if not src.exists():
+            continue
+        if rel_file == "AGENTS.md":
+            res_agents = sync_agents_md_safely(src, target_dir)
+            mode = res_agents["mode"]
+            if mode == "merged":
+                print("[OK] Merged RSI protocol block in AGENTS.md (preserved Project-Specific Rules)")
+            elif mode == "backed_up_and_replaced":
+                agents_backup_rel = res_agents["backup_path"]
+                print(f"[Backup] Saved pre-existing AGENTS.md -> {agents_backup_rel}")
+                print("[OK] Installed marker-delimited AGENTS.md (review backup for project-specific rules)")
+            elif mode == "unchanged":
+                print("[OK] AGENTS.md already up to date")
+            elif mode == "created":
+                print("[Init] Created core contract file: AGENTS.md")
+            else:
+                print("[WARN] Skipped symlink AGENTS.md")
+        else:
+            if not dst.is_symlink():
+                shutil.copy2(src, dst)
+                print(f"[OK] Synced core contract file: {rel_file}")
 
     # 3. Base Rules (system_core.md and fullstack_playbook.md) - only if missing or update
     target_rules_dir = target_dir / ".agents" / "rules"
@@ -404,6 +462,10 @@ def sync_protocol_to_target(target_path_str: str, init_mode: bool = False) -> No
     print("-" * 50)
     print(f"[SUCCESS] Agentic-RSI-Protocol engine synchronized successfully to:")
     print(f"          {target_dir}")
+    if agents_backup_rel:
+        print(f"[ACTION REQUIRED] Pre-existing AGENTS.md backed up at: {agents_backup_rel}")
+        print("  -> Evaluate its rules against .agents/rules/system_core.md and .agents/rules/modules/.")
+        print("  -> Ask the user whether to add uncovered or conflicting rules into AGENTS.md (## Project-Specific Rules) or a domain module.")
     print(f"Next steps in target workspace:")
     print(f"  1. cd {target_dir}")
     print(f"  2. python evals/rsi_orchestrator.py --pulse")

@@ -324,6 +324,45 @@ class TestSyncTargetsRegistry(unittest.TestCase):
             for entry in version_manager.EPHEMERAL_GITIGNORE_ENTRIES:
                 self.assertEqual(content.count(entry), 1)
 
+    def test_sync_agents_md_safely_backs_up_custom_and_preserves_project_rules(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            src_agents = root / "src_AGENTS.md"
+            target_dir = root / "consumer_app"
+            target_dir.mkdir()
+
+            src_agents.write_text(
+                f"{version_manager.RSI_AGENTS_START}\n# Protocol v1\n{version_manager.RSI_AGENTS_END}\n\n"
+                "## Project-Specific Rules\n",
+                encoding="utf-8",
+            )
+
+            # 1. Pre-existing custom AGENTS.md (no markers) -> must backup before replacing
+            dst_agents = target_dir / "AGENTS.md"
+            dst_agents.write_text("# Legacy Custom Rules\n- Always use Tabs\n", encoding="utf-8")
+            res1 = version_manager.sync_agents_md_safely(src_agents, target_dir)
+            self.assertEqual(res1["mode"], "backed_up_and_replaced")
+            self.assertIsNotNone(res1["backup_path"])
+            backup_file = target_dir / res1["backup_path"]
+            self.assertTrue(backup_file.exists())
+            self.assertIn("Always use Tabs", backup_file.read_text(encoding="utf-8"))
+
+            # 2. User appends project-specific rules below RSI-PROTOCOL:END -> subsequent sync merges without loss
+            dst_agents.write_text(
+                dst_agents.read_text(encoding="utf-8") + "- Custom Rule: Preserve GraphQL schema\n",
+                encoding="utf-8",
+            )
+            src_agents.write_text(
+                f"{version_manager.RSI_AGENTS_START}\n# Protocol v2\n{version_manager.RSI_AGENTS_END}\n\n"
+                "## Project-Specific Rules\n",
+                encoding="utf-8",
+            )
+            res2 = version_manager.sync_agents_md_safely(src_agents, target_dir)
+            self.assertEqual(res2["mode"], "merged")
+            merged_txt = dst_agents.read_text(encoding="utf-8")
+            self.assertIn("# Protocol v2", merged_txt)
+            self.assertIn("Custom Rule: Preserve GraphQL schema", merged_txt)
+
 
 if __name__ == "__main__":
     unittest.main()
