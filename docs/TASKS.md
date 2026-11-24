@@ -9,12 +9,13 @@
 
 ```
 +-------------------------+  +-------------------------+  +-------------------------+
-| [>] IN PROGRESS (SP 26) |  |  [?] ROADMAP            |  |       [X] ARCHIVES      |
+| [>] IN PROGRESS         |  |  [?] ROADMAP            |  |       [X] ARCHIVES      |
 +-------------------------+  +-------------------------+  +-------------------------+
-| [-] TASK-CLN-01..02     |  | (None)                  |  | [x] SP 01..11 (Archived)|
+| (None)                  |  | (None)                  |  | [x] SP 01..11 (Archived)|
 |                         |  |                         |  | [x] SP 12..23 (Archived)|
 |                         |  |                         |  | [x] TASK-SEC-01..03     |
 |                         |  |                         |  | [x] TASK-BUG-01..03     |
+|                         |  |                         |  | [x] TASK-CLN-01..02     |
 +-------------------------+  +-------------------------+  +-------------------------+
 ```
 
@@ -44,7 +45,7 @@
 
 ---
 
-## Active Sprint 26: Admin UI Consistency & Dead Code Removal
+## Completed Sprint 26: Admin UI Consistency & Dead Code Removal
 
-- [-] **`TASK-CLN-01` (SP 26)** - Upgrade `src/app/admin/dashboard/page.tsx` from legacy `QuoteDetailsSheet` to responsive centered `QuoteDetailsModal` (live ID sync).
-- [-] **`TASK-CLN-02` (SP 26)** - Remove dead legacy `src/components/features/QuoteDetailsSheet.tsx` & run full build/test/RSI verification.
+- [x] **`TASK-CLN-01` (SP 26)** - Upgraded `src/app/admin/dashboard/page.tsx` from legacy `QuoteDetailsSheet` to responsive centered `QuoteDetailsModal` (live ID sync).
+- [x] **`TASK-CLN-02` (SP 26)** - Removed dead legacy `src/components/features/QuoteDetailsSheet.tsx` & verified full build/tests/RSI (`133/133` tests PASS, `pnpm next build` 35/35 routes PASS, `100/100` RSI PASS).

@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/table";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { QuoteDetailsSheet } from "@/components/features/QuoteDetailsSheet";
+import { QuoteDetailsModal } from "@/components/features/admin/QuoteDetailsModal";
 import {
     FadeIn,
     StaggerContainer,
@@ -164,11 +164,16 @@ export default function DashboardPage() {
     ];
 
     const recentQuotes = quotes.slice(0, 5);
-    const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
+    const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>(null);
     const [detailsOpen, setDetailsOpen] = useState(false);
 
+    const selectedQuote = useMemo(
+        () => quotes.find((q) => q.id === selectedQuoteId) ?? null,
+        [quotes, selectedQuoteId]
+    );
+
     const handleQuoteClick = (quote: Quote) => {
-        setSelectedQuote(quote);
+        setSelectedQuoteId(quote.id);
         setDetailsOpen(true);
     };
 
@@ -382,7 +387,7 @@ export default function DashboardPage() {
                 <BusinessAnalytics quotes={quotes} />
             </FadeIn>
 
-            <QuoteDetailsSheet
+            <QuoteDetailsModal
                 quote={selectedQuote}
                 open={detailsOpen}
                 onOpenChange={setDetailsOpen}

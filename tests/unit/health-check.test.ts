@@ -7,6 +7,8 @@ const { sendMock } = vi.hoisted(() => ({
 vi.mock("@/lib/email", () => ({
     EMAIL_SENDER: "noreply@hbclogistique.ci",
     isResendConfigured: () => true,
+    isAnyEmailProviderConfigured: () => true,
+    sendTransactionalEmail: sendMock,
     resend: {
         emails: {
             send: sendMock,

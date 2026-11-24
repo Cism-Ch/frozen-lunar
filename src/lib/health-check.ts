@@ -711,7 +711,7 @@ export async function maybeSendCriticalOutageAlert(
         (svc) => svc.critical && svc.status === "outage"
     );
 
-    if (criticalOutages.length === 0 || !isResendConfigured()) {
+    if (criticalOutages.length === 0 || !isAnyEmailProviderConfigured()) {
         return false;
     }
 
