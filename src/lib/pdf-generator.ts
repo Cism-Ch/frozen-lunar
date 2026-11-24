@@ -2,8 +2,12 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Quote } from "./quote-storage";
 import { COMPANY_CONFIG } from "@/lib/company-config";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { safeFormatDate } from "@/lib/date-utils";
+import { formatQuoteReference } from "@/lib/tracking-code";
+
+function formatPdfFcfa(amount: number): string {
+    return `${amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ")} FCFA`;
+}
 
 export const generateQuotePDF = (quote: Quote) => {
     const doc = new jsPDF();
@@ -25,15 +29,18 @@ export const generateQuotePDF = (quote: Quote) => {
     doc.text(COMPANY_CONFIG.contact.phoneDisplay, 20, 43);
 
     // --- Quote Info ---
-    const refLabel = quote.trackingCode || `HBC-${quote.id.slice(-6).toUpperCase()}`;
+    const refLabel = formatQuoteReference({
+        trackingCode: quote.trackingCode,
+        id: quote.id,
+    });
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
-    doc.text(`DEVIS N° ${refLabel}`, 132, 20);
+    doc.text(`DEVIS N° ${refLabel}`, 130, 20);
 
     doc.setFontSize(10);
     doc.setTextColor(100, 100, 100);
-    doc.text(`Date: ${format(new Date(quote.date), "dd/MM/yyyy")}`, 140, 28);
-    doc.text(`Validité: 30 jours`, 140, 33);
+    doc.text(`Date: ${safeFormatDate(quote.date, "dd/MM/yyyy")}`, 138, 28);
+    doc.text(`Validité: 30 jours`, 138, 33);
 
     // --- Client Info (Address Box) ---
     doc.setFillColor(245, 245, 245);
@@ -44,9 +51,9 @@ export const generateQuotePDF = (quote: Quote) => {
     doc.text("Client :", 125, 58);
 
     doc.setFontSize(10);
-    doc.text(quote.client, 125, 65);
-    doc.text(quote.email, 125, 70);
-    doc.text(quote.phone, 125, 75);
+    doc.text(quote.client, 125, 65, { maxWidth: 60 });
+    doc.text(quote.email, 125, 72, { maxWidth: 60 });
+    doc.text(quote.phone, 125, 79, { maxWidth: 60 });
 
     // --- Transport Details (Left Side) ---
     doc.setFontSize(12);
@@ -63,43 +70,68 @@ export const generateQuotePDF = (quote: Quote) => {
     doc.setTextColor(0, 150, 0);
     doc.text("DÉPART", 20, 115);
     doc.setTextColor(0, 0, 0);
-    doc.text(quote.pickup, 20, 120, { maxWidth: 80 });
+    doc.text(quote.pickup, 20, 120, { maxWidth: 85 });
 
     // Dropoff
     doc.setTextColor(200, 0, 0);
     doc.text("ARRIVÉE", 20, 135);
     doc.setTextColor(0, 0, 0);
-    doc.text(quote.dropoff, 20, 140, { maxWidth: 80 });
+    doc.text(quote.dropoff, 20, 140, { maxWidth: 85 });
 
     // Date & Vehicle
     doc.text(
-        `Date prévue : ${format(new Date(quote.transportDate), "dd MMMM yyyy", { locale: fr })}`,
+        `Date prévue : ${safeFormatDate(quote.transportDate, "dd MMMM yyyy")}`,
         20,
         155
     );
-    doc.text(`Véhicule : ${quote.type}`, 20, 160);
+    const vehicleLabel = quote.vehicle
+        ? `${quote.vehicleQuantity && quote.vehicleQuantity > 1 ? `${quote.vehicleQuantity}× ` : ""}${quote.vehicle.name}`
+        : quote.supplementaryInfo?.pricingBreakdown?.vehicleName || quote.type;
+    doc.text(`Fret : ${quote.type}`, 20, 161, { maxWidth: 165 });
+    doc.text(`Véhicule : ${vehicleLabel}`, 20, 167, { maxWidth: 165 });
 
-    // --- Pricing Table ---
-    const tableData = [
-        ["DESCRIPTION", "TOTAL"],
-        [
-            "Prestation de transport (Aller simple)",
-            quote.amount || "Nous contacter",
-        ],
-        ["Assurance marchandises", "Incluse"],
-        ["Frais de gestion", "Inclus"],
-    ];
+    // --- Pricing Table (détail structuré si disponible) ---
+    const breakdown = quote.supplementaryInfo?.pricingBreakdown;
+    const bodyRows: string[][] =
+        breakdown && breakdown.lines.length > 0
+            ? [
+                  ...breakdown.lines.map((line) => [
+                      line.label,
+                      formatPdfFcfa(line.amountFcfa),
+                  ]),
+                  ["Sous-total HT", formatPdfFcfa(breakdown.subtotalHt)],
+                  ...(breakdown.includeVat
+                      ? [["TVA Côte d'Ivoire (18%)", formatPdfFcfa(breakdown.vatAmount)]]
+                      : []),
+                  [
+                      `TOTAL ${breakdown.includeVat ? "TTC" : "HT"}`,
+                      quote.amount ||
+                          formatPdfFcfa(
+                              breakdown.includeVat
+                                  ? breakdown.totalTtc
+                                  : breakdown.subtotalHt
+                          ),
+                  ],
+              ]
+            : [
+                  [
+                      "Prestation de transport (Aller simple)",
+                      quote.amount || "Nous contacter",
+                  ],
+                  ["Assurance marchandises", "Incluse"],
+                  ["Frais de gestion", "Inclus"],
+              ];
 
     autoTable(doc, {
-        startY: 180,
-        head: [tableData[0]],
-        body: tableData.slice(1),
+        startY: 176,
+        head: [["DESCRIPTION", "MONTANT"]],
+        body: bodyRows,
         theme: "grid",
         headStyles: { fillColor: [41, 128, 185], textColor: 255 },
-        styles: { fontSize: 10, cellPadding: 5 },
+        styles: { fontSize: 9.5, cellPadding: 4.5 },
         columnStyles: {
             0: { cellWidth: "auto" },
-            1: { cellWidth: 40, halign: "right" },
+            1: { cellWidth: 48, halign: "right" },
         },
     });
 
@@ -125,5 +157,5 @@ export const generateQuotePDF = (quote: Quote) => {
         align: "center",
     });
 
-    doc.save(`Devis_${quote.id}.pdf`);
+    doc.save(`Devis_${refLabel}.pdf`);
 };

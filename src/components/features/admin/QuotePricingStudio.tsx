@@ -39,23 +39,34 @@ interface QuotePricingStudioProps {
     quoteId: string;
     quoteRef: string;
     initialBreakdown?: QuotePricingBreakdown;
+    selectedVehicle?: {
+        name: string;
+        dailyRateFcfa?: number | null;
+        quantity: number;
+    };
     onPricingSaved: (newAmount: string) => void;
 }
 
-const DEFAULT_LINES: QuotePricingLine[] = [
-    {
-        id: "init-base",
-        label: "Mobilisation véhicule & chauffeur",
-        category: "base",
-        amountFcfa: 250000,
-    },
-    {
-        id: "init-distance",
-        label: "Traction & carburant",
-        category: "distance",
-        amountFcfa: 150000,
-    },
-];
+function buildInitialLines(
+    initialBreakdown?: QuotePricingBreakdown,
+    selectedVehicle?: QuotePricingStudioProps["selectedVehicle"]
+): QuotePricingLine[] {
+    if (initialBreakdown?.lines?.length) {
+        return initialBreakdown.lines;
+    }
+    if (selectedVehicle?.dailyRateFcfa && selectedVehicle.dailyRateFcfa > 0) {
+        const qty = Math.max(1, selectedVehicle.quantity || 1);
+        return [
+            {
+                id: "init-vehicle",
+                label: `Mobilisation véhicule (${qty > 1 ? `${qty}× ` : ""}${selectedVehicle.name})`,
+                category: "base",
+                amountFcfa: selectedVehicle.dailyRateFcfa * qty,
+            },
+        ];
+    }
+    return [];
+}
 
 /**
  * Atelier de chiffrage interactif assisté par l'Agent IA.
@@ -64,15 +75,19 @@ export function QuotePricingStudio({
     quoteId,
     quoteRef,
     initialBreakdown,
+    selectedVehicle,
     onPricingSaved,
 }: QuotePricingStudioProps) {
     const lineCounterRef = useRef(1);
     const [customInstructions, setCustomInstructions] = useState("");
-    const [lines, setLines] = useState<QuotePricingLine[]>(
-        initialBreakdown?.lines?.length ? initialBreakdown.lines : DEFAULT_LINES
+    const [lines, setLines] = useState<QuotePricingLine[]>(() =>
+        buildInitialLines(initialBreakdown, selectedVehicle)
     );
     const [vehicleName, setVehicleName] = useState(
-        initialBreakdown?.vehicleName || ""
+        initialBreakdown?.vehicleName ||
+            (selectedVehicle
+                ? `${selectedVehicle.quantity > 1 ? `${selectedVehicle.quantity}× ` : ""}${selectedVehicle.name}`
+                : "")
     );
     const [estimatedDistanceKm, setEstimatedDistanceKm] = useState<
         number | undefined
@@ -311,61 +326,71 @@ export function QuotePricingStudio({
                         </div>
 
                         <div className="space-y-2">
-                            {lines.map((line) => (
-                                <div
-                                    key={line.id}
-                                    className="bg-card grid grid-cols-1 items-center gap-2 rounded-xl border p-3 sm:grid-cols-12"
-                                >
-                                    <div className="sm:col-span-7">
-                                        <Input
-                                            value={line.label}
-                                            onChange={(e) =>
-                                                handleUpdateLine(line.id, {
-                                                    label: e.target.value,
-                                                })
-                                            }
-                                            placeholder="Description du poste"
-                                            className="h-9 text-sm"
-                                        />
-                                    </div>
-                                    <div className="flex items-center gap-2 sm:col-span-4">
-                                        <Input
-                                            type="number"
-                                            min={0}
-                                            step={5000}
-                                            value={line.amountFcfa}
-                                            onChange={(e) =>
-                                                handleUpdateLine(line.id, {
-                                                    amountFcfa: Math.max(
-                                                        0,
-                                                        Number(
-                                                            e.target.value
-                                                        ) || 0
-                                                    ),
-                                                })
-                                            }
-                                            className="h-9 text-right font-mono text-sm font-semibold"
-                                        />
-                                        <span className="text-muted-foreground shrink-0 text-xs font-semibold">
-                                            FCFA
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-end sm:col-span-1">
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="icon"
-                                            className="text-muted-foreground hover:text-destructive h-8 w-8"
-                                            onClick={() =>
-                                                handleRemoveLine(line.id)
-                                            }
-                                            aria-label="Supprimer cette ligne"
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </div>
+                            {lines.length === 0 ? (
+                                <div className="bg-muted/20 text-muted-foreground rounded-xl border border-dashed p-6 text-center text-sm">
+                                    Aucun poste chiffré pour le moment. Cliquez sur{" "}
+                                    <span className="text-foreground font-semibold">
+                                        Analyser &amp; Chiffrer (IA)
+                                    </span>{" "}
+                                    ou ajoutez manuellement une ligne de coût.
                                 </div>
-                            ))}
+                            ) : (
+                                lines.map((line) => (
+                                    <div
+                                        key={line.id}
+                                        className="bg-card grid grid-cols-1 items-center gap-2 rounded-xl border p-3 sm:grid-cols-12"
+                                    >
+                                        <div className="sm:col-span-7">
+                                            <Input
+                                                value={line.label}
+                                                onChange={(e) =>
+                                                    handleUpdateLine(line.id, {
+                                                        label: e.target.value,
+                                                    })
+                                                }
+                                                placeholder="Description du poste"
+                                                className="h-9 text-sm"
+                                            />
+                                        </div>
+                                        <div className="flex items-center gap-2 sm:col-span-4">
+                                            <Input
+                                                type="number"
+                                                min={0}
+                                                step={5000}
+                                                value={line.amountFcfa}
+                                                onChange={(e) =>
+                                                    handleUpdateLine(line.id, {
+                                                        amountFcfa: Math.max(
+                                                            0,
+                                                            Number(
+                                                                e.target.value
+                                                            ) || 0
+                                                        ),
+                                                    })
+                                                }
+                                                className="h-9 text-right font-mono text-sm font-semibold"
+                                            />
+                                            <span className="text-muted-foreground shrink-0 text-xs font-semibold">
+                                                FCFA
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-end sm:col-span-1">
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                className="text-muted-foreground hover:text-destructive h-8 w-8"
+                                                onClick={() =>
+                                                    handleRemoveLine(line.id)
+                                                }
+                                                aria-label="Supprimer cette ligne"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
                         </div>
                     </div>
 

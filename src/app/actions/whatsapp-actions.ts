@@ -81,7 +81,7 @@ export async function logWhatsAppContactAction(
     details?: string
 ): Promise<{ data: boolean; error: string | null }> {
     try {
-        await requireAdmin();
+        const admin = await requireAdmin();
 
         await prisma.quoteHistory.create({
             data: {
@@ -90,6 +90,7 @@ export async function logWhatsAppContactAction(
                 description:
                     details ||
                     "Échange de suivi initié via lien WhatsApp Click-to-Chat",
+                user: admin.name || admin.email,
             },
         });
 

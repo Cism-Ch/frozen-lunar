@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Quote } from "@/lib/quote-storage";
 import { Button } from "@/components/ui/button";
@@ -61,7 +61,10 @@ import {
 import { safeFormatDate } from "@/lib/date-utils";
 import { toast } from "sonner";
 import { generateQuotePDF } from "@/lib/pdf-generator";
-import { geminiService } from "@/lib/gemini";
+import {
+    draftEmailAction,
+    sendAdminQuoteEmailAction,
+} from "@/app/actions/ai-actions";
 import {
     prepareWhatsAppQuoteMessageAction,
     logWhatsAppContactAction,
@@ -77,26 +80,42 @@ import {
 import { formatQuoteReference } from "@/lib/tracking-code";
 import { logger } from "@/lib/logger";
 
+function cleanPhoneForWhatsApp(phone: string): string {
+    let digits = phone.replace(/[^0-9]/g, "");
+    if (digits.startsWith("00")) digits = digits.slice(2);
+    if (digits.length === 10 && digits.startsWith("0")) {
+        return `225${digits.slice(1)}`;
+    }
+    return digits;
+}
+
+function isSafeAttachmentUrl(raw: string): boolean {
+    return (
+        raw.startsWith("https://") ||
+        raw.startsWith("http://") ||
+        raw.startsWith("/")
+    );
+}
+
 export default function QuoteWorkspacePage() {
     const params = useParams();
     const router = useRouter();
+    const searchParams = useSearchParams();
     const id = params.id as string;
 
     const [quote, setQuote] = useState<Quote | null>(null);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<string>(() => {
-        if (typeof window === "undefined") return "overview";
-        const param = new URLSearchParams(window.location.search).get("tab");
-        if (
-            param === "pricing" ||
-            param === "chat" ||
-            param === "audit" ||
-            param === "overview"
-        ) {
-            return param;
-        }
-        return "overview";
-    });
+    const [selectedTab, setSelectedTab] = useState<string | null>(null);
+
+    const urlTabParam = searchParams.get("tab");
+    const validUrlTab =
+        urlTabParam === "pricing" ||
+        urlTabParam === "chat" ||
+        urlTabParam === "audit" ||
+        urlTabParam === "overview"
+            ? urlTabParam
+            : "overview";
+    const activeTab = selectedTab ?? validUrlTab;
 
     // États éditables (corrigé : synchronisés sur quote.amount et quote.userNotes)
     const [amount, setAmount] = useState("");
@@ -114,6 +133,7 @@ export default function QuoteWorkspacePage() {
     const [emailOpen, setEmailOpen] = useState(false);
     const [emailDraft, setEmailDraft] = useState({ subject: "", body: "" });
     const [generatingEmail, setGeneratingEmail] = useState(false);
+    const [sendingEmail, setSendingEmail] = useState(false);
 
     // WhatsApp IA
     const [whatsappOpen, setWhatsappOpen] = useState(false);
@@ -276,18 +296,47 @@ export default function QuoteWorkspacePage() {
         setEmailOpen(true);
         setEmailDraft({ subject: "Génération en cours...", body: "" });
         try {
-            const draft = await geminiService.draftEmail(
+            const res = await draftEmailAction({
                 type,
-                quote.client,
-                ref
-            );
-            setEmailDraft(draft);
+                clientName: quote.client,
+                quoteId: ref,
+            });
+            if (res.data) {
+                setEmailDraft(res.data);
+            } else {
+                toast.error(res.error || "Erreur de génération d'email");
+                setEmailOpen(false);
+            }
         } catch (error: unknown) {
             logger.error("Error generating AI email", error);
             toast.error("Erreur de génération d'email");
             setEmailOpen(false);
         } finally {
             setGeneratingEmail(false);
+        }
+    };
+
+    const handleSendEmail = async () => {
+        if (!quote || sendingEmail) return;
+        setSendingEmail(true);
+        try {
+            const res = await sendAdminQuoteEmailAction({
+                quoteId: quote.id,
+                subject: emailDraft.subject,
+                body: emailDraft.body,
+            });
+            if (res.data) {
+                toast.success(`Email envoyé au client (${res.data.provider})`);
+                setEmailOpen(false);
+                await refreshQuote(quote.id);
+            } else {
+                toast.error(res.error || "Impossible d'envoyer l'email");
+            }
+        } catch (error: unknown) {
+            logger.error("Error sending quote email", error);
+            toast.error("Impossible d'envoyer l'email");
+        } finally {
+            setSendingEmail(false);
         }
     };
 
@@ -407,7 +456,7 @@ export default function QuoteWorkspacePage() {
             {/* Onglets Modulaires de l'Espace de Travail */}
             <Tabs
                 value={activeTab}
-                onValueChange={setActiveTab}
+                onValueChange={setSelectedTab}
                 className="space-y-6"
             >
                 <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 p-1.5 sm:w-fit">
@@ -502,6 +551,37 @@ export default function QuoteWorkspacePage() {
                                         </div>
                                     </div>
 
+                                    {quote.vehicle && (
+                                        <div className="bg-primary/5 border-primary/20 flex flex-wrap items-center justify-between gap-2 rounded-xl border p-3">
+                                            <div className="flex items-center gap-2.5">
+                                                <Truck className="text-primary h-4 w-4 shrink-0" />
+                                                <div>
+                                                    <p className="text-muted-foreground text-xs">
+                                                        Véhicule sélectionné
+                                                    </p>
+                                                    <p className="text-sm font-bold">
+                                                        {quote.vehicleQuantity &&
+                                                        quote.vehicleQuantity > 1
+                                                            ? `${quote.vehicleQuantity}× `
+                                                            : ""}
+                                                        {quote.vehicle.name}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex flex-wrap items-center gap-1.5">
+                                                <Badge variant="secondary" className="text-xs">
+                                                    {quote.vehicle.capacityLabel}
+                                                </Badge>
+                                                {quote.vehicle.dailyRateFcfa && (
+                                                    <Badge variant="outline" className="font-mono text-xs">
+                                                        {quote.vehicle.dailyRateFcfa.toLocaleString("fr-FR")}{" "}
+                                                        FCFA/j
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
                                     {/* Contraintes */}
                                     {(quote.supplementaryInfo?.hazardous ||
                                         quote.supplementaryInfo?.requiresCrane ||
@@ -576,17 +656,34 @@ export default function QuoteWorkspacePage() {
                                                 {attachments.length})
                                             </Label>
                                             <div className="flex flex-wrap gap-2">
-                                                {attachments.map((file, i) => (
-                                                    <Badge
-                                                        key={i}
-                                                        variant="secondary"
-                                                        className="font-mono text-xs"
-                                                    >
-                                                        {file
-                                                            .split("/")
-                                                            .pop() || file}
-                                                    </Badge>
-                                                ))}
+                                                {attachments.map((file, i) => {
+                                                    const label =
+                                                        file.split("/").pop() ||
+                                                        file;
+                                                    return isSafeAttachmentUrl(
+                                                        file
+                                                    ) ? (
+                                                        <a
+                                                            key={i}
+                                                            href={file}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="bg-secondary text-secondary-foreground hover:bg-secondary/80 inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 font-mono text-xs font-medium transition-colors"
+                                                        >
+                                                            <Paperclip className="h-3 w-3" />
+                                                            {label}
+                                                            <ExternalLink className="h-3 w-3 opacity-60" />
+                                                        </a>
+                                                    ) : (
+                                                        <Badge
+                                                            key={i}
+                                                            variant="secondary"
+                                                            className="font-mono text-xs"
+                                                        >
+                                                            {label}
+                                                        </Badge>
+                                                    );
+                                                })}
                                             </div>
                                         </div>
                                     )}
@@ -655,36 +752,44 @@ export default function QuoteWorkspacePage() {
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-2.5">
-                                    <Button
-                                        variant="outline"
-                                        className="w-full justify-start border-emerald-500/30 bg-emerald-500/8 text-emerald-700 hover:bg-emerald-500/15 dark:text-emerald-400"
-                                        onClick={() =>
-                                            setPendingStatus("Validé")
-                                        }
-                                    >
-                                        <CheckCircle className="mr-2 h-4 w-4" />
-                                        Valider le devis
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        className="w-full justify-start border-rose-500/30 bg-rose-500/8 text-rose-700 hover:bg-rose-500/15 dark:text-rose-400"
-                                        onClick={() =>
-                                            setPendingStatus("Refusé")
-                                        }
-                                    >
-                                        <XCircle className="mr-2 h-4 w-4" />
-                                        Refuser le dossier
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        className="w-full justify-start"
-                                        onClick={() =>
-                                            setPendingStatus("En attente")
-                                        }
-                                    >
-                                        <Clock className="mr-2 h-4 w-4 text-amber-500" />
-                                        Remettre en attente
-                                    </Button>
+                                    {quote.status === "Annulé" ? (
+                                        <p className="text-muted-foreground rounded-lg border border-dashed p-3 text-xs">
+                                            Ce dossier a été annulé par le client. Les changements de statut sont verrouillés.
+                                        </p>
+                                    ) : (
+                                        <>
+                                            <Button
+                                                variant="outline"
+                                                className="w-full justify-start border-emerald-500/30 bg-emerald-500/8 text-emerald-700 hover:bg-emerald-500/15 dark:text-emerald-400"
+                                                onClick={() =>
+                                                    setPendingStatus("Validé")
+                                                }
+                                            >
+                                                <CheckCircle className="mr-2 h-4 w-4" />
+                                                Valider le devis
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="w-full justify-start border-rose-500/30 bg-rose-500/8 text-rose-700 hover:bg-rose-500/15 dark:text-rose-400"
+                                                onClick={() =>
+                                                    setPendingStatus("Refusé")
+                                                }
+                                            >
+                                                <XCircle className="mr-2 h-4 w-4" />
+                                                Refuser le dossier
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="w-full justify-start"
+                                                onClick={() =>
+                                                    setPendingStatus("En attente")
+                                                }
+                                            >
+                                                <Clock className="mr-2 h-4 w-4 text-amber-500" />
+                                                Remettre en attente
+                                            </Button>
+                                        </>
+                                    )}
 
                                     <div className="grid grid-cols-2 gap-2 pt-2">
                                         <Button
@@ -719,10 +824,23 @@ export default function QuoteWorkspacePage() {
                 {/* 2. ATELIER DE CHIFFRAGE IA */}
                 <TabsContent value="pricing" className="space-y-6">
                     <QuotePricingStudio
+                        key={
+                            quote.supplementaryInfo?.pricingBreakdown
+                                ?.updatedAt || quote.id
+                        }
                         quoteId={quote.id}
                         quoteRef={quoteRef}
                         initialBreakdown={
                             quote.supplementaryInfo?.pricingBreakdown
+                        }
+                        selectedVehicle={
+                            quote.vehicle
+                                ? {
+                                      name: quote.vehicle.name,
+                                      dailyRateFcfa: quote.vehicle.dailyRateFcfa,
+                                      quantity: quote.vehicleQuantity || 1,
+                                  }
+                                : undefined
                         }
                         onPricingSaved={(newAmount) => {
                             setAmount(newAmount);
@@ -838,24 +956,42 @@ export default function QuoteWorkspacePage() {
                             />
                         </div>
                     </div>
-                    <DialogFooter>
+                    <DialogFooter className="flex-wrap gap-2">
                         <Button
                             variant="secondary"
                             onClick={() => setEmailOpen(false)}
+                            disabled={sendingEmail}
                         >
                             Fermer
                         </Button>
                         <Button
+                            variant="outline"
                             onClick={async () => {
                                 await navigator.clipboard.writeText(
                                     `${emailDraft.subject}\n\n${emailDraft.body}`
                                 );
                                 toast.success("Brouillon copié dans le presse-papier");
-                                setEmailOpen(false);
                             }}
-                            disabled={generatingEmail}
+                            disabled={generatingEmail || sendingEmail}
                         >
                             Copier le brouillon
+                        </Button>
+                        <Button
+                            onClick={handleSendEmail}
+                            disabled={
+                                generatingEmail ||
+                                sendingEmail ||
+                                !emailDraft.subject.trim() ||
+                                !emailDraft.body.trim()
+                            }
+                            className="gap-1.5"
+                        >
+                            {sendingEmail ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <Mail className="h-4 w-4" />
+                            )}
+                            Envoyer au client
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -900,9 +1036,8 @@ export default function QuoteWorkspacePage() {
                             disabled={generatingWhatsApp}
                             onChange={(e) => {
                                 if (!whatsappDraft) return;
-                                const digits = quote.phone.replace(
-                                    /[^0-9]/g,
-                                    ""
+                                const digits = cleanPhoneForWhatsApp(
+                                    quote.phone
                                 );
                                 setWhatsappDraft({
                                     ...whatsappDraft,

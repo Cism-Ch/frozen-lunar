@@ -43,12 +43,23 @@ const savePricingSchema = z.object({
     aiSource: z.string().max(60).optional(),
 });
 
-function parseFirstAmountFcfa(priceStr: string): number {
-    const clean = priceStr.replace(/\s+/g, "");
-    const match = clean.match(/(\d{4,9})/);
-    if (match) {
-        const val = parseInt(match[1], 10);
-        if (!Number.isNaN(val) && val >= 25_000) return val;
+/**
+ * Extrait un montant FCFA fiable depuis une chaîne IA (gère espaces, points, virgules
+ * et calcule la moyenne si une fourchette min - max est fournie).
+ */
+export async function parseEstimatedAmountFcfa(
+    priceStr: string
+): Promise<number> {
+    const normalized = priceStr.replace(/[\u00A0\u202F\s.,](?=\d{3}\b)/g, "");
+    const matches = Array.from(normalized.matchAll(/\d{5,9}/g))
+        .map((m) => parseInt(m[0], 10))
+        .filter((val) => !Number.isNaN(val) && val >= 25_000);
+
+    if (matches.length >= 2) {
+        return roundToThousand((matches[0] + matches[1]) / 2);
+    }
+    if (matches.length === 1) {
+        return roundToThousand(matches[0]);
     }
     return 450_000;
 }
@@ -86,21 +97,38 @@ export async function assistQuotePricingAction(input: unknown): Promise<{
 
         const quote = await prisma.quote.findUnique({
             where: { id: parsed.data.quoteId },
+            include: {
+                vehicle: {
+                    select: {
+                        id: true,
+                        name: true,
+                        category: true,
+                        dailyRateFcfa: true,
+                        capacityLabel: true,
+                    },
+                },
+            },
         });
         if (!quote) {
             return { data: null, error: "Devis introuvable." };
         }
 
-        const fleet = await prisma.vehicle.findMany({
-            where: { isActive: true },
-            orderBy: { sortOrder: "asc" },
-            take: 10,
-        });
+        const fleet = quote.vehicle
+            ? []
+            : await prisma.vehicle.findMany({
+                  where: { isActive: true },
+                  orderBy: { sortOrder: "asc" },
+                  take: 10,
+              });
 
+        const vehicleQty = Math.max(1, quote.vehicleQuantity || 1);
         const supp =
             (quote.supplementaryInfo as Record<string, unknown> | null) || {};
         const itemContext = [
             quote.itemType,
+            quote.vehicle
+                ? `Véhicule sélectionné: ${vehicleQty}× ${quote.vehicle.name} (${quote.vehicle.capacityLabel})`
+                : "",
             supp.weight ? `Poids: ${String(supp.weight)}` : "",
             supp.requiresCrane ? "Grue requise" : "",
             supp.hazardous ? "Matières dangereuses" : "",
@@ -120,12 +148,13 @@ export async function assistQuotePricingAction(input: unknown): Promise<{
             itemContext
         );
 
-        const baseTotal = parseFirstAmountFcfa(estimation.price);
+        const baseTotal = await parseEstimatedAmountFcfa(estimation.price);
         const distanceKm = parseDistanceKm(estimation.distance);
 
-        // Sélection du véhicule le plus pertinent du catalogue réel
+        // Priorité au véhicule réellement sélectionné par le client, sinon détection catalogue
         const lowerType = itemContext.toLowerCase();
         const matchedVehicle =
+            quote.vehicle ||
             fleet.find(
                 (v) =>
                     (lowerType.includes("container") &&
@@ -136,12 +165,16 @@ export async function assistQuotePricingAction(input: unknown): Promise<{
                         v.name.toLowerCase().includes("porte-char")) ||
                     (lowerType.includes("grue") &&
                         v.name.toLowerCase().includes("grue"))
-            ) || fleet[0];
+            ) ||
+            fleet[0];
 
         const vehicleName =
             matchedVehicle?.name || "Camion Plateau / Semi-remorque 30T";
+        const vehicleDisplay =
+            vehicleQty > 1 ? `${vehicleQty}× ${vehicleName}` : vehicleName;
 
-        const needsCrane = Boolean(supp.requiresCrane) || lowerType.includes("grue");
+        const needsCrane =
+            Boolean(supp.requiresCrane) || lowerType.includes("grue");
         const needsEscort =
             lowerType.includes("escorte") ||
             lowerType.includes("convoi") ||
@@ -150,26 +183,30 @@ export async function assistQuotePricingAction(input: unknown): Promise<{
             supp.urgency === "urgent" ||
             supp.urgency === "very_urgent" ||
             lowerType.includes("urgent");
+        const needsHazardous =
+            Boolean(supp.hazardous) || lowerType.includes("dangereu");
 
-        // Ventilation structurée en FCFA
+        // Ventilation structurée en FCFA intégrant le tarif réel du véhicule × quantité
         const baseMobilization = roundToThousand(
             matchedVehicle?.dailyRateFcfa
-                ? Math.min(matchedVehicle.dailyRateFcfa, baseTotal * 0.45)
-                : baseTotal * 0.45
+                ? matchedVehicle.dailyRateFcfa * vehicleQty
+                : baseTotal * 0.45 * vehicleQty
         );
-        const distanceCost = roundToThousand(baseTotal * 0.35);
-        const insuranceAndMargin = roundToThousand(baseTotal * 0.2);
+        const distanceCost = roundToThousand(baseTotal * 0.35 * vehicleQty);
+        const insuranceAndMargin = roundToThousand(
+            (baseMobilization + distanceCost) * 0.15
+        );
 
         const lines: QuotePricingLine[] = [
             {
                 id: "line-base",
-                label: `Mobilisation véhicule (${vehicleName})`,
+                label: `Mobilisation véhicule (${vehicleDisplay})`,
                 category: "base",
                 amountFcfa: baseMobilization,
             },
             {
                 id: "line-distance",
-                label: `Traction & carburant (~${distanceKm} km)`,
+                label: `Traction & carburant (~${distanceKm} km${vehicleQty > 1 ? ` × ${vehicleQty} véhicules` : ""})`,
                 category: "distance",
                 amountFcfa: distanceCost,
             },
@@ -197,6 +234,14 @@ export async function assistQuotePricingAction(input: unknown): Promise<{
                 amountFcfa: 180_000,
             });
         }
+        if (needsHazardous) {
+            lines.push({
+                id: "line-hazardous",
+                label: "Sécurisation & protocole matières dangereuses",
+                category: "handling",
+                amountFcfa: 120_000,
+            });
+        }
         if (isUrgent) {
             lines.push({
                 id: "line-urgent",
@@ -212,7 +257,7 @@ export async function assistQuotePricingAction(input: unknown): Promise<{
 
         return {
             data: {
-                vehicleName,
+                vehicleName: vehicleDisplay,
                 estimatedDistanceKm: distanceKm,
                 estimatedDuration: estimation.duration,
                 lines,
@@ -326,6 +371,8 @@ export async function saveStructuredPricingAction(input: unknown): Promise<{
         revalidatePath("/admin/quotes");
         revalidatePath(`/admin/quotes/${quoteId}`);
         revalidatePath("/admin/dashboard");
+        revalidatePath("/espace-client");
+        revalidatePath(`/espace-client/quotes/${quoteId}`);
 
         return {
             data: { amount: formattedAmount, breakdown },

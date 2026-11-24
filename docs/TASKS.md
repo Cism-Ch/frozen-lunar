@@ -17,8 +17,29 @@
 |                         |  |                         |  | [x] TASK-BUG-01..03     |
 |                         |  |                         |  | [x] TASK-CLN-01..02     |
 |                         |  |                         |  | [x] TASK-RSI-01         |
+|                         |  |                         |  | [x] TASK-QWS-01..04     |
 +-------------------------+  +-------------------------+  +-------------------------+
 ```
+
+---
+
+## Completed Sprint 28: Quote Workspace, Pricing Studio & End-to-End Parity
+
+- [x] **`TASK-QWS-01` - Quote DTO, Vehicle & Audit Parity (`quote-management` + `quote-storage`)**
+  - **Target files:** `src/lib/quote-storage.ts`, `src/app/actions/quote-management.ts`, `src/app/actions/whatsapp-actions.ts`, `src/app/admin/quotes/[id]/components/QuoteTimeline.tsx`
+  - **Criteria:** [x] Included `trackingCode`, `cancellationReason`, `cancelledAt`, `vehicleId`, `vehicleQuantity`, and `vehicle` in both `getQuoteByIdAction` and `getQuotesAction`; logged real admin identity; blocked status transitions on `CANCELLED` quotes; revalidated `/espace-client`; mapped `WHATSAPP_CONTACT` and `Chiffrage` in `QuoteTimeline`.
+
+- [x] **`TASK-QWS-02` - Pricing Studio & AI Structured Quote Engine Overhaul**
+  - **Target files:** `src/app/actions/quote-pricing-actions.ts`, `src/components/features/admin/QuotePricingStudio.tsx`, `src/lib/pdf-generator.ts`
+  - **Criteria:** [x] Loaded `quote.vehicle` + `quote.vehicleQuantity` in `assistQuotePricingAction` and factored real `dailyRateFcfa × quantity`; fixed FCFA amount parser (`.` / `,` + range midpoint); removed hardcoded 400k `DEFAULT_LINES`; synced `QuotePricingStudio` state with `initialBreakdown`; rendered structured breakdown & `Devis_HBC-YYYY-XXXX.pdf` in `generateQuotePDF`.
+
+- [x] **`TASK-QWS-03` - Admin Quote Workspace (`/admin/quotes/[id]`) & Modal Fixes**
+  - **Target files:** `src/app/admin/quotes/[id]/page.tsx`, `src/components/features/admin/QuoteDetailsModal.tsx`, `src/app/actions/ai-actions.ts`
+  - **Criteria:** [x] Replaced client-side `geminiService.draftEmail` with server-side `draftEmailAction` + added `sendAdminQuoteEmailAction`; used `useSearchParams()` for `?tab=...`; displayed selected vehicle & quantity; made attachments clickable; normalized `+225` phone on WhatsApp edit; fixed `QuoteDetailsModal` history slice order and locked `Annulé` status controls.
+
+- [x] **`TASK-QWS-04` - Regression Tests & Full RSI Validation**
+  - **Target files:** `tests/unit/quote-pricing.test.ts`
+  - **Criteria:** [x] Added unit tests covering FCFA parsing, `vehicleQuantity` pricing calculation, `getQuoteByIdAction` DTO parity, and `CANCELLED` status guard; verified `vitest` (`26/26` files, `134/134` tests), `pnpm next build` (`35/35` routes), and `python evals/run_fullstack_eval.py --quick` (`100/100` PASS).
 
 ---
 

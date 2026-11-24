@@ -20,7 +20,16 @@ import {
 } from "@/lib/tracking-code";
 import { logger } from "@/lib/logger";
 
-type QuoteWithHistory = Quote & { history: QuoteHistory[] };
+type QuoteWithHistory = Quote & {
+    history: QuoteHistory[];
+    vehicle?: {
+        id: string;
+        name: string;
+        category: string;
+        dailyRateFcfa: number | null;
+        capacityLabel: string;
+    } | null;
+};
 
 /**
  * Server Actions for Quote Management
@@ -384,6 +393,15 @@ export async function getQuotesAction(filters?: {
                 history: {
                     orderBy: { timestamp: "desc" },
                 },
+                vehicle: {
+                    select: {
+                        id: true,
+                        name: true,
+                        category: true,
+                        dailyRateFcfa: true,
+                        capacityLabel: true,
+                    },
+                },
             },
             orderBy: { date: "desc" },
         });
@@ -407,6 +425,17 @@ export async function getQuotesAction(filters?: {
                 cancellationReason: quote.cancellationReason || undefined,
                 cancelledAt: quote.cancelledAt
                     ? quote.cancelledAt.toISOString()
+                    : undefined,
+                vehicleId: quote.vehicleId || undefined,
+                vehicleQuantity: quote.vehicleQuantity,
+                vehicle: quote.vehicle
+                    ? {
+                          id: quote.vehicle.id,
+                          name: quote.vehicle.name,
+                          category: String(quote.vehicle.category),
+                          dailyRateFcfa: quote.vehicle.dailyRateFcfa,
+                          capacityLabel: quote.vehicle.capacityLabel,
+                      }
                     : undefined,
                 source: enumToSource(quote.source),
                 supplementaryInfo: quote.supplementaryInfo
@@ -454,6 +483,15 @@ export async function getQuoteByIdAction(id: string) {
                 history: {
                     orderBy: { timestamp: "desc" },
                 },
+                vehicle: {
+                    select: {
+                        id: true,
+                        name: true,
+                        category: true,
+                        dailyRateFcfa: true,
+                        capacityLabel: true,
+                    },
+                },
             },
         });
 
@@ -465,6 +503,7 @@ export async function getQuoteByIdAction(id: string) {
             success: true,
             quote: {
                 id: quote.id,
+                trackingCode: formatQuoteReference(quote),
                 date: quote.date.toISOString().split("T")[0],
                 client: quote.clientName,
                 email: quote.email,
@@ -476,6 +515,21 @@ export async function getQuoteByIdAction(id: string) {
                 status: enumToStatus(quote.status),
                 amount: quote.amount,
                 userNotes: quote.userNotes || undefined,
+                cancellationReason: quote.cancellationReason || undefined,
+                cancelledAt: quote.cancelledAt
+                    ? quote.cancelledAt.toISOString()
+                    : undefined,
+                vehicleId: quote.vehicleId || undefined,
+                vehicleQuantity: quote.vehicleQuantity,
+                vehicle: quote.vehicle
+                    ? {
+                          id: quote.vehicle.id,
+                          name: quote.vehicle.name,
+                          category: String(quote.vehicle.category),
+                          dailyRateFcfa: quote.vehicle.dailyRateFcfa,
+                          capacityLabel: quote.vehicle.capacityLabel,
+                      }
+                    : undefined,
                 source: enumToSource(quote.source),
                 supplementaryInfo: quote.supplementaryInfo
                     ? (quote.supplementaryInfo as Record<string, unknown>)
@@ -511,9 +565,23 @@ export async function getQuoteByIdAction(id: string) {
  */
 export async function updateQuoteStatusAction(id: string, status: string) {
     try {
-        await requireAdmin();
+        const admin = await requireAdmin();
         const validated = updateQuoteStatusSchema.parse({ id, status });
         const enumStatus = statusToEnum(validated.status);
+
+        const existing = await prisma.quote.findUnique({
+            where: { id: validated.id },
+            select: { status: true },
+        });
+        if (!existing) {
+            return { success: false, error: "Devis introuvable" };
+        }
+        if (existing.status === QuoteStatus.CANCELLED) {
+            return {
+                success: false,
+                error: "Impossible de modifier le statut d'un devis annulé par le client.",
+            };
+        }
 
         const quote = await prisma.quote.update({
             where: { id: validated.id },
@@ -526,13 +594,15 @@ export async function updateQuoteStatusAction(id: string, status: string) {
                 quoteId: validated.id,
                 action: "Changement de statut",
                 description: `Statut changé en : ${validated.status}`,
-                user: "Admin",
+                user: admin.name || admin.email,
             },
         });
 
         revalidatePath("/admin/quotes");
         revalidatePath(`/admin/quotes/${validated.id}`);
         revalidatePath("/admin/dashboard");
+        revalidatePath("/espace-client");
+        revalidatePath(`/espace-client/quotes/${validated.id}`);
 
         return {
             success: true,
@@ -570,7 +640,7 @@ export async function updateQuoteAction(
     }>
 ) {
     try {
-        await requireAdmin();
+        const admin = await requireAdmin();
         const validId = quoteIdSchema.parse(id);
         const validData = updateQuoteDetailsSchema.parse(data);
 
@@ -597,12 +667,15 @@ export async function updateQuoteAction(
                 quoteId: validId,
                 action: "Mise à jour",
                 description: `Champs mis à jour : ${fields}`,
-                user: "Admin",
+                user: admin.name || admin.email,
             },
         });
 
         revalidatePath("/admin/quotes");
         revalidatePath(`/admin/quotes/${validId}`);
+        revalidatePath("/admin/dashboard");
+        revalidatePath("/espace-client");
+        revalidatePath(`/espace-client/quotes/${validId}`);
 
         return { success: true, quote };
     } catch (error: unknown) {
@@ -627,7 +700,7 @@ export async function updateQuoteAction(
  */
 export async function addQuoteNoteAction(id: string, note: string) {
     try {
-        await requireAdmin();
+        const admin = await requireAdmin();
         const validated = addQuoteNoteSchema.parse({ id, note });
 
         await prisma.quoteHistory.create({
@@ -635,7 +708,7 @@ export async function addQuoteNoteAction(id: string, note: string) {
                 quoteId: validated.id,
                 action: "Note Interne",
                 description: validated.note,
-                user: "Admin",
+                user: admin.name || admin.email,
             },
         });
 

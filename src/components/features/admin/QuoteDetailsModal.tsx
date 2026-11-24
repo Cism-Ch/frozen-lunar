@@ -509,6 +509,20 @@ export function QuoteDetailsModal({
                                                 {quote.type}
                                             </span>
                                         </div>
+                                        {quote.vehicle && (
+                                            <div className="flex items-center justify-between py-2">
+                                                <span className="text-muted-foreground">
+                                                    Véhicule demandé
+                                                </span>
+                                                <span className="font-semibold">
+                                                    {quote.vehicleQuantity &&
+                                                    quote.vehicleQuantity > 1
+                                                        ? `${quote.vehicleQuantity}× `
+                                                        : ""}
+                                                    {quote.vehicle.name}
+                                                </span>
+                                            </div>
+                                        )}
                                         {supplementaryItems.map((item, idx) => (
                                             <div
                                                 key={idx}
@@ -533,17 +547,37 @@ export function QuoteDetailsModal({
                                             Pièces jointes ({attachments.length})
                                         </span>
                                         <div className="flex flex-wrap gap-2">
-                                            {attachments.map((file, i) => (
-                                                <Badge
-                                                    key={i}
-                                                    variant="secondary"
-                                                    className="gap-1.5 px-2.5 py-1 font-mono text-xs"
-                                                >
-                                                    <FileText className="h-3 w-3" />
-                                                    {file.split("/").pop() ||
-                                                        file}
-                                                </Badge>
-                                            ))}
+                                            {attachments.map((file, i) => {
+                                                const label =
+                                                    file.split("/").pop() ||
+                                                    file;
+                                                const isLink =
+                                                    file.startsWith("https://") ||
+                                                    file.startsWith("http://") ||
+                                                    file.startsWith("/");
+                                                return isLink ? (
+                                                    <a
+                                                        key={i}
+                                                        href={file}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="bg-secondary text-secondary-foreground hover:bg-secondary/80 inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 font-mono text-xs font-medium transition-colors"
+                                                    >
+                                                        <FileText className="h-3 w-3" />
+                                                        {label}
+                                                        <ExternalLink className="h-3 w-3 opacity-60" />
+                                                    </a>
+                                                ) : (
+                                                    <Badge
+                                                        key={i}
+                                                        variant="secondary"
+                                                        className="gap-1.5 px-2.5 py-1 font-mono text-xs"
+                                                    >
+                                                        <FileText className="h-3 w-3" />
+                                                        {label}
+                                                    </Badge>
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                 )}
@@ -656,8 +690,7 @@ export function QuoteDetailsModal({
                                         </span>
                                         <div className="space-y-2.5">
                                             {quote.history
-                                                .slice(-4)
-                                                .reverse()
+                                                .slice(0, 4)
                                                 .map(
                                                     (
                                                         event: QuoteHistoryEvent
@@ -706,7 +739,11 @@ export function QuoteDetailsModal({
                         </div>
 
                         <div className="flex flex-col gap-2 sm:flex-row">
-                            {quote.status === "En attente" ? (
+                            {quote.status === "Annulé" ? (
+                                <span className="text-muted-foreground text-xs italic">
+                                    Dossier annulé par le client (verrouillé)
+                                </span>
+                            ) : quote.status === "En attente" ? (
                                 <>
                                     <Button
                                         variant="outline"

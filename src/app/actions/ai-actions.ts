@@ -15,6 +15,9 @@ import {
     isOpenRouterAvailable,
 } from "@/lib/openrouter";
 import { requireAdmin } from "@/lib/auth-guard";
+import { revalidatePath } from "next/cache";
+import prisma from "@/lib/prisma";
+import { sendTransactionalEmail } from "@/lib/email";
 import { logger } from "@/lib/logger";
 
 // Schémas de validation Zod
@@ -170,6 +173,92 @@ export async function draftEmailAction(input: unknown): Promise<{
             return { data: null, error: error.message };
         }
         return { data: null, error: "Erreur lors de la rédaction de l'email" };
+    }
+}
+
+const sendQuoteEmailSchema = z.object({
+    quoteId: z.string().min(1, "Identifiant de devis requis"),
+    subject: z.string().min(3, "Objet trop court").max(200),
+    body: z.string().min(10, "Message trop court").max(6000),
+});
+
+function escapeHtml(raw: string): string {
+    return raw
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
+/**
+ * Envoie directement un email rédigé depuis l'espace de travail admin au client du devis
+ * via la passerelle transactionnelle (Resend → fallback Gmail SMTP) et trace l'envoi en audit.
+ */
+export async function sendAdminQuoteEmailAction(input: unknown): Promise<{
+    data: { provider: string } | null;
+    error: string | null;
+}> {
+    try {
+        const admin = await requireAdmin();
+        const parsed = sendQuoteEmailSchema.safeParse(input);
+        if (!parsed.success) {
+            return {
+                data: null,
+                error:
+                    parsed.error.issues[0]?.message ||
+                    "Paramètres d'envoi invalides.",
+            };
+        }
+
+        const quote = await prisma.quote.findUnique({
+            where: { id: parsed.data.quoteId },
+            select: { id: true, email: true, clientName: true },
+        });
+        if (!quote) {
+            return { data: null, error: "Devis introuvable." };
+        }
+
+        const htmlParagraphs = parsed.data.body
+            .split(/\n{2,}/)
+            .map(
+                (p) =>
+                    `<p style="margin:0 0 12px;line-height:1.6;">${escapeHtml(p).replace(/\n/g, "<br/>")}</p>`
+            )
+            .join("");
+
+        const sendRes = await sendTransactionalEmail({
+            to: quote.email,
+            subject: parsed.data.subject,
+            text: parsed.data.body,
+            html: `<div style="font-family:Arial,sans-serif;color:#111827;max-width:600px;">${htmlParagraphs}</div>`,
+        });
+
+        if (sendRes.error) {
+            return { data: null, error: sendRes.error.message };
+        }
+
+        await prisma.quoteHistory.create({
+            data: {
+                quoteId: quote.id,
+                action: "Email envoyé au client",
+                description: `Objet : ${parsed.data.subject} (via ${sendRes.provider})`,
+                user: admin.name || admin.email,
+            },
+        });
+
+        revalidatePath(`/admin/quotes/${quote.id}`);
+
+        return { data: { provider: sendRes.provider }, error: null };
+    } catch (error: unknown) {
+        logger.error("Erreur sendAdminQuoteEmailAction", error);
+        return {
+            data: null,
+            error:
+                error instanceof Error
+                    ? error.message
+                    : "Impossible d'envoyer l'email.",
+        };
     }
 }
 

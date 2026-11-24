@@ -3,11 +3,14 @@
 import { Quote } from "@/lib/quote-storage";
 import { safeFormatDate } from "@/lib/date-utils";
 import {
-    Clock,
+    Ban,
+    Calculator,
     CheckCircle2,
-    MessageSquare,
-    FileText,
     Circle,
+    Clock,
+    FileText,
+    MessageCircle,
+    MessageSquare,
     User,
 } from "lucide-react";
 
@@ -15,13 +18,24 @@ interface QuoteTimelineProps {
     quote: Quote;
 }
 
+function formatActionLabel(action: string): string {
+    if (action === "WHATSAPP_CONTACT") return "Contact WhatsApp";
+    return action;
+}
+
 export function QuoteTimeline({ quote }: QuoteTimelineProps) {
     const history = quote.history || [];
 
     const getIcon = (action: string) => {
+        if (action === "WHATSAPP_CONTACT" || action.includes("WhatsApp"))
+            return <MessageCircle className="h-4 w-4 text-emerald-500" />;
+        if (action.includes("Chiffrage"))
+            return <Calculator className="text-primary h-4 w-4" />;
+        if (action.includes("Annul"))
+            return <Ban className="h-4 w-4 text-rose-500" />;
         if (action.includes("Création"))
             return <Clock className="h-4 w-4 text-blue-500" />;
-        if (action.includes("Statut"))
+        if (action.includes("Statut") || action.includes("statut"))
             return <CheckCircle2 className="h-4 w-4 text-green-500" />;
         if (action.includes("Note"))
             return <MessageSquare className="h-4 w-4 text-orange-500" />;
@@ -51,7 +65,7 @@ export function QuoteTimeline({ quote }: QuoteTimelineProps) {
                     <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2">
                             <span className="text-sm font-medium">
-                                {event.action}
+                                {formatActionLabel(event.action)}
                             </span>
                             <span className="text-muted-foreground text-xs">
                                 {safeFormatDate(

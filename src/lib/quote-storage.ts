@@ -56,6 +56,14 @@ export interface QuoteSupplementaryInfo {
     pricingBreakdown?: QuotePricingBreakdown;
 }
 
+export interface QuoteVehicleSummary {
+    id: string;
+    name: string;
+    category: string;
+    dailyRateFcfa?: number | null;
+    capacityLabel: string;
+}
+
 export interface Quote {
     id: string;
     trackingCode?: string;
@@ -73,6 +81,9 @@ export interface Quote {
     userNotes?: string;
     cancellationReason?: string;
     cancelledAt?: string;
+    vehicleId?: string;
+    vehicleQuantity?: number;
+    vehicle?: QuoteVehicleSummary;
     supplementaryInfo?: QuoteSupplementaryInfo;
     source: "form" | "chat";
     history?: QuoteHistoryEvent[];
