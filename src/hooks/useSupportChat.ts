@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Message, QuickReply } from "@/lib/support-agent/types";
 import { AGENT_CONFIG } from "@/lib/support-agent/config";
 import {
@@ -43,6 +44,7 @@ export interface ChatItem {
 }
 
 export function useSupportChat(onClose: () => void) {
+    const router = useRouter();
     const [chatItems, setChatItems] = useState<ChatItem[]>([
         {
             type: "message",
@@ -206,11 +208,17 @@ export function useSupportChat(onClose: () => void) {
 
         await new Promise((resolve) => setTimeout(resolve, 300));
 
-        const { newState, complete } = processFlowAnswer(
+        const { newState, complete, error } = processFlowAnswer(
             quoteFlowState,
             answer
         );
         setQuoteFlowState(newState);
+
+        if (error) {
+            await addTypingThenMessage(error);
+            setIsLoading(false);
+            return;
+        }
 
         if (complete) {
             try {
@@ -571,7 +579,7 @@ export function useSupportChat(onClose: () => void) {
                 { type: "message", data: userMessage, id: userMessage.id },
             ]);
             onClose();
-            window.location.href = "/devis";
+            router.push("/devis");
         } else if ("value" in option && option.value) {
             // It's a quote flow answer or simple option with value
             // If we are in quote flow or if the value matches a known quote flow answer
