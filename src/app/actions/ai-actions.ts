@@ -18,6 +18,7 @@ import { requireAdmin } from "@/lib/auth-guard";
 import { revalidatePath } from "next/cache";
 import prisma from "@/lib/prisma";
 import { sendTransactionalEmail } from "@/lib/email";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
 
 // Schémas de validation Zod
@@ -117,6 +118,18 @@ export async function estimateTransportAction(
     input: unknown
 ): Promise<{ data: EstimationResult | null; error: string | null }> {
     try {
+        const rl = await checkRateLimit({
+            scope: "ai-estimate-transport",
+            limit: 15,
+            windowSeconds: 600,
+        });
+        if (!rl.allowed) {
+            return {
+                data: null,
+                error: "Trop d'estimations récentes. Veuillez patienter quelques minutes.",
+            };
+        }
+
         const validated = estimateTransportSchema.parse(input);
         const result = await geminiService.estimateTransport(
             validated.pickup,
@@ -279,6 +292,18 @@ export async function generateSupportAiAction(input: unknown): Promise<{
     error: string | null;
 }> {
     try {
+        const rl = await checkRateLimit({
+            scope: "ai-support-chat",
+            limit: 25,
+            windowSeconds: 600,
+        });
+        if (!rl.allowed) {
+            return {
+                data: null,
+                error: "Limite temporaire de requêtes IA atteinte. Mode secours disponible.",
+            };
+        }
+
         const validated = supportChatSchema.parse(input);
         const aiResponse = await generateSupportAiResponse(
             validated.message,

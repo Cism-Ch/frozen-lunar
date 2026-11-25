@@ -2,8 +2,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { verifyFileMagicBytes } from "@/lib/file-signature";
 import { resolveAttachmentProxyUrl } from "@/lib/attachment-url";
 
-const { mockRequireAdmin } = vi.hoisted(() => ({
+const { mockRequireAdmin, mockCheckRateLimit } = vi.hoisted(() => ({
     mockRequireAdmin: vi.fn(),
+    mockCheckRateLimit: vi.fn().mockResolvedValue({
+        allowed: true,
+        remaining: 20,
+        retryAfterSeconds: 0,
+    }),
 }));
 
 vi.mock("@/lib/auth-guard", () => ({
@@ -11,11 +16,7 @@ vi.mock("@/lib/auth-guard", () => ({
 }));
 
 vi.mock("@/lib/rate-limit", () => ({
-    checkRateLimit: vi.fn().mockResolvedValue({
-        allowed: true,
-        remaining: 20,
-        retryAfterSeconds: 0,
-    }),
+    checkRateLimit: mockCheckRateLimit,
 }));
 
 vi.mock("@/lib/storage", () => ({
@@ -28,6 +29,7 @@ import {
     getPresignedUploadUrlAction,
     getKycDocumentSignedUrlAction,
 } from "@/app/actions/upload-management";
+import { requestPasswordResetAction } from "@/app/actions/auth-actions";
 
 describe("Defensive Security Hardening (Sprint 24)", () => {
     beforeEach(() => {
@@ -109,6 +111,15 @@ describe("Defensive Security Hardening (Sprint 24)", () => {
             expect(
                 resolveAttachmentProxyUrl("fleet-images/camion.webp", false)
             ).toBeNull();
+        });
+
+        it("bloque requestPasswordResetAction lorsque le rate-limiter Redis refuse la requête", async () => {
+            mockCheckRateLimit.mockResolvedValueOnce({ allowed: false });
+            const res = await requestPasswordResetAction({
+                email: "victim@entreprise.ci",
+            });
+            expect(res.data).toBeNull();
+            expect(res.error).toContain("Trop de demandes");
         });
     });
 });

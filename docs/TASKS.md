@@ -11,10 +11,11 @@
 +-------------------------+  +-------------------------+  +-------------------------+
 | [>] IN PROGRESS         |  |  [?] ROADMAP            |  |       [X] ARCHIVES      |
 +-------------------------+  +-------------------------+  +-------------------------+
-| [-] TASK-SEC-05         |  | [ ] TASK-QUAL-01        |  | [x] SP 01..11 (Archived)|
-| [-] TASK-SEC-06         |  | [ ] TASK-QUAL-02        |  | [x] SP 12..23 (Archived)|
+| [-] TASK-QUAL-01        |  | [ ] TASK-QUAL-02        |  | [x] SP 01..11 (Archived)|
+|                         |  |                         |  | [x] SP 12..23 (Archived)|
 |                         |  |                         |  | [x] SP 24..31 (Archived)|
 |                         |  |                         |  | [x] TASK-PERF-01..02    |
+|                         |  |                         |  | [x] TASK-SEC-05..06     |
 +-------------------------+  +-------------------------+  +-------------------------+
 ```
 
@@ -32,21 +33,21 @@
 
 ---
 
-## Active Sprint 33: Security & Abuse-Prevention Hardening
+## Completed Sprint 33: Security & Abuse-Prevention Hardening
 
-- [-] **`TASK-SEC-05` - Rate Limiting on Password Reset & Public AI Endpoints**
+- [x] **`TASK-SEC-05` - Rate Limiting on Password Reset & Public AI Endpoints**
   - **Target files:** `src/app/actions/auth-actions.ts`, `src/app/actions/ai-actions.ts`
-  - **Criteria:** [ ] Enforce fail-open Upstash Redis rate limiting on `requestPasswordResetAction`, `resetPasswordWithTokenAction`, `generateSupportAiAction`, and `estimateTransportAction`.
+  - **Criteria:** [x] Enforced fail-open Upstash Redis rate limiting on `requestPasswordResetAction` (5/15m), `resetPasswordWithTokenAction` (10/15m), `generateSupportAiAction` (25/10m), and `estimateTransportAction` (15/10m).
 
-- [ ] **`TASK-SEC-06` - Security Rate-Limit Regression Tests**
+- [x] **`TASK-SEC-06` - Security Rate-Limit Regression Tests**
   - **Target files:** `tests/unit/security-hardening.test.ts`
-  - **Criteria:** [ ] Add unit tests verifying rate-limit rejection on password reset and support AI actions.
+  - **Criteria:** [x] Added unit test verifying rate-limit rejection on `requestPasswordResetAction` (`6/6` tests PASS).
 
 ---
 
-## Planned Sprint 34: Code Quality, SPA Navigation & Overnight Report
+## Active Sprint 34: Code Quality, SPA Navigation & Overnight Report
 
-- [ ] **`TASK-QUAL-01` - Eliminate Remaining ESLint Warning & Wire Chat Validation Errors**
+- [-] **`TASK-QUAL-01` - Eliminate Remaining ESLint Warning & Wire Chat Validation Errors**
   - **Target files:** `src/hooks/useSupportChat.ts`
   - **Criteria:** [ ] Replace `window.location.href = "/devis"` with `useRouter().push("/devis")` (zero ESLint warnings); display `processFlowAnswer` validation errors (e.g. invalid email) cleanly in chat.
 

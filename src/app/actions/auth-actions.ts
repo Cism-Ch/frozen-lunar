@@ -17,6 +17,7 @@ import {
     formatZodError,
 } from "@/lib/validation";
 import { z } from "zod";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
 
 /**
@@ -59,6 +60,18 @@ export async function requestPasswordResetAction(
     input: unknown
 ): Promise<{ data: RequestResetResult | null; error: string | null }> {
     try {
+        const rl = await checkRateLimit({
+            scope: "auth-password-reset-request",
+            limit: 5,
+            windowSeconds: 900,
+        });
+        if (!rl.allowed) {
+            return {
+                data: null,
+                error: "Trop de demandes de réinitialisation récentes. Veuillez patienter 15 minutes.",
+            };
+        }
+
         const validated = requestPasswordResetSchema.parse(input);
         const email = validated.email.toLowerCase().trim();
 
@@ -251,6 +264,18 @@ export async function resetPasswordWithTokenAction(
     input: unknown
 ): Promise<{ data: ResetPasswordResult | null; error: string | null }> {
     try {
+        const rl = await checkRateLimit({
+            scope: "auth-password-reset-confirm",
+            limit: 10,
+            windowSeconds: 900,
+        });
+        if (!rl.allowed) {
+            return {
+                data: null,
+                error: "Trop de tentatives récentes. Veuillez patienter 15 minutes avant de réessayer.",
+            };
+        }
+
         const validated = resetPasswordWithTokenSchema.parse(input);
         const identifier = `reset-password:${validated.token}`;
 
