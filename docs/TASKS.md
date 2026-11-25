@@ -11,17 +11,41 @@
 +-------------------------+  +-------------------------+  +-------------------------+
 | [>] IN PROGRESS         |  |  [?] ROADMAP            |  |       [X] ARCHIVES      |
 +-------------------------+  +-------------------------+  +-------------------------+
-| (None)                  |  | (None)                  |  | [x] SP 01..11 (Archived)|
-|                         |  |                         |  | [x] SP 12..23 (Archived)|
+| [-] TASK-PERF-03        |  | (None)                  |  | [x] SP 01..11 (Archived)|
+| [-] TASK-PERF-04        |  |                         |  | [x] SP 12..23 (Archived)|
 |                         |  |                         |  | [x] SP 24..31 (Archived)|
 |                         |  |                         |  | [x] TASK-PERF-01..02    |
-|                         |  |                         |  | [x] TASK-SEC-05..06     |
+|                         |  |                         |  | [x] TASK-SEC-05..08     |
 |                         |  |                         |  | [x] TASK-QUAL-01..02    |
 |                         |  |                         |  | [x] TASK-SUP-02         |
 |                         |  |                         |  | [x] TASK-MAIL-01        |
 |                         |  |                         |  | [x] TASK-KYC-01..04     |
 +-------------------------+  +-------------------------+  +-------------------------+
 ```
+
+---
+
+## Completed Sprint 39: Security Headers, Endpoint Rate-Limiting & Anti-Abuse Hardening
+
+- [x] **`TASK-SEC-07` - Harden `/api/admin/check`, Security Headers & Authenticated Mutation Rate-Limits**
+  - **Target files:** `src/app/api/admin/check/route.ts`, `next.config.ts`, `src/app/actions/client-space-actions.ts`
+  - **Criteria:** [x] Added fail-open rate limiting + `Cache-Control: no-store` + sanitized errors on `GET /api/admin/check`; added `poweredByHeader: false`, `Cross-Origin-Opener-Policy`, `Cross-Origin-Resource-Policy` in `next.config.ts`; rate-limited `saveClientKycDocumentAction`.
+
+- [x] **`TASK-SEC-08` - Security Hardening Regression Tests**
+  - **Target files:** `tests/unit/security-hardening.test.ts`
+  - **Criteria:** [x] Verified `GET /api/admin/check` returns `429` when rate-limited and includes `Cache-Control: no-store` (`7/7` PASS).
+
+---
+
+## Active Sprint 40: Query Boundedness, Nested Payload Reduction & AVIF/WebP Optimization
+
+- [-] **`TASK-PERF-03` - Bound All Admin/Client `findMany` Queries & Nested `history` Payloads**
+  - **Target files:** `src/app/actions/quote-management.ts`, `src/app/actions/contact.ts`, `src/app/actions/partner-actions.ts`, `src/app/admin/users/page.tsx`, `src/app/actions/client-space-actions.ts`
+  - **Criteria:** [ ] Add explicit `take` caps across `getQuotesAction` (`take: 250`, nested `history: { take: 6 }`), `getContactMessagesAction` (`250`), `getClientsDirectoryAction` (`500` + DB-side search filter), `getAdminPartnerApplicationsAction` (`200`), `AdminUsersPage` (`300`), and `getClientDashboardAction` (`100`).
+
+- [-] **`TASK-PERF-04` - Enable AVIF/WebP Next.js Image Optimization & Full Verification**
+  - **Target files:** `next.config.ts`
+  - **Criteria:** [ ] Configure `images: { formats: ["image/avif", "image/webp"] }`; pass full `vitest`, `next build`, and `evals/run_fullstack_eval.py --quick` (`100/100` PASS).
 
 ---
 

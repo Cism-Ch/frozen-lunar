@@ -26,6 +26,7 @@ import {
     sendTransactionalEmail,
 } from "@/lib/email";
 import { COMPANY_CONFIG } from "@/lib/company-config";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
 
 const savedAddressSchema = z.object({
@@ -613,6 +614,18 @@ export async function saveClientKycDocumentAction(input: {
     accountType?: "INDIVIDUAL" | "COMPANY";
 }): Promise<{ data: ClientKycState | null; error: string | null }> {
     try {
+        const rl = await checkRateLimit({
+            scope: "client-kyc-save",
+            limit: 20,
+            windowSeconds: 900,
+        });
+        if (!rl.allowed) {
+            return {
+                data: null,
+                error: "Trop d'enregistrements KYC récents. Veuillez patienter quelques minutes.",
+            };
+        }
+
         const user = await requireAuth();
         const parsed = saveKycDocumentSchema.safeParse(input);
         if (!parsed.success) {

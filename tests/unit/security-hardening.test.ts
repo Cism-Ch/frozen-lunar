@@ -30,6 +30,7 @@ import {
     getKycDocumentSignedUrlAction,
 } from "@/app/actions/upload-management";
 import { requestPasswordResetAction } from "@/app/actions/auth-actions";
+import { GET as adminCheckGet } from "@/app/api/admin/check/route";
 
 describe("Defensive Security Hardening (Sprint 24)", () => {
     beforeEach(() => {
@@ -120,6 +121,13 @@ describe("Defensive Security Hardening (Sprint 24)", () => {
             });
             expect(res.data).toBeNull();
             expect(res.error).toContain("Trop de demandes");
+        });
+
+        it("renvoie 429 + Cache-Control no-store sur GET /api/admin/check si rate-limité", async () => {
+            mockCheckRateLimit.mockResolvedValueOnce({ allowed: false });
+            const response = await adminCheckGet();
+            expect(response.status).toBe(429);
+            expect(response.headers.get("Cache-Control")).toContain("no-store");
         });
     });
 });
