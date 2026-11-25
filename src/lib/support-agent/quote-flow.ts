@@ -500,10 +500,87 @@ export function formatQuoteSummary(data: Partial<QuoteFlowData>): string {
     return lines.join("\n");
 }
 
+/**
+ * Normalise une date saisie en langage naturel / format FR (`15/12/2026`, `demain`, `2026-12-15`)
+ * en chaîne ISO 8601 valide (heure par défaut 08:00 GMT+0) pour `createQuoteAction`.
+ */
+export function parseFlowDateToIso(raw: string): string | null {
+    const trimmed = raw.trim().toLowerCase();
+    if (!trimmed) return null;
+
+    const now = new Date();
+    if (trimmed.includes("demain")) {
+        const d = new Date(now);
+        d.setUTCDate(d.getUTCDate() + 1);
+        d.setUTCHours(8, 0, 0, 0);
+        return d.toISOString();
+    }
+    if (trimmed.includes("aujourd")) {
+        const d = new Date(now);
+        d.setUTCHours(10, 0, 0, 0);
+        return d.toISOString();
+    }
+    const weeksMatch = trimmed.match(/(\d+)\s*semaine/);
+    if (weeksMatch) {
+        const d = new Date(now);
+        d.setUTCDate(d.getUTCDate() + parseInt(weeksMatch[1], 10) * 7);
+        d.setUTCHours(8, 0, 0, 0);
+        return d.toISOString();
+    }
+    const daysMatch = trimmed.match(/(\d+)\s*jour/);
+    if (daysMatch) {
+        const d = new Date(now);
+        d.setUTCDate(d.getUTCDate() + parseInt(daysMatch[1], 10));
+        d.setUTCHours(8, 0, 0, 0);
+        return d.toISOString();
+    }
+
+    // Format FR JJ/MM/AAAA ou JJ-MM-AAAA
+    const frMatch = trimmed.match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{2,4})$/);
+    if (frMatch) {
+        const day = parseInt(frMatch[1], 10);
+        const month = parseInt(frMatch[2], 10);
+        const rawYear = parseInt(frMatch[3], 10);
+        const year = rawYear < 100 ? 2000 + rawYear : rawYear;
+        if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+            const d = new Date(Date.UTC(year, month - 1, day, 8, 0, 0));
+            if (!Number.isNaN(d.getTime())) return d.toISOString();
+        }
+    }
+
+    const parsed = new Date(raw.trim());
+    if (!Number.isNaN(parsed.getTime())) {
+        return parsed.toISOString();
+    }
+    return null;
+}
+
 export function processFlowAnswer(
     state: QuoteFlowState,
     answer: string
-): { newState: QuoteFlowState; complete: boolean; error?: string } {
+): {
+    newState: QuoteFlowState;
+    complete: boolean;
+    cancelled?: boolean;
+    error?: string;
+} {
+    const trimmedAnswer = answer.trim();
+    const lowerAnswer = trimmedAnswer.toLowerCase();
+
+    // Échappatoire propre : permet à l'utilisateur d'annuler ou quitter le parcours à tout moment
+    if (
+        lowerAnswer === "annuler" ||
+        lowerAnswer === "stop" ||
+        lowerAnswer === "quitter" ||
+        lowerAnswer === "abandonner"
+    ) {
+        return {
+            newState: createInitialFlowState(),
+            complete: false,
+            cancelled: true,
+        };
+    }
+
     const newState = { ...state, data: { ...state.data } };
 
     switch (state.currentStep) {
@@ -518,45 +595,83 @@ export function processFlowAnswer(
             break;
 
         case "pickup":
-            newState.data.pickup = answer;
+            if (trimmedAnswer.length < 5) {
+                return {
+                    newState: state,
+                    complete: false,
+                    error: "Merci de préciser une adresse ou ville de départ d'au moins 5 caractères (ex: Zone Industrielle Yopougon, Abidjan).",
+                };
+            }
+            newState.data.pickup = trimmedAnswer;
             newState.currentStep = "dropoff";
             break;
 
         case "dropoff":
-            newState.data.dropoff = answer;
+            if (trimmedAnswer.length < 5) {
+                return {
+                    newState: state,
+                    complete: false,
+                    error: "Merci de préciser une adresse ou ville de livraison d'au moins 5 caractères (ex: Port de San-Pédro).",
+                };
+            }
+            newState.data.dropoff = trimmedAnswer;
             newState.currentStep = "date";
             break;
 
-        case "date":
-            newState.data.transportDate = answer;
+        case "date": {
+            const isoDate = parseFlowDateToIso(trimmedAnswer);
+            if (!isoDate) {
+                return {
+                    newState: state,
+                    complete: false,
+                    error: 'Date non reconnue. Indiquez par exemple "15/12/2026", "demain" ou "dans 2 semaines".',
+                };
+            }
+            newState.data.transportDate = isoDate;
             newState.currentStep = "contact_name";
             break;
+        }
 
         case "contact_name":
-            newState.data.fullName = answer;
+            if (trimmedAnswer.length < 2) {
+                return {
+                    newState: state,
+                    complete: false,
+                    error: "Veuillez saisir votre nom complet ou le nom de votre entreprise.",
+                };
+            }
+            newState.data.fullName = trimmedAnswer;
             newState.currentStep = "contact_email";
             break;
 
         case "contact_email": {
-            const trimmedEmail = answer.trim();
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedAnswer)) {
                 return {
                     newState: state,
                     complete: false,
                     error: "Veuillez saisir une adresse email valide (ex: nom@entreprise.ci).",
                 };
             }
-            newState.data.email = trimmedEmail;
+            newState.data.email = trimmedAnswer;
             newState.currentStep = "contact_phone";
             break;
         }
 
-        case "contact_phone":
-            newState.data.phone = answer;
+        case "contact_phone": {
+            const digitsCount = trimmedAnswer.replace(/\D/g, "").length;
+            if (digitsCount < 10) {
+                return {
+                    newState: state,
+                    complete: false,
+                    error: "Veuillez indiquer un numéro de téléphone valide (au moins 10 chiffres, ex: +225 07 00 00 00 00).",
+                };
+            }
+            newState.data.phone = trimmedAnswer;
             // Now start the category specific questions
             newState.currentStep = "category_questions";
             newState.currentQuestionIndex = 0;
             break;
+        }
 
         case "category_questions":
             const currentQ =

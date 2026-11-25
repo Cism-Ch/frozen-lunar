@@ -208,11 +208,20 @@ export function useSupportChat(onClose: () => void) {
 
         await new Promise((resolve) => setTimeout(resolve, 300));
 
-        const { newState, complete, error } = processFlowAnswer(
+        const { newState, complete, cancelled, error } = processFlowAnswer(
             quoteFlowState,
             answer
         );
         setQuoteFlowState(newState);
+
+        if (cancelled) {
+            await addTypingThenMessage(
+                "Parcours devis annulé. Je reste disponible si vous avez d'autres questions ou souhaitez reprendre plus tard."
+            );
+            setCurrentQuickReplies(AGENT_CONFIG.quickReplies);
+            setIsLoading(false);
+            return;
+        }
 
         if (error) {
             await addTypingThenMessage(error);
@@ -456,9 +465,11 @@ export function useSupportChat(onClose: () => void) {
                 }
             }
 
-            // Tier 2 : Mode Robot d'urgence (uniquement si tous les LLMs ont échoué)
+            // Tier 2 : Mode Robot de secours (sur cet échange sans verrouiller définitivement le mode IA si l'IA est configurée)
             if (!handledByAi) {
-                setActiveMode("robot");
+                if (!aiAvailable) {
+                    setActiveMode("robot");
+                }
                 setAiMode("resilient_local");
                 const response = await generateMockResponse(content);
 

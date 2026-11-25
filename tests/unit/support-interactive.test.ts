@@ -8,6 +8,7 @@ import {
 } from "@/lib/support-agent/mock-responses";
 import {
     getStepMessage,
+    parseFlowDateToIso,
     processFlowAnswer,
     startQuoteFlow,
 } from "@/lib/support-agent/quote-flow";
@@ -88,7 +89,11 @@ describe("Sprint 29 — PDF Template Hygiene & Interactive Support Flows", () =>
             state = step.newState;
             expect(state.currentStep).toBe("contact_phone");
 
-            // 7. Téléphone
+            // 7. Téléphone invalide puis valide
+            const invalidPhone = processFlowAnswer(state, "123");
+            expect(invalidPhone.error).toBeTruthy();
+            expect(invalidPhone.newState.currentStep).toBe("contact_phone");
+
             step = processFlowAnswer(state, "+225 07 08 09 10 11");
             state = step.newState;
             expect(state.currentStep).toBe("category_questions");
@@ -132,8 +137,23 @@ describe("Sprint 29 — PDF Template Hygiene & Interactive Support Flows", () =>
             );
             expect(trackingPrompt.category).toBe("transport");
 
-            const trackingRef = await generateMockResponse("HBC-2026-4412");
-            expect(trackingRef.message).toContain("HBC-2026-4412");
+            const trackingRef = await generateMockResponse(
+                "HBC-2026-140509-4K8M2P"
+            );
+            expect(trackingRef.message).toContain("HBC-2026-140509-4K8M2P");
+        });
+
+        it("allows cancelling the guided quote flow cleanly and parses FR dates to valid ISO", () => {
+            let state = startQuoteFlow();
+            state = processFlowAnswer(state, "Container").newState;
+            const cancelStep = processFlowAnswer(state, "annuler");
+            expect(cancelStep.cancelled).toBe(true);
+            expect(cancelStep.newState.isActive).toBe(false);
+
+            const iso = parseFlowDateToIso("15/12/2026");
+            expect(iso).toMatch(/^2026-12-15T08:00:00/);
+            expect(parseFlowDateToIso("demain")).toBeTruthy();
+            expect(parseFlowDateToIso("date-invalide")).toBeNull();
         });
     });
 });
