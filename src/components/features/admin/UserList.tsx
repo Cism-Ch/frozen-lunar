@@ -25,6 +25,9 @@ import {
     Building2,
     CheckCircle2,
     Code,
+    Download,
+    ExternalLink,
+    FileCheck2,
     KeyRound,
     LogOut,
     Search,
@@ -34,13 +37,28 @@ import {
     User,
     UserCog,
     Users,
+    XCircle,
 } from "lucide-react";
 import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import {
     deleteUserAction,
+    reviewClientKycDocumentAction,
     revokeUserSessionsAction,
     toggleUserEmailVerifiedAction,
     updateUserRoleAction,
 } from "@/app/actions/user-management";
+import {
+    getKycDocLabel,
+    type ClientKycState,
+    type KycDocType,
+} from "@/lib/client-kyc";
+import { resolveAttachmentProxyUrl } from "@/lib/attachment-url";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -58,6 +76,7 @@ export interface ManagedUserItem {
     phone: string | null;
     quotesCount: number;
     activeSessionsCount: number;
+    kyc?: ClientKycState;
 }
 
 interface UserListProps {
@@ -81,7 +100,39 @@ export function UserList({ users, currentUserId }: UserListProps) {
         user: ManagedUserItem;
         newRole: "admin" | "moderator" | "developer" | "user";
     } | null>(null);
+    const [kycModalUser, setKycModalUser] = useState<ManagedUserItem | null>(
+        null
+    );
     const [busyAction, setBusyAction] = useState(false);
+
+    const handleReviewKyc = async (
+        userId: string,
+        docType: KycDocType,
+        decision: "APPROVED" | "REJECTED"
+    ) => {
+        setBusyAction(true);
+        try {
+            const res = await reviewClientKycDocumentAction({
+                userId,
+                docType,
+                decision,
+            });
+            if (!res.success || !res.kyc) {
+                toast.error(res.error || "Erreur lors de la validation KYC.");
+                return;
+            }
+            setKycModalUser((prev) =>
+                prev && prev.id === userId ? { ...prev, kyc: res.kyc } : prev
+            );
+            toast.success(
+                decision === "APPROVED"
+                    ? "Document validé avec succès."
+                    : "Document refusé (le client pourra le remplacer)."
+            );
+        } finally {
+            setBusyAction(false);
+        }
+    };
 
     const adminTeam = useMemo(
         () => users.filter((u) => ADMIN_ROLES.has(u.role)),
@@ -584,6 +635,29 @@ export function UserList({ users, currentUserId }: UserListProps) {
                                             </TableCell>
                                             <TableCell className="text-right">
                                                 <div className="flex items-center justify-end gap-1">
+                                                    {u.kyc &&
+                                                        u.kyc.documents.length >
+                                                            0 && (
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() =>
+                                                                    setKycModalUser(
+                                                                        u
+                                                                    )
+                                                                }
+                                                                className="h-8 gap-1 text-xs"
+                                                            >
+                                                                <FileCheck2 className="text-primary h-3.5 w-3.5" />
+                                                                KYC (
+                                                                {
+                                                                    u.kyc
+                                                                        .documents
+                                                                        .length
+                                                                }
+                                                                )
+                                                            </Button>
+                                                        )}
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
@@ -665,6 +739,132 @@ export function UserList({ users, currentUserId }: UserListProps) {
                 isLoading={busyAction}
                 onConfirm={handleConfirmRoleChange}
             />
+
+            {/* Modale de Revue des Documents KYC Client */}
+            <Dialog
+                open={kycModalUser !== null}
+                onOpenChange={(open) => !open && setKycModalUser(null)}
+            >
+                <DialogContent className="sm:max-w-xl">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <FileCheck2 className="text-primary h-5 w-5" />
+                            Validation Documents KYC —{" "}
+                            {kycModalUser?.companyName || kycModalUser?.name}
+                        </DialogTitle>
+                        <DialogDescription>
+                            Ouvrez ou téléchargez les pièces justificatives via
+                            le proxy sécurisé puis validez ou refusez chaque
+                            document.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-3 py-2">
+                        {(kycModalUser?.kyc?.documents || []).map((doc) => {
+                            const viewUrl = resolveAttachmentProxyUrl(
+                                doc.fileKey,
+                                false
+                            );
+                            const downloadUrl = resolveAttachmentProxyUrl(
+                                doc.fileKey,
+                                true
+                            );
+                            return (
+                                <div
+                                    key={doc.docType}
+                                    className="bg-muted/25 space-y-2.5 rounded-xl border p-3.5"
+                                >
+                                    <div className="flex flex-wrap items-center justify-between gap-2">
+                                        <div>
+                                            <p className="text-sm font-semibold">
+                                                {getKycDocLabel(doc.docType)}
+                                            </p>
+                                            <p className="text-muted-foreground font-mono text-xs">
+                                                {doc.fileName}
+                                            </p>
+                                        </div>
+                                        <Badge
+                                            variant={
+                                                doc.status === "APPROVED"
+                                                    ? "default"
+                                                    : doc.status === "REJECTED"
+                                                      ? "destructive"
+                                                      : "secondary"
+                                            }
+                                            className="text-xs"
+                                        >
+                                            {doc.status === "APPROVED"
+                                                ? "Validé"
+                                                : doc.status === "REJECTED"
+                                                  ? "Refusé"
+                                                  : "En attente"}
+                                        </Badge>
+                                    </div>
+                                    <div className="flex flex-wrap items-center justify-between gap-2">
+                                        <div className="flex items-center gap-1.5">
+                                            {viewUrl && (
+                                                <a
+                                                    href={viewUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="bg-background hover:bg-secondary inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs font-medium"
+                                                >
+                                                    <ExternalLink className="h-3.5 w-3.5" />
+                                                    Ouvrir
+                                                </a>
+                                            )}
+                                            {downloadUrl && (
+                                                <a
+                                                    href={downloadUrl}
+                                                    download={doc.fileName}
+                                                    className="bg-background hover:bg-secondary inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs font-medium"
+                                                >
+                                                    <Download className="h-3.5 w-3.5" />
+                                                    Télécharger
+                                                </a>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center gap-1.5">
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                disabled={busyAction}
+                                                onClick={() =>
+                                                    kycModalUser &&
+                                                    void handleReviewKyc(
+                                                        kycModalUser.id,
+                                                        doc.docType,
+                                                        "REJECTED"
+                                                    )
+                                                }
+                                                className="h-8 gap-1 border-rose-500/30 text-xs text-rose-600 hover:bg-rose-500/10"
+                                            >
+                                                <XCircle className="h-3.5 w-3.5" />
+                                                Refuser
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                disabled={busyAction}
+                                                onClick={() =>
+                                                    kycModalUser &&
+                                                    void handleReviewKyc(
+                                                        kycModalUser.id,
+                                                        doc.docType,
+                                                        "APPROVED"
+                                                    )
+                                                }
+                                                className="h-8 gap-1 bg-emerald-600 text-xs text-white hover:bg-emerald-700"
+                                            >
+                                                <CheckCircle2 className="h-3.5 w-3.5" />
+                                                Valider
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

@@ -52,6 +52,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { authClient } from "@/lib/auth-client";
 import { safeFormatDate } from "@/lib/date-utils";
+import { LocationPicker } from "@/components/features/LocationPicker";
+import { ClientKycSection } from "@/components/features/client/ClientKycSection";
+import { EMPTY_KYC_STATE, type ClientKycState } from "@/lib/client-kyc";
 import {
     cancelClientQuoteAction,
     getClientDashboardAction,
@@ -97,6 +100,7 @@ export function ClientSpaceDashboard() {
     const [savedAddresses, setSavedAddresses] = useState<SavedAddressItem[]>(
         []
     );
+    const [kycState, setKycState] = useState<ClientKycState>(EMPTY_KYC_STATE);
     const [newAddrLabel, setNewAddrLabel] = useState("");
     const [newAddrValue, setNewAddrValue] = useState("");
     const [savingProfile, setSavingProfile] = useState(false);
@@ -132,9 +136,11 @@ export function ClientSpaceDashboard() {
             setDefaultPickup(data.profile.defaultPickup || "");
             setDefaultDropoff(data.profile.defaultDropoff || "");
             setSavedAddresses(data.profile.savedAddresses);
+            setKycState(data.profile.kyc || EMPTY_KYC_STATE);
         } else {
             setAccountType("INDIVIDUAL");
             setCompanyName(data.user.name || "");
+            setKycState(EMPTY_KYC_STATE);
         }
     }, []);
 
@@ -900,66 +906,70 @@ export function ClientSpaceDashboard() {
                                         <Label htmlFor="cp-pickup">
                                             Lieu d&apos;enlèvement par défaut
                                         </Label>
-                                        <Input
-                                            id="cp-pickup"
+                                        <LocationPicker
                                             value={defaultPickup}
-                                            onChange={(e) =>
-                                                setDefaultPickup(e.target.value)
-                                            }
+                                            onChange={setDefaultPickup}
                                             placeholder="Ex: Zone Industrielle Yopougon, Abidjan"
-                                            className="min-h-[44px]"
+                                            icon={
+                                                <MapPin className="text-muted-foreground h-4 w-4" />
+                                            }
                                         />
                                     </div>
                                     <div className="space-y-1.5">
                                         <Label htmlFor="cp-dropoff">
                                             Lieu de livraison par défaut
                                         </Label>
-                                        <Input
-                                            id="cp-dropoff"
+                                        <LocationPicker
                                             value={defaultDropoff}
-                                            onChange={(e) =>
-                                                setDefaultDropoff(
-                                                    e.target.value
-                                                )
-                                            }
+                                            onChange={setDefaultDropoff}
                                             placeholder="Ex: Port Autonome de San-Pédro"
-                                            className="min-h-[44px]"
+                                            icon={
+                                                <Truck className="text-muted-foreground h-4 w-4" />
+                                            }
                                         />
                                     </div>
                                 </div>
 
-                                {/* Carnet d'adresses */}
+                                {/* Carnet d'adresses connecté au LocationPicker */}
                                 <div className="bg-muted/30 space-y-3 rounded-xl border p-4">
                                     <p className="text-sm font-semibold">
                                         Carnet de sites &amp; chantiers
                                         enregistrés
                                     </p>
-                                    <div className="flex flex-col gap-2 sm:flex-row">
-                                        <Input
-                                            value={newAddrLabel}
-                                            onChange={(e) =>
-                                                setNewAddrLabel(e.target.value)
-                                            }
-                                            placeholder="Libellé (ex: Dépôt Vridi)"
-                                            className="min-h-[42px] sm:w-48"
-                                        />
-                                        <Input
-                                            value={newAddrValue}
-                                            onChange={(e) =>
-                                                setNewAddrValue(e.target.value)
-                                            }
-                                            placeholder="Adresse complète"
-                                            className="min-h-[42px] flex-1"
-                                        />
-                                        <Button
-                                            type="button"
-                                            variant="secondary"
-                                            onClick={handleAddAddress}
-                                            className="min-h-[42px] gap-1.5"
-                                        >
-                                            <Plus className="h-4 w-4" />
-                                            Ajouter
-                                        </Button>
+                                    <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-12 sm:items-start">
+                                        <div className="sm:col-span-4">
+                                            <Input
+                                                value={newAddrLabel}
+                                                onChange={(e) =>
+                                                    setNewAddrLabel(
+                                                        e.target.value
+                                                    )
+                                                }
+                                                placeholder="Libellé (ex: Dépôt Vridi)"
+                                                className="min-h-[48px]"
+                                            />
+                                        </div>
+                                        <div className="sm:col-span-6">
+                                            <LocationPicker
+                                                value={newAddrValue}
+                                                onChange={setNewAddrValue}
+                                                placeholder="Rechercher ou choisir une adresse / chantier..."
+                                                icon={
+                                                    <MapPin className="text-muted-foreground h-4 w-4" />
+                                                }
+                                            />
+                                        </div>
+                                        <div className="sm:col-span-2">
+                                            <Button
+                                                type="button"
+                                                variant="secondary"
+                                                onClick={handleAddAddress}
+                                                className="min-h-[48px] w-full gap-1.5"
+                                            >
+                                                <Plus className="h-4 w-4" />
+                                                Ajouter
+                                            </Button>
+                                        </div>
                                     </div>
 
                                     {savedAddresses.length > 0 && (
@@ -1001,6 +1011,13 @@ export function ClientSpaceDashboard() {
                                         </ul>
                                     )}
                                 </div>
+
+                                {/* Suivi et validation des documents officiels KYC selon le type de compte */}
+                                <ClientKycSection
+                                    accountType={accountType}
+                                    kyc={kycState}
+                                    onKycChange={setKycState}
+                                />
 
                                 <Button
                                     type="submit"

@@ -8,6 +8,13 @@ import { revalidatePath } from "next/cache";
 import { createUserSchemaSimple } from "@/lib/validation";
 import { handleError } from "@/lib/error-handler";
 import { ERROR_CODES } from "@/lib/error-codes";
+import { Prisma } from "@prisma/client";
+import {
+    parseProfileStorage,
+    serializeProfileStorage,
+    type ClientKycState,
+    type KycDocType,
+} from "@/lib/client-kyc";
 import { logger } from "@/lib/logger";
 
 /**
@@ -306,6 +313,107 @@ export async function toggleUserEmailVerifiedAction(
         };
     } catch (error: unknown) {
         logger.error("toggleUserEmailVerifiedAction error", error);
+        return { success: false, error: handleError(error).message };
+    }
+}
+
+const reviewKycSchema = z.object({
+    userId: z.string().min(1),
+    docType: z.enum([
+        "identity_card",
+        "proof_of_address",
+        "manager_id",
+        "rccm",
+        "dfe_ncc",
+    ]),
+    decision: z.enum(["APPROVED", "REJECTED"]),
+    rejectionReason: z.string().trim().max(300).optional(),
+});
+
+/**
+ * Permet à un administrateur de valider ou refuser un document KYC client
+ * depuis `/admin/users`.
+ */
+export async function reviewClientKycDocumentAction(input: {
+    userId: string;
+    docType: KycDocType;
+    decision: "APPROVED" | "REJECTED";
+    rejectionReason?: string;
+}): Promise<{
+    success: boolean;
+    kyc?: ClientKycState;
+    error?: string;
+}> {
+    try {
+        const admin = await requireAdmin();
+        const parsed = reviewKycSchema.safeParse(input);
+        if (!parsed.success) {
+            return {
+                success: false,
+                error:
+                    parsed.error.issues[0]?.message ||
+                    "Paramètres de validation invalides.",
+            };
+        }
+
+        const profile = await prisma.companyProfile.findUnique({
+            where: { userId: parsed.data.userId },
+        });
+        if (!profile) {
+            return {
+                success: false,
+                error: "Profil client introuvable.",
+            };
+        }
+
+        const storage = parseProfileStorage(profile.savedAddresses);
+        const targetExists = storage.kyc.documents.some(
+            (d) => d.docType === parsed.data.docType
+        );
+        if (!targetExists) {
+            return {
+                success: false,
+                error: "Document KYC introuvable pour ce client.",
+            };
+        }
+
+        const nowIso = new Date().toISOString();
+        const nextDocs = storage.kyc.documents.map((doc) =>
+            doc.docType === parsed.data.docType
+                ? {
+                      ...doc,
+                      status: parsed.data.decision,
+                      reviewedAt: nowIso,
+                      reviewedBy: admin.name || admin.email,
+                      rejectionReason:
+                          parsed.data.decision === "REJECTED"
+                              ? parsed.data.rejectionReason ||
+                                "Document illisible ou non conforme. Merci de le téléverser à nouveau."
+                              : undefined,
+                  }
+                : doc
+        );
+
+        const nextKyc: ClientKycState = {
+            documents: nextDocs,
+            lastReminderAt: storage.kyc.lastReminderAt,
+        };
+        const serialized = serializeProfileStorage(storage.addresses, nextKyc);
+
+        await prisma.companyProfile.update({
+            where: { userId: parsed.data.userId },
+            data: {
+                savedAddresses:
+                    serialized as unknown as Prisma.InputJsonValue,
+            },
+        });
+
+        revalidatePath("/admin/users");
+        revalidatePath("/espace-client");
+
+        return { success: true, kyc: nextKyc };
+    } catch (error: unknown) {
+        logger.error("reviewClientKycDocumentAction error", error);
         return { success: false, error: handleError(error).message };
     }
 }

@@ -12,6 +12,20 @@ import {
     formatQuoteReference,
     generateTrackingCode,
 } from "@/lib/tracking-code";
+import {
+    canSendKycReminder,
+    getKycDocLabel,
+    parseProfileStorage,
+    serializeProfileStorage,
+    type ClientKycState,
+    type KycDocType,
+} from "@/lib/client-kyc";
+import {
+    EMAIL_SENDER,
+    isAnyEmailProviderConfigured,
+    sendTransactionalEmail,
+} from "@/lib/email";
+import { COMPANY_CONFIG } from "@/lib/company-config";
 import { logger } from "@/lib/logger";
 
 const savedAddressSchema = z.object({
@@ -64,6 +78,7 @@ export interface ClientCompanyProfileDTO {
     defaultPickup: string | null;
     defaultDropoff: string | null;
     savedAddresses: SavedAddressItem[];
+    kyc: ClientKycState;
 }
 
 export interface ClientQuoteSummaryDTO {
@@ -111,24 +126,6 @@ function statusToLabel(status: QuoteStatus): string {
         default:
             return "En attente";
     }
-}
-
-function parseSavedAddresses(raw: Prisma.JsonValue | null): SavedAddressItem[] {
-    if (!Array.isArray(raw)) return [];
-    const items: SavedAddressItem[] = [];
-    for (const entry of raw) {
-        if (
-            entry &&
-            typeof entry === "object" &&
-            "label" in entry &&
-            "address" in entry &&
-            typeof entry.label === "string" &&
-            typeof entry.address === "string"
-        ) {
-            items.push({ label: entry.label, address: entry.address });
-        }
-    }
-    return items;
 }
 
 /**
@@ -182,22 +179,26 @@ export async function getClientDashboardAction(): Promise<{
                     role: user.role || "user",
                 },
                 profile: profile
-                    ? {
-                          id: profile.id,
-                          accountType:
-                              profile.accountType === "COMPANY"
-                                  ? "COMPANY"
-                                  : "INDIVIDUAL",
-                          companyName: profile.companyName,
-                          rccmNumber: profile.rccmNumber,
-                          nccNumber: profile.nccNumber,
-                          phone: profile.phone,
-                          defaultPickup: profile.defaultPickup,
-                          defaultDropoff: profile.defaultDropoff,
-                          savedAddresses: parseSavedAddresses(
+                    ? (() => {
+                          const storage = parseProfileStorage(
                               profile.savedAddresses
-                          ),
-                      }
+                          );
+                          return {
+                              id: profile.id,
+                              accountType:
+                                  profile.accountType === "COMPANY"
+                                      ? ("COMPANY" as const)
+                                      : ("INDIVIDUAL" as const),
+                              companyName: profile.companyName,
+                              rccmNumber: profile.rccmNumber,
+                              nccNumber: profile.nccNumber,
+                              phone: profile.phone,
+                              defaultPickup: profile.defaultPickup,
+                              defaultDropoff: profile.defaultDropoff,
+                              savedAddresses: storage.addresses,
+                              kyc: storage.kyc,
+                          };
+                      })()
                     : null,
                 quotes: quotes.map((q) => ({
                     id: q.id,
@@ -261,6 +262,18 @@ export async function upsertCompanyProfileAction(
 
         const v = parsed.data;
         const isIndividual = v.accountType === "INDIVIDUAL";
+        const existingProfile = await prisma.companyProfile.findUnique({
+            where: { userId: user.id },
+            select: { savedAddresses: true },
+        });
+        const existingStorage = parseProfileStorage(
+            existingProfile?.savedAddresses
+        );
+        const serializedStorage = serializeProfileStorage(
+            v.savedAddresses,
+            existingStorage.kyc
+        );
+
         const upserted = await prisma.companyProfile.upsert({
             where: { userId: user.id },
             create: {
@@ -272,7 +285,8 @@ export async function upsertCompanyProfileAction(
                 phone: v.phone,
                 defaultPickup: v.defaultPickup || null,
                 defaultDropoff: v.defaultDropoff || null,
-                savedAddresses: v.savedAddresses as Prisma.InputJsonValue,
+                savedAddresses:
+                    serializedStorage as unknown as Prisma.InputJsonValue,
             },
             update: {
                 accountType: v.accountType,
@@ -282,11 +296,15 @@ export async function upsertCompanyProfileAction(
                 phone: v.phone,
                 defaultPickup: v.defaultPickup || null,
                 defaultDropoff: v.defaultDropoff || null,
-                savedAddresses: v.savedAddresses as Prisma.InputJsonValue,
+                savedAddresses:
+                    serializedStorage as unknown as Prisma.InputJsonValue,
             },
         });
 
         revalidatePath("/espace-client");
+        revalidatePath("/admin/users");
+
+        const savedStorage = parseProfileStorage(upserted.savedAddresses);
 
         return {
             data: {
@@ -301,7 +319,8 @@ export async function upsertCompanyProfileAction(
                 phone: upserted.phone,
                 defaultPickup: upserted.defaultPickup,
                 defaultDropoff: upserted.defaultDropoff,
-                savedAddresses: parseSavedAddresses(upserted.savedAddresses),
+                savedAddresses: savedStorage.addresses,
+                kyc: savedStorage.kyc,
             },
             error: null,
         };
@@ -558,6 +577,212 @@ export async function cancelClientQuoteAction(input: {
                 error instanceof Error
                     ? error.message
                     : "Impossible d'annuler ce devis.",
+        };
+    }
+}
+
+const saveKycDocumentSchema = z.object({
+    docType: z.enum([
+        "identity_card",
+        "proof_of_address",
+        "manager_id",
+        "rccm",
+        "dfe_ncc",
+    ]),
+    fileKey: z
+        .string()
+        .trim()
+        .min(5)
+        .max(300)
+        .refine(
+            (val) => val.startsWith("partners-kyc/") && !val.includes(".."),
+            "Clé de document KYC invalide."
+        ),
+    fileName: z.string().trim().min(1).max(160),
+    accountType: z.enum(["INDIVIDUAL", "COMPANY"]).optional(),
+});
+
+/**
+ * Enregistre un document officiel téléversé par le client dans son profil (statut PENDING)
+ * en préservant le carnet d'adresses existant.
+ */
+export async function saveClientKycDocumentAction(input: {
+    docType: KycDocType;
+    fileKey: string;
+    fileName: string;
+    accountType?: "INDIVIDUAL" | "COMPANY";
+}): Promise<{ data: ClientKycState | null; error: string | null }> {
+    try {
+        const user = await requireAuth();
+        const parsed = saveKycDocumentSchema.safeParse(input);
+        if (!parsed.success) {
+            return {
+                data: null,
+                error:
+                    parsed.error.issues[0]?.message ||
+                    "Paramètres du document invalides.",
+            };
+        }
+
+        const existing = await prisma.companyProfile.findUnique({
+            where: { userId: user.id },
+        });
+        const storage = parseProfileStorage(existing?.savedAddresses);
+
+        const nextDocs = [
+            ...storage.kyc.documents.filter(
+                (d) => d.docType !== parsed.data.docType
+            ),
+            {
+                docType: parsed.data.docType,
+                fileKey: parsed.data.fileKey,
+                fileName: parsed.data.fileName,
+                status: "PENDING" as const,
+                uploadedAt: new Date().toISOString(),
+            },
+        ];
+
+        const nextKyc: ClientKycState = {
+            documents: nextDocs,
+            lastReminderAt: storage.kyc.lastReminderAt,
+        };
+
+        const serialized = serializeProfileStorage(storage.addresses, nextKyc);
+
+        await prisma.companyProfile.upsert({
+            where: { userId: user.id },
+            create: {
+                userId: user.id,
+                accountType: parsed.data.accountType || "INDIVIDUAL",
+                companyName: user.name || user.email,
+                phone: "À renseigner",
+                savedAddresses:
+                    serialized as unknown as Prisma.InputJsonValue,
+            },
+            update: {
+                savedAddresses:
+                    serialized as unknown as Prisma.InputJsonValue,
+            },
+        });
+
+        revalidatePath("/espace-client");
+        revalidatePath("/admin/users");
+
+        return { data: nextKyc, error: null };
+    } catch (error: unknown) {
+        logger.error("saveClientKycDocumentAction error", error);
+        return {
+            data: null,
+            error:
+                error instanceof Error
+                    ? error.message
+                    : "Impossible d'enregistrer le document.",
+        };
+    }
+}
+
+/**
+ * Permet au client de réclamer la validation de ses documents en attente
+ * auprès de l'administration (strictement limité à 1 fois par 24 heures).
+ */
+export async function requestKycValidationReminderAction(): Promise<{
+    data: { lastReminderAt: string; message: string } | null;
+    error: string | null;
+}> {
+    try {
+        const user = await requireAuth();
+        const profile = await prisma.companyProfile.findUnique({
+            where: { userId: user.id },
+        });
+
+        if (!profile) {
+            return {
+                data: null,
+                error: "Veuillez d'abord téléverser au moins un document d'identité.",
+            };
+        }
+
+        const storage = parseProfileStorage(profile.savedAddresses);
+        const now = new Date();
+        const eligibility = canSendKycReminder(storage.kyc, now);
+
+        if (!eligibility.allowed) {
+            return {
+                data: null,
+                error:
+                    eligibility.reason ||
+                    "Relance temporairement indisponible.",
+            };
+        }
+
+        const pendingLabels = storage.kyc.documents
+            .filter((d) => d.status === "PENDING")
+            .map((d) => getKycDocLabel(d.docType))
+            .join(", ");
+
+        const nextKyc: ClientKycState = {
+            documents: storage.kyc.documents,
+            lastReminderAt: now.toISOString(),
+        };
+        const serialized = serializeProfileStorage(storage.addresses, nextKyc);
+
+        await prisma.companyProfile.update({
+            where: { userId: user.id },
+            data: {
+                savedAddresses:
+                    serialized as unknown as Prisma.InputJsonValue,
+            },
+        });
+
+        // Crée un message non lu visible immédiatement dans le Centre de Notifications Admin & /admin/contacts
+        await prisma.contactMessage.create({
+            data: {
+                firstName: profile.companyName.slice(0, 80),
+                lastName: "[Validation KYC]",
+                email: user.email,
+                phone: profile.phone || "Non renseigné",
+                message: `Demande de validation des documents (${profile.accountType === "COMPANY" ? "Entreprise" : "Particulier"}) : ${pendingLabels}. Merci de vérifier le dossier dans /admin/users.`,
+                status: "UNREAD",
+            },
+        });
+
+        // Alerte email admin non-bloquante si un fournisseur email est configuré
+        if (isAnyEmailProviderConfigured()) {
+            const adminEmail =
+                process.env.ADMIN_NOTIFICATION_EMAIL ||
+                COMPANY_CONFIG.contact.email;
+            void sendTransactionalEmail({
+                from: EMAIL_SENDER,
+                to: [adminEmail],
+                subject: `[KYC] Relance validation documents — ${profile.companyName}`,
+                text: `Le client ${profile.companyName} (${user.email}) demande la validation de ses documents en attente : ${pendingLabels}.\nConnectez-vous sur /admin/users pour valider ou refuser le dossier.`,
+            }).catch((err: unknown) => {
+                logger.warn("KYC reminder admin email failed (non-blocking)", {
+                    error: err instanceof Error ? err.message : String(err),
+                });
+            });
+        }
+
+        revalidatePath("/espace-client");
+        revalidatePath("/admin/users");
+        revalidatePath("/admin/contacts");
+
+        return {
+            data: {
+                lastReminderAt: nextKyc.lastReminderAt!,
+                message:
+                    "Votre relance a bien été transmise à notre équipe de validation (limite : 1 rappel / 24h).",
+            },
+            error: null,
+        };
+    } catch (error: unknown) {
+        logger.error("requestKycValidationReminderAction error", error);
+        return {
+            data: null,
+            error:
+                error instanceof Error
+                    ? error.message
+                    : "Impossible d'envoyer la demande de validation.",
         };
     }
 }

@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { UserList, type ManagedUserItem } from "@/components/features/admin/UserList";
 import { AddUserDialog } from "@/components/features/admin/AddUserDialog";
+import { parseProfileStorage } from "@/lib/client-kyc";
 
 export default async function AdminUsersPage() {
     const session = await auth.api.getSession({
@@ -29,6 +30,7 @@ export default async function AdminUsersPage() {
                     companyName: true,
                     phone: true,
                     rccmNumber: true,
+                    savedAddresses: true,
                 },
             },
             _count: {
@@ -40,24 +42,28 @@ export default async function AdminUsersPage() {
         },
     });
 
-    const users: ManagedUserItem[] = rawUsers.map((u) => ({
-        id: u.id,
-        name: u.name,
-        email: u.email,
-        role: u.role,
-        emailVerified: u.emailVerified,
-        createdAt: u.createdAt.toISOString(),
-        accountType:
-            u.companyProfile?.accountType === "COMPANY"
-                ? "COMPANY"
-                : u.companyProfile?.accountType === "INDIVIDUAL"
-                  ? "INDIVIDUAL"
-                  : null,
-        companyName: u.companyProfile?.companyName ?? null,
-        phone: u.companyProfile?.phone ?? null,
-        quotesCount: u._count.quotes,
-        activeSessionsCount: u._count.sessions,
-    }));
+    const users: ManagedUserItem[] = rawUsers.map((u) => {
+        const storage = parseProfileStorage(u.companyProfile?.savedAddresses);
+        return {
+            id: u.id,
+            name: u.name,
+            email: u.email,
+            role: u.role,
+            emailVerified: u.emailVerified,
+            createdAt: u.createdAt.toISOString(),
+            accountType:
+                u.companyProfile?.accountType === "COMPANY"
+                    ? "COMPANY"
+                    : u.companyProfile?.accountType === "INDIVIDUAL"
+                      ? "INDIVIDUAL"
+                      : null,
+            companyName: u.companyProfile?.companyName ?? null,
+            phone: u.companyProfile?.phone ?? null,
+            quotesCount: u._count.quotes,
+            activeSessionsCount: u._count.sessions,
+            kyc: storage.kyc,
+        };
+    });
 
     return (
         <div className="space-y-8">

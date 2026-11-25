@@ -17,8 +17,39 @@
 |                         |  |                         |  | [x] TASK-PERF-01..02    |
 |                         |  |                         |  | [x] TASK-SEC-05..06     |
 |                         |  |                         |  | [x] TASK-QUAL-01..02    |
+|                         |  |                         |  | [x] TASK-SUP-02         |
+|                         |  |                         |  | [x] TASK-MAIL-01        |
+|                         |  |                         |  | [x] TASK-KYC-01..02     |
 +-------------------------+  +-------------------------+  +-------------------------+
 ```
+
+---
+
+## Completed Sprint 35: Support Chat Production Resilience & Interactive Evaluation
+
+- [x] **`TASK-SUP-02` - Harden Support Quote Flow, FR Date Parsing, Cancel Escape & Resilience**
+  - **Target files:** `src/lib/support-agent/quote-flow.ts`, `src/hooks/useSupportChat.ts`, `tests/unit/support-interactive.test.ts`
+  - **Criteria:** [x] Supported graceful cancel/exit (`annuler`/`stop`/`quitter`) mid-flow; validated pickup/dropoff/phone/email inline; parsed FR dates (`DD/MM/YYYY`, `demain`) to valid ISO dates; prevented permanent fallback lock on transient AI errors; verified via interactive unit tests.
+
+---
+
+## Completed Sprint 36: Brand-Aligned Client & Admin Email Templates
+
+- [x] **`TASK-MAIL-01` - Executive HBC Logistique Email Templates Overhaul**
+  - **Target files:** `src/components/emails/QuoteConfirmationEmail.tsx`, `src/components/emails/QuoteStatusUpdateEmail.tsx`, `src/components/emails/QuoteRequestEmail.tsx`
+  - **Criteria:** [x] Aligned all 3 templates with HBC brand tokens (`#001F3D`, `#FF7C24`, `#F2F5F7`, `#92A9BE`), removed `#` before `HBC-...`, pointed client CTAs to `/espace-client`.
+
+---
+
+## Completed Sprint 37: Profile LocationPicker, KYC Document Tracking & 1/Day Admin Reminder
+
+- [x] **`TASK-KYC-01` - Profile LocationPicker + KYC Storage/Reminder/Review Backend**
+  - **Target files:** `src/lib/client-kyc.ts`, `src/app/actions/client-space-actions.ts`, `src/app/actions/user-management.ts`, `tests/unit/client-kyc.test.ts`
+  - **Criteria:** [x] Defined required KYC documents per profile type (`INDIVIDUAL`: CNI/Passeport + justificatif domicile; `COMPANY`: CNI/Passeport gérant + RCCM + DFE/NCC); stored backwards-compatibly in `CompanyProfile`; enforced 1/day (24h) validation reminder creating admin notification + alert email; added admin review action (`APPROVED`/`REJECTED`).
+
+- [x] **`TASK-KYC-02` - Profile UI (`LocationPicker` + KYC Panel) & Admin Users KYC Review**
+  - **Target files:** `src/components/features/client/ClientKycSection.tsx`, `src/components/features/client/ClientSpaceDashboard.tsx`, `src/app/admin/users/page.tsx`, `src/components/features/admin/UserList.tsx`
+  - **Criteria:** [x] Wired `LocationPicker` to `defaultPickup`, `defaultDropoff`, and address book; added KYC upload/status panel + "Réclamer la validation (1/j)" button in client profile; added admin KYC document Open/Download/Approve/Reject controls in `/admin/users`; passed `vitest` (`12/12`), `pnpm next build` (`36/36` routes), and `python evals/run_fullstack_eval.py --quick` (`100/100` PASS).
 
 ---
 
