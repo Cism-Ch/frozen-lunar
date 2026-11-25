@@ -28,6 +28,7 @@ import {
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { QuoteStatusBadge } from "@/components/features/admin/QuoteStatusBadge";
 import { QuotePricingStudio } from "@/components/features/admin/QuotePricingStudio";
+import { QuotePartnerDispatch } from "@/components/features/admin/QuotePartnerDispatch";
 import { QuoteTimeline } from "./components/QuoteTimeline";
 import { OrderChat } from "@/components/features/client/OrderChat";
 import {
@@ -858,6 +859,26 @@ export default function QuoteWorkspacePage() {
                                     </div>
                                 </CardContent>
                             </Card>
+
+                            <QuotePartnerDispatch
+                                quoteId={quote.id}
+                                quoteRef={quoteRef}
+                                pickup={quote.pickup}
+                                dropoff={quote.dropoff}
+                                transportDate={quote.transportDate}
+                                itemType={quote.type}
+                                clientAmountLabel={quote.amount || ""}
+                                clientSubtotalHt={
+                                    quote.supplementaryInfo?.pricingBreakdown
+                                        ?.subtotalHt
+                                }
+                                initialAssignment={
+                                    quote.supplementaryInfo?.partnerAssignment
+                                }
+                                onUpdated={() => {
+                                    void refreshQuote(quote.id);
+                                }}
+                            />
                         </div>
                     </div>
                 </TabsContent>

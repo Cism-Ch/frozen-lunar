@@ -28,6 +28,22 @@ export interface QuotePricingBreakdown {
     updatedAt: string;
 }
 
+export interface QuotePartnerAssignment {
+    partnerId: string;
+    partnerName: string;
+    contactName: string;
+    phone: string;
+    whatsapp?: string | null;
+    email: string;
+    city: string;
+    partnerNetFcfa: number;
+    clientPriceFcfa?: number;
+    hbcMarginFcfa?: number;
+    missionNotes?: string;
+    assignedAt: string;
+    assignedBy: string;
+}
+
 export interface QuoteSupplementaryInfo {
     category: "materials" | "container" | "machinery" | "structure" | "other";
     // Matériaux
@@ -54,6 +70,7 @@ export interface QuoteSupplementaryInfo {
     urgency?: "standard" | "urgent" | "very_urgent";
     attachments?: string[];
     pricingBreakdown?: QuotePricingBreakdown;
+    partnerAssignment?: QuotePartnerAssignment;
 }
 
 export interface QuoteVehicleSummary {

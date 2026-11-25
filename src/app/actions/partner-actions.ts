@@ -2,7 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { PartnerApplication, PartnerApplicationStatus } from "@prisma/client";
+import {
+    PartnerApplication,
+    PartnerApplicationStatus,
+    Prisma,
+} from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/redis";
 import { isRedisConfigured } from "@/lib/health-check";
@@ -15,6 +19,9 @@ import {
 import { COMPANY_CONFIG } from "@/lib/company-config";
 import { PartnerApplicationEmail } from "@/components/emails/PartnerApplicationEmail";
 import { UEMOA_CEDEAO_COUNTRIES } from "@/lib/fleet-catalog";
+import { formatQuoteReference } from "@/lib/tracking-code";
+import { safeFormatDate } from "@/lib/date-utils";
+import type { QuotePartnerAssignment } from "@/lib/quote-storage";
 import { logger } from "@/lib/logger";
 
 const partnerApplicationSchema = z
@@ -433,6 +440,357 @@ export async function deletePartnerApplicationAction(
                 error instanceof Error
                     ? error.message
                     : "Impossible de supprimer ce dossier.",
+        };
+    }
+}
+
+export interface ApprovedPartnerOption {
+    id: string;
+    companyName: string;
+    contactName: string;
+    city: string;
+    phone: string;
+    whatsapp: string | null;
+    email: string;
+    totalVehicles: number;
+    fleetCategories: string[];
+}
+
+/**
+ * Liste les partenaires agréés (`APPROVED`) disponibles pour affectation sur un devis.
+ */
+export async function getApprovedPartnersAction(): Promise<{
+    data: ApprovedPartnerOption[] | null;
+    error: string | null;
+}> {
+    try {
+        await requireAdmin();
+        const rows = await prisma.partnerApplication.findMany({
+            where: { status: PartnerApplicationStatus.APPROVED },
+            orderBy: { companyName: "asc" },
+            take: 100,
+            select: {
+                id: true,
+                companyName: true,
+                contactName: true,
+                city: true,
+                phone: true,
+                whatsapp: true,
+                email: true,
+                totalVehicles: true,
+                fleetCategories: true,
+            },
+        });
+        return { data: rows, error: null };
+    } catch (error: unknown) {
+        logger.error("getApprovedPartnersAction error", error);
+        return {
+            data: null,
+            error:
+                error instanceof Error
+                    ? error.message
+                    : "Impossible de charger les partenaires agréés.",
+        };
+    }
+}
+
+const assignPartnerSchema = z.object({
+    quoteId: z.string().min(1, "Identifiant de devis requis"),
+    partnerId: z.string().min(1, "Partenaire requis"),
+    partnerNetFcfa: z
+        .number()
+        .int()
+        .min(0, "Le tarif net doit être positif")
+        .max(500_000_000),
+    clientPriceFcfa: z.number().int().min(0).max(500_000_000).optional(),
+    missionNotes: z.string().trim().max(1000).optional(),
+});
+
+/**
+ * Affecte un partenaire agréé à un devis avec calcul automatique de la marge HBC
+ * en préservant toutes les autres clés de `supplementaryInfo`.
+ */
+export async function assignPartnerToQuoteAction(input: {
+    quoteId: string;
+    partnerId: string;
+    partnerNetFcfa: number;
+    clientPriceFcfa?: number;
+    missionNotes?: string;
+}): Promise<{
+    data: QuotePartnerAssignment | null;
+    error: string | null;
+}> {
+    try {
+        const admin = await requireAdmin();
+        const parsed = assignPartnerSchema.safeParse(input);
+        if (!parsed.success) {
+            return {
+                data: null,
+                error:
+                    parsed.error.issues[0]?.message ||
+                    "Paramètres d'affectation invalides.",
+            };
+        }
+
+        const [quote, partner] = await Promise.all([
+            prisma.quote.findUnique({ where: { id: parsed.data.quoteId } }),
+            prisma.partnerApplication.findUnique({
+                where: { id: parsed.data.partnerId },
+            }),
+        ]);
+
+        if (!quote) {
+            return { data: null, error: "Devis introuvable." };
+        }
+        if (!partner) {
+            return { data: null, error: "Partenaire introuvable." };
+        }
+        if (partner.status !== PartnerApplicationStatus.APPROVED) {
+            return {
+                data: null,
+                error: "Seul un partenaire agréé (statut APPROVED) peut être affecté à une mission.",
+            };
+        }
+
+        const hbcMarginFcfa =
+            parsed.data.clientPriceFcfa !== undefined
+                ? parsed.data.clientPriceFcfa - parsed.data.partnerNetFcfa
+                : undefined;
+
+        const assignment: QuotePartnerAssignment = {
+            partnerId: partner.id,
+            partnerName: partner.companyName,
+            contactName: partner.contactName,
+            phone: partner.phone,
+            whatsapp: partner.whatsapp,
+            email: partner.email,
+            city: partner.city,
+            partnerNetFcfa: parsed.data.partnerNetFcfa,
+            clientPriceFcfa: parsed.data.clientPriceFcfa,
+            hbcMarginFcfa,
+            missionNotes: parsed.data.missionNotes || undefined,
+            assignedAt: new Date().toISOString(),
+            assignedBy: admin.name || admin.email,
+        };
+
+        const currentSupp =
+            (quote.supplementaryInfo as Record<string, unknown> | null) || {};
+        const mergedSupp = {
+            ...currentSupp,
+            partnerAssignment: assignment,
+        } as unknown as Prisma.InputJsonValue;
+
+        const marginLabel =
+            hbcMarginFcfa !== undefined
+                ? ` • Marge HBC : ${hbcMarginFcfa.toLocaleString("fr-FR")} FCFA`
+                : "";
+
+        await prisma.quote.update({
+            where: { id: quote.id },
+            data: {
+                supplementaryInfo: mergedSupp,
+                history: {
+                    create: {
+                        action: "Partenaire affecté",
+                        description: `${partner.companyName} (${partner.city}) — Net partenaire : ${parsed.data.partnerNetFcfa.toLocaleString("fr-FR")} FCFA${marginLabel}`,
+                        user: admin.name || admin.email,
+                    },
+                },
+            },
+        });
+
+        revalidatePath("/admin/quotes");
+        revalidatePath(`/admin/quotes/${quote.id}`);
+        revalidatePath("/admin/dashboard");
+
+        return { data: assignment, error: null };
+    } catch (error: unknown) {
+        logger.error("assignPartnerToQuoteAction error", error);
+        return {
+            data: null,
+            error:
+                error instanceof Error
+                    ? error.message
+                    : "Impossible d'affecter ce partenaire.",
+        };
+    }
+}
+
+const quoteIdSchema = z
+    .string()
+    .trim()
+    .min(1, "Identifiant de devis requis")
+    .max(100, "Identifiant de devis invalide");
+
+/**
+ * Retire l'affectation partenaire d'un devis.
+ */
+export async function unassignPartnerFromQuoteAction(quoteId: string): Promise<{
+    data: { removed: boolean } | null;
+    error: string | null;
+}> {
+    try {
+        const admin = await requireAdmin();
+        const parsedId = quoteIdSchema.safeParse(quoteId);
+        if (!parsedId.success) {
+            return {
+                data: null,
+                error:
+                    parsedId.error.issues[0]?.message ||
+                    "Identifiant de devis invalide.",
+            };
+        }
+
+        const quote = await prisma.quote.findUnique({
+            where: { id: parsedId.data },
+        });
+        if (!quote) {
+            return { data: null, error: "Devis introuvable." };
+        }
+
+        const currentSupp =
+            (quote.supplementaryInfo as Record<string, unknown> | null) || {};
+        const nextSupp = { ...currentSupp };
+        delete nextSupp.partnerAssignment;
+
+        await prisma.quote.update({
+            where: { id: quote.id },
+            data: {
+                supplementaryInfo: nextSupp as unknown as Prisma.InputJsonValue,
+                history: {
+                    create: {
+                        action: "Affectation partenaire retirée",
+                        description: "Le partenaire a été dissocié de cette mission.",
+                        user: admin.name || admin.email,
+                    },
+                },
+            },
+        });
+
+        revalidatePath("/admin/quotes");
+        revalidatePath(`/admin/quotes/${quote.id}`);
+
+        return { data: { removed: true }, error: null };
+    } catch (error: unknown) {
+        logger.error("unassignPartnerFromQuoteAction error", error);
+        return {
+            data: null,
+            error:
+                error instanceof Error
+                    ? error.message
+                    : "Impossible de retirer l'affectation.",
+        };
+    }
+}
+
+/**
+ * Envoie la fiche de mission par email au partenaire affecté sur le devis.
+ */
+export async function sendPartnerMissionEmailAction(quoteId: string): Promise<{
+    data: { provider: string } | null;
+    error: string | null;
+}> {
+    try {
+        const admin = await requireAdmin();
+        const parsedId = quoteIdSchema.safeParse(quoteId);
+        if (!parsedId.success) {
+            return {
+                data: null,
+                error:
+                    parsedId.error.issues[0]?.message ||
+                    "Identifiant de devis invalide.",
+            };
+        }
+
+        if (!isAnyEmailProviderConfigured()) {
+            return {
+                data: null,
+                error: "Aucun fournisseur email n'est configuré sur le serveur.",
+            };
+        }
+
+        const quote = await prisma.quote.findUnique({
+            where: { id: parsedId.data },
+        });
+        if (!quote) {
+            return { data: null, error: "Devis introuvable." };
+        }
+
+        const supp =
+            (quote.supplementaryInfo as Record<string, unknown> | null) || {};
+        const assignment = supp.partnerAssignment as
+            | QuotePartnerAssignment
+            | undefined;
+
+        if (!assignment?.email) {
+            return {
+                data: null,
+                error: "Aucun partenaire affecté sur ce dossier.",
+            };
+        }
+
+        const ref = formatQuoteReference(quote);
+        const deadline = safeFormatDate(
+            quote.transportDate,
+            "dd/MM/yyyy 'à' HH:mm"
+        );
+        const netLabel = `${assignment.partnerNetFcfa.toLocaleString("fr-FR")} FCFA`;
+        const safePickup = quote.pickupLocation.replace(/[\r\n]+/g, " ").trim();
+        const safeDropoff = quote.dropoffLocation
+            .replace(/[\r\n]+/g, " ")
+            .trim();
+
+        const textBody = [
+            `Bonjour ${assignment.contactName} (${assignment.partnerName}),`,
+            "",
+            `HBC Logistique vous propose l'ordre de mission ${ref} :`,
+            `- Fret / Prestation : ${quote.itemType}`,
+            `- Enlèvement : ${safePickup}`,
+            `- Livraison : ${safeDropoff}`,
+            `- Échéance souhaitée : ${deadline}`,
+            `- Tarif net partenaire convenu : ${netLabel}`,
+            assignment.missionNotes
+                ? `- Consignes exploitation : ${assignment.missionNotes}`
+                : "",
+            "",
+            `Merci de confirmer votre disponibilité par retour d'email ou par téléphone au ${COMPANY_CONFIG.contact.phoneDisplay}.`,
+            "",
+            `L'équipe Exploitation ${COMPANY_CONFIG.shortName}`,
+        ]
+            .filter(Boolean)
+            .join("\n");
+
+        const sendRes = await sendTransactionalEmail({
+            from: EMAIL_SENDER,
+            to: [assignment.email],
+            subject: `[ORDRE DE MISSION ${ref}] ${safePickup} → ${safeDropoff} (${netLabel})`,
+            text: textBody,
+        });
+
+        if (sendRes.error) {
+            return { data: null, error: sendRes.error.message };
+        }
+
+        await prisma.quoteHistory.create({
+            data: {
+                quoteId: quote.id,
+                action: "Fiche mission envoyée au partenaire",
+                description: `Ordre de mission transmis à ${assignment.partnerName} (${assignment.email}) via ${sendRes.provider}.`,
+                user: admin.name || admin.email,
+            },
+        });
+
+        revalidatePath(`/admin/quotes/${quote.id}`);
+
+        return { data: { provider: sendRes.provider }, error: null };
+    } catch (error: unknown) {
+        logger.error("sendPartnerMissionEmailAction error", error);
+        return {
+            data: null,
+            error:
+                error instanceof Error
+                    ? error.message
+                    : "Impossible d'envoyer la fiche de mission.",
         };
     }
 }

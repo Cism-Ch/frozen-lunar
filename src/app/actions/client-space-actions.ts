@@ -115,6 +115,26 @@ export interface ClientDashboardDTO {
     quotes: ClientQuoteSummaryDTO[];
 }
 
+const INTERNAL_HISTORY_ACTIONS = new Set([
+    "Partenaire affecté",
+    "Affectation partenaire retirée",
+    "Fiche mission envoyée au partenaire",
+]);
+
+function stripInternalSupplementaryKeys(
+    raw: Prisma.JsonValue | null
+): Prisma.InputJsonValue | typeof Prisma.JsonNull {
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+        return Prisma.JsonNull;
+    }
+    const cleaned = { ...(raw as Record<string, unknown>) };
+    delete cleaned.partnerAssignment;
+    delete cleaned.pricingBreakdown;
+    return Object.keys(cleaned).length > 0
+        ? (cleaned as Prisma.InputJsonValue)
+        : Prisma.JsonNull;
+}
+
 function statusToLabel(status: QuoteStatus): string {
     switch (status) {
         case QuoteStatus.VALIDATED:
@@ -399,13 +419,15 @@ export async function getClientQuoteDetailAction(quoteId: string): Promise<{
                 vehicleName: quote.vehicle?.name ?? null,
                 vehicleQuantity: quote.vehicleQuantity,
                 threadStatus: quote.supportThread?.status ?? null,
-                history: quote.history.map((h) => ({
-                    id: h.id,
-                    action: h.action,
-                    description: h.description,
-                    timestamp: h.timestamp.toISOString(),
-                    user: h.user,
-                })),
+                history: quote.history
+                    .filter((h) => !INTERNAL_HISTORY_ACTIONS.has(h.action))
+                    .map((h) => ({
+                        id: h.id,
+                        action: h.action,
+                        description: h.description,
+                        timestamp: h.timestamp.toISOString(),
+                        user: h.user,
+                    })),
             },
             error: null,
         };
@@ -464,8 +486,9 @@ export async function reorderClientQuoteAction(quoteId: string): Promise<{
                 source: QuoteSource.FORM,
                 vehicleId: sourceQuote.vehicleId,
                 vehicleQuantity: sourceQuote.vehicleQuantity,
-                supplementaryInfo:
-                    sourceQuote.supplementaryInfo ?? Prisma.JsonNull,
+                supplementaryInfo: stripInternalSupplementaryKeys(
+                    sourceQuote.supplementaryInfo
+                ),
             },
         });
 

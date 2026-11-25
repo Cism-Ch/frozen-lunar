@@ -20,8 +20,21 @@
 |                         |  |                         |  | [x] TASK-SUP-02         |
 |                         |  |                         |  | [x] TASK-MAIL-01        |
 |                         |  |                         |  | [x] TASK-KYC-01..04     |
+|                         |  |                         |  | [x] TASK-PRT-01..02     |
 +-------------------------+  +-------------------------+  +-------------------------+
 ```
+
+---
+
+## Completed Sprint 41: Partner Value Proposition, Revenue Simulator & Quote Partner Dispatch
+
+- [x] **`TASK-PRT-01` - Partner Benefits & Interactive FCFA Revenue Simulator on `/partenaires`**
+  - **Target files:** `src/components/features/partners/PartnerBenefitsSection.tsx`, `src/app/partenaires/page.tsx`
+  - **Criteria:** [x] Presented 4 concrete partner advantages (0 FCFA signup, pre-qualified B2B missions, secured payment, empty-return monetization) + interactive FCFA monthly net revenue simulator by vehicle category, fleet size, and rotations/month.
+
+- [x] **`TASK-PRT-02` - Approved Partner Dispatch, Margin Calculator & 1-Click Mission Send on `/admin/quotes/[id]`**
+  - **Target files:** `src/lib/quote-storage.ts`, `src/app/actions/partner-actions.ts`, `src/components/features/admin/QuotePartnerDispatch.tsx`, `src/app/admin/quotes/[id]/page.tsx`, `tests/unit/partner-dispatch.test.ts`
+  - **Criteria:** [x] Allowed admins to assign an `APPROVED` partner to a quote with net FCFA payout, auto-computed HBC margin, sent mission sheet via WhatsApp or transactional Email, preserved existing `supplementaryInfo` keys, and verified with `vitest` (`2/2`), `pnpm next build`, and `python evals/run_fullstack_eval.py --quick` (`100/100` PASS).
 
 ---
 
