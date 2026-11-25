@@ -163,6 +163,7 @@ export async function getClientDashboardAction(): Promise<{
             }),
             prisma.quote.findMany({
                 where: { userId: user.id },
+                take: 100,
                 include: {
                     vehicle: { select: { name: true } },
                     supportThread: { select: { status: true } },

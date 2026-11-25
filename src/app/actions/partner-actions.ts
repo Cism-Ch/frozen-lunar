@@ -338,6 +338,7 @@ export async function getAdminPartnerApplicationsAction(): Promise<{
 
         const list = await prisma.partnerApplication.findMany({
             orderBy: { createdAt: "desc" },
+            take: 200,
         });
 
         return {

@@ -135,6 +135,7 @@ export async function getContactMessagesAction(filters?: {
                     : {}),
             },
             orderBy: { createdAt: "desc" },
+            take: 250,
         });
 
         const formatted: ContactMessageItem[] = messages.map(
@@ -300,7 +301,32 @@ export async function getClientsDirectoryAction(
     try {
         await requireAdmin();
 
+        const trimmedSearch = search?.trim();
         const quotes = await prisma.quote.findMany({
+            where: trimmedSearch
+                ? {
+                      OR: [
+                          {
+                              clientName: {
+                                  contains: trimmedSearch,
+                                  mode: "insensitive",
+                              },
+                          },
+                          {
+                              email: {
+                                  contains: trimmedSearch,
+                                  mode: "insensitive",
+                              },
+                          },
+                          {
+                              phone: {
+                                  contains: trimmedSearch,
+                                  mode: "insensitive",
+                              },
+                          },
+                      ],
+                  }
+                : undefined,
             select: {
                 id: true,
                 clientName: true,
@@ -311,6 +337,7 @@ export async function getClientsDirectoryAction(
                 amount: true,
             },
             orderBy: { date: "desc" },
+            take: 500,
         });
 
         const clientMap = new Map<string, ClientDirectoryItem>();

@@ -11,10 +11,10 @@
 +-------------------------+  +-------------------------+  +-------------------------+
 | [>] IN PROGRESS         |  |  [?] ROADMAP            |  |       [X] ARCHIVES      |
 +-------------------------+  +-------------------------+  +-------------------------+
-| [-] TASK-PERF-03        |  | (None)                  |  | [x] SP 01..11 (Archived)|
-| [-] TASK-PERF-04        |  |                         |  | [x] SP 12..23 (Archived)|
+| (None)                  |  | (None)                  |  | [x] SP 01..11 (Archived)|
+|                         |  |                         |  | [x] SP 12..23 (Archived)|
 |                         |  |                         |  | [x] SP 24..31 (Archived)|
-|                         |  |                         |  | [x] TASK-PERF-01..02    |
+|                         |  |                         |  | [x] TASK-PERF-01..04    |
 |                         |  |                         |  | [x] TASK-SEC-05..08     |
 |                         |  |                         |  | [x] TASK-QUAL-01..02    |
 |                         |  |                         |  | [x] TASK-SUP-02         |
@@ -37,15 +37,15 @@
 
 ---
 
-## Active Sprint 40: Query Boundedness, Nested Payload Reduction & AVIF/WebP Optimization
+## Completed Sprint 40: Query Boundedness, Nested Payload Reduction & AVIF/WebP Optimization
 
-- [-] **`TASK-PERF-03` - Bound All Admin/Client `findMany` Queries & Nested `history` Payloads**
+- [x] **`TASK-PERF-03` - Bound All Admin/Client `findMany` Queries & Nested `history` Payloads**
   - **Target files:** `src/app/actions/quote-management.ts`, `src/app/actions/contact.ts`, `src/app/actions/partner-actions.ts`, `src/app/admin/users/page.tsx`, `src/app/actions/client-space-actions.ts`
-  - **Criteria:** [ ] Add explicit `take` caps across `getQuotesAction` (`take: 250`, nested `history: { take: 6 }`), `getContactMessagesAction` (`250`), `getClientsDirectoryAction` (`500` + DB-side search filter), `getAdminPartnerApplicationsAction` (`200`), `AdminUsersPage` (`300`), and `getClientDashboardAction` (`100`).
+  - **Criteria:** [x] Added explicit `take` caps across `getQuotesAction` (`take: 250`, nested `history: { take: 6 }`), `getContactMessagesAction` (`250`), `getClientsDirectoryAction` (`500` + DB-side search filter), `getAdminPartnerApplicationsAction` (`200`), `AdminUsersPage` (`300`), and `getClientDashboardAction` (`100`).
 
-- [-] **`TASK-PERF-04` - Enable AVIF/WebP Next.js Image Optimization & Full Verification**
+- [x] **`TASK-PERF-04` - Enable AVIF/WebP Next.js Image Optimization & Full Verification**
   - **Target files:** `next.config.ts`
-  - **Criteria:** [ ] Configure `images: { formats: ["image/avif", "image/webp"] }`; pass full `vitest`, `next build`, and `evals/run_fullstack_eval.py --quick` (`100/100` PASS).
+  - **Criteria:** [x] Configured `images: { formats: ["image/avif", "image/webp"] }`; passed full `vitest` (`28/28` files, `145/145` tests), `pnpm next build` (`36/36` routes), and `python evals/run_fullstack_eval.py --quick` (`100/100` PASS).
 
 ---
 

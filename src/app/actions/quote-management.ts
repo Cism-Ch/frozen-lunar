@@ -401,9 +401,11 @@ export async function getQuotesAction(filters?: {
 
         const quotes = await prisma.quote.findMany({
             where,
+            take: 250,
             include: {
                 history: {
                     orderBy: { timestamp: "desc" },
+                    take: 6,
                 },
                 vehicle: {
                     select: {
