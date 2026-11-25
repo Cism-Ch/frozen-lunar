@@ -13,16 +13,28 @@
 +-------------------------+  +-------------------------+  +-------------------------+
 | (None)                  |  | (None)                  |  | [x] SP 01..11 (Archived)|
 |                         |  |                         |  | [x] SP 12..23 (Archived)|
-|                         |  |                         |  | [x] TASK-SEC-01..03     |
+|                         |  |                         |  | [x] TASK-SEC-01..04     |
 |                         |  |                         |  | [x] TASK-BUG-01..03     |
 |                         |  |                         |  | [x] TASK-CLN-01..02     |
 |                         |  |                         |  | [x] TASK-RSI-01         |
 |                         |  |                         |  | [x] TASK-QWS-01..04     |
-|                         |  |                         |  | [x] TASK-UX-01..02      |
+|                         |  |                         |  | [x] TASK-UX-01..03      |
 |                         |  |                         |  | [x] TASK-SUP-01         |
 |                         |  |                         |  | [x] TASK-REF-01..03     |
 +-------------------------+  +-------------------------+  +-------------------------+
 ```
+
+---
+
+## Completed Sprint 31: Mobile Theme Toggle Fix & Secure Attachment Download Proxy
+
+- [x] **`TASK-UX-03` - Fix Mobile Drawer Theme Toggle (`resolvedTheme` + Positioning + 44px Target)**
+  - **Target files:** `src/components/theme-toggle.tsx`
+  - **Criteria:** [x] Switched to `resolvedTheme` so system-dark toggles on first tap; removed uncontained `absolute` icon positioning inside scrollable drawers; enforced 44x44px mobile touch target.
+
+- [x] **`TASK-SEC-04` - Authenticated Attachment Proxy (`GET /api/attachments/[...key]`) & Download UI**
+  - **Target files:** `src/lib/attachment-url.ts`, `src/app/api/attachments/[...key]/route.ts`, `src/app/api/upload/route.ts`, `src/app/admin/quotes/[id]/page.tsx`, `src/components/features/admin/QuoteDetailsModal.tsx`, `tests/unit/security-hardening.test.ts`
+  - **Criteria:** [x] Enforced admin auth (`401`/`403`), prefix/path-traversal checks, safe MIME allowlist, `X-Content-Type-Options: nosniff`, `Cache-Control: private, no-store`, and `?download=1` (`Content-Disposition: attachment`); added Open + Download buttons on admin quote views; passed `vitest` (`5/5`), `pnpm next build` (`36/36` routes), and `python evals/run_fullstack_eval.py --quick` (`100/100` PASS).
 
 ---
 

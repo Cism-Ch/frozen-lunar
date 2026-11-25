@@ -78,6 +78,7 @@ import {
     addQuoteNoteAction,
 } from "@/app/actions/quote-management";
 import { formatQuoteReference } from "@/lib/tracking-code";
+import { resolveAttachmentProxyUrl } from "@/lib/attachment-url";
 import { logger } from "@/lib/logger";
 
 function cleanPhoneForWhatsApp(phone: string): string {
@@ -655,30 +656,70 @@ export default function QuoteWorkspacePage() {
                                                 Pièces jointes (
                                                 {attachments.length})
                                             </Label>
-                                            <div className="flex flex-wrap gap-2">
+                                            <div className="flex flex-col gap-2">
                                                 {attachments.map((file, i) => {
                                                     const label =
                                                         file.split("/").pop() ||
                                                         file;
-                                                    return isSafeAttachmentUrl(
-                                                        file
-                                                    ) ? (
-                                                        <a
+                                                    const viewUrl =
+                                                        resolveAttachmentProxyUrl(
+                                                            file,
+                                                            false
+                                                        ) ||
+                                                        (isSafeAttachmentUrl(
+                                                            file
+                                                        )
+                                                            ? file
+                                                            : null);
+                                                    const downloadUrl =
+                                                        resolveAttachmentProxyUrl(
+                                                            file,
+                                                            true
+                                                        ) || viewUrl;
+                                                    return viewUrl ? (
+                                                        <div
                                                             key={i}
-                                                            href={file}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="bg-secondary text-secondary-foreground hover:bg-secondary/80 inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 font-mono text-xs font-medium transition-colors"
+                                                            className="bg-muted/30 flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2 text-xs"
                                                         >
-                                                            <Paperclip className="h-3 w-3" />
-                                                            {label}
-                                                            <ExternalLink className="h-3 w-3 opacity-60" />
-                                                        </a>
+                                                            <span className="flex min-w-0 items-center gap-1.5 font-mono font-medium">
+                                                                <Paperclip className="text-primary h-3.5 w-3.5 shrink-0" />
+                                                                <span className="truncate">
+                                                                    {label}
+                                                                </span>
+                                                            </span>
+                                                            <div className="flex shrink-0 items-center gap-1.5">
+                                                                <a
+                                                                    href={
+                                                                        viewUrl
+                                                                    }
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="bg-background hover:bg-secondary inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px] font-semibold transition-colors"
+                                                                >
+                                                                    <ExternalLink className="h-3 w-3" />
+                                                                    Ouvrir
+                                                                </a>
+                                                                {downloadUrl && (
+                                                                    <a
+                                                                        href={
+                                                                            downloadUrl
+                                                                        }
+                                                                        download={
+                                                                            label
+                                                                        }
+                                                                        className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold transition-colors"
+                                                                    >
+                                                                        <Download className="h-3 w-3" />
+                                                                        Télécharger
+                                                                    </a>
+                                                                )}
+                                                            </div>
+                                                        </div>
                                                     ) : (
                                                         <Badge
                                                             key={i}
                                                             variant="secondary"
-                                                            className="font-mono text-xs"
+                                                            className="w-fit font-mono text-xs"
                                                         >
                                                             {label}
                                                         </Badge>

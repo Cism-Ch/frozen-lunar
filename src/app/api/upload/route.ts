@@ -152,7 +152,9 @@ export async function POST(request: NextRequest) {
                 ? `/api/fleet-image/${key}`
                 : getPublicUrl(key);
         } else {
-            publicUrl = getPublicUrl(key);
+            publicUrl = uploadResult.storedInS3
+                ? `/api/attachments/${key}`
+                : getPublicUrl(key);
         }
 
         return NextResponse.json({

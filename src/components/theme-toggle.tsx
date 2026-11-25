@@ -8,26 +8,41 @@ import { Button } from "@/components/ui/button";
 import { useHasMounted } from "@/hooks/useHasMounted";
 
 export function ThemeToggle() {
-    const { theme, setTheme } = useTheme();
+    const { resolvedTheme, setTheme } = useTheme();
     const mounted = useHasMounted();
 
     if (!mounted) {
         return (
-            <Button variant="ghost" size="icon" className="h-9 w-9" disabled />
+            <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="relative h-11 w-11 sm:h-9 sm:w-9"
+                disabled
+                aria-label="Changer de thème"
+            />
         );
     }
 
+    const isDark = resolvedTheme === "dark";
+
     return (
         <Button
+            type="button"
             variant="ghost"
             size="icon"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="h-9 w-9"
-            title="Changer de thème"
-            aria-label="Changer de thème"
+            onClick={() => setTheme(isDark ? "light" : "dark")}
+            className="relative h-11 w-11 shrink-0 sm:h-9 sm:w-9"
+            title={isDark ? "Passer en thème clair" : "Passer en thème sombre"}
+            aria-label={
+                isDark ? "Passer en thème clair" : "Passer en thème sombre"
+            }
         >
-            <Sun className="h-4 w-4 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
-            <Moon className="absolute h-4 w-4 scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
+            {isDark ? (
+                <Sun className="h-4 w-4 transition-transform duration-200" />
+            ) : (
+                <Moon className="h-4 w-4 transition-transform duration-200" />
+            )}
             <span className="sr-only">Changer de thème</span>
         </Button>
     );

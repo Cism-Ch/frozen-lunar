@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { verifyFileMagicBytes } from "@/lib/file-signature";
+import { resolveAttachmentProxyUrl } from "@/lib/attachment-url";
 
 const { mockRequireAdmin } = vi.hoisted(() => ({
     mockRequireAdmin: vi.fn(),
@@ -87,6 +88,27 @@ describe("Defensive Security Hardening (Sprint 24)", () => {
             );
             expect(res.data).toBeNull();
             expect(res.error).toBeTruthy();
+        });
+
+        it("résout les pièces jointes via le proxy authentifié et rejette les traversées / préfixes interdits", () => {
+            expect(
+                resolveAttachmentProxyUrl(
+                    "https://bucket.fly.storage.tigris.dev/quotes-uploads/1700_plan.pdf",
+                    false
+                )
+            ).toBe("/api/attachments/quotes-uploads/1700_plan.pdf");
+
+            expect(
+                resolveAttachmentProxyUrl("attachments/doc_1.png", true)
+            ).toBe("/api/attachments/attachments/doc_1.png?download=1");
+
+            expect(
+                resolveAttachmentProxyUrl("quotes-uploads/../secret.env", true)
+            ).toBeNull();
+
+            expect(
+                resolveAttachmentProxyUrl("fleet-images/camion.webp", false)
+            ).toBeNull();
         });
     });
 });
