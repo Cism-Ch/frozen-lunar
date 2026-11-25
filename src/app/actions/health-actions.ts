@@ -10,6 +10,7 @@ import {
 import {
     EMAIL_SENDER,
     isAnyEmailProviderConfigured,
+    isGmailFallbackConfigured,
     isResendConfigured,
     sendTransactionalEmail,
 } from "@/lib/email";
@@ -30,6 +31,8 @@ export interface AdminHealthSnapshot {
     report: HealthReport;
     diagnostics: {
         resendConfigured: boolean;
+        gmailConfigured: boolean;
+        gmailUser: string | null;
         emailSender: string;
         defaultAlertRecipient: string;
         redisConfigured: boolean;
@@ -56,6 +59,8 @@ export async function getAdminHealthReportAction(
                 report,
                 diagnostics: {
                     resendConfigured: isResendConfigured(),
+                    gmailConfigured: isGmailFallbackConfigured(),
+                    gmailUser: process.env.GMAIL_USER?.trim() || null,
                     emailSender: EMAIL_SENDER,
                     defaultAlertRecipient:
                         process.env.ADMIN_NOTIFICATION_EMAIL?.trim() ||
@@ -88,6 +93,7 @@ export async function sendTestAlertEmailAction(input?: {
         id: string;
         recipient: string;
         sender: string;
+        provider: "resend" | "gmail_smtp" | "none";
         sentAt: string;
     } | null;
     error: string | null;
@@ -149,7 +155,11 @@ export async function sendTestAlertEmailAction(input?: {
             data: {
                 id: data?.id || "sent",
                 recipient,
-                sender: EMAIL_SENDER,
+                sender:
+                    provider === "gmail_smtp" && process.env.GMAIL_USER?.trim()
+                        ? process.env.GMAIL_USER.trim()
+                        : EMAIL_SENDER,
+                provider,
                 sentAt,
             },
             error: null,

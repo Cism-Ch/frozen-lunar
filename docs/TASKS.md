@@ -21,8 +21,22 @@
 |                         |  |                         |  | [x] TASK-MAIL-01        |
 |                         |  |                         |  | [x] TASK-KYC-01..04     |
 |                         |  |                         |  | [x] TASK-PRT-01..02     |
+|                         |  |                         |  | [x] TASK-CNT-01         |
+|                         |  |                         |  | [x] TASK-OPS-01         |
 +-------------------------+  +-------------------------+  +-------------------------+
 ```
+
+---
+
+## Completed Sprint 42: Contact Form Email Delivery & Gmail SMTP Uptime Monitoring
+
+- [x] **`TASK-CNT-01` - Deliver Real Admin & Visitor Emails on `/contact` Submission**
+  - **Target files:** `src/app/actions/contact.ts`, `tests/unit/contact-and-health.test.ts`
+  - **Criteria:** [x] Sent HTML/text admin notification (`replyTo` sender) and visitor confirmation email via `sendTransactionalEmail` (Resend -> Gmail SMTP cascade) on `sendContactMessageAction`, escaping HTML and sanitizing CRLF headers.
+
+- [x] **`TASK-OPS-01` - Add Live Gmail SMTP Dependency Probe & Diagnostics on `/admin/status`**
+  - **Target files:** `src/lib/health-check.ts`, `src/app/actions/health-actions.ts`, `src/components/features/status/StatusDashboard.tsx`, `tests/unit/contact-and-health.test.ts`
+  - **Criteria:** [x] Probed Gmail SMTP (`nodemailer.verify()` with 3s timeout) in `getSystemHealthReport`, displayed Gmail SMTP status badge & diagnostics in `StatusDashboard`, enabled test email button when either Resend or Gmail SMTP is configured, and verified with `vitest` (`2/2`), `pnpm next build`, and RSI eval (`100/100` PASS).
 
 ---
 

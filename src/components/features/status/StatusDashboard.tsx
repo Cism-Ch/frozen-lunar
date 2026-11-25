@@ -148,6 +148,7 @@ function getServiceIcon(service: ServiceHealthItem) {
         case "tigris-s3":
             return HardDrive;
         case "resend":
+        case "gmail-smtp":
             return Mail;
         case "gemini-ai":
         case "openrouter-ai":
@@ -188,6 +189,7 @@ export function StatusDashboard({
     const [lastTestResult, setLastTestResult] = useState<{
         recipient: string;
         sender: string;
+        provider: string;
         sentAt: string;
     } | null>(null);
 
@@ -250,10 +252,11 @@ export function StatusDashboard({
             setLastTestResult({
                 recipient: res.data.recipient,
                 sender: res.data.sender,
+                provider: res.data.provider,
                 sentAt: res.data.sentAt,
             });
             toast.success(
-                `Email d'alerte de test envoyé à ${res.data.recipient}`
+                `Email d'alerte de test envoyé à ${res.data.recipient} (${res.data.provider})`
             );
         } catch {
             toast.error("Erreur inattendue lors du test Resend.");
@@ -477,37 +480,65 @@ export function StatusDashboard({
                                 <div className="flex items-center gap-2">
                                     <ShieldCheck className="text-primary h-5 w-5" />
                                     <CardTitle className="text-lg">
-                                        Test d&apos;alerte Resend &amp;
-                                        Configuration
+                                        Test d&apos;alerte Email (Resend / Gmail
+                                        SMTP) &amp; Configuration
                                     </CardTitle>
                                 </div>
-                                <Badge
-                                    variant={
-                                        diagnostics.resendConfigured
-                                            ? "default"
-                                            : "destructive"
-                                    }
-                                >
-                                    {diagnostics.resendConfigured
-                                        ? "Resend configuré"
-                                        : "Clé Resend manquante"}
-                                </Badge>
+                                <div className="flex flex-wrap items-center gap-1.5">
+                                    <Badge
+                                        variant={
+                                            diagnostics.resendConfigured
+                                                ? "default"
+                                                : "secondary"
+                                        }
+                                    >
+                                        {diagnostics.resendConfigured
+                                            ? "Resend configuré"
+                                            : "Resend absent"}
+                                    </Badge>
+                                    <Badge
+                                        variant={
+                                            diagnostics.gmailConfigured
+                                                ? "default"
+                                                : "secondary"
+                                        }
+                                        className={
+                                            diagnostics.gmailConfigured
+                                                ? "bg-emerald-600 text-white"
+                                                : ""
+                                        }
+                                    >
+                                        {diagnostics.gmailConfigured
+                                            ? "Gmail SMTP actif"
+                                            : "Gmail SMTP absent"}
+                                    </Badge>
+                                </div>
                             </div>
                             <CardDescription>
                                 Vérifiez la délivrabilité réelle des emails
-                                d&apos;avertissement administrateur. En cas de
-                                panne critique, un verrou Redis de 30 minutes
-                                évite les envois répétés.
+                                d&apos;avertissement administrateur (cascade
+                                Resend → Gmail SMTP). En cas de panne critique,
+                                un verrou Redis de 30 minutes évite les envois
+                                répétés.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="bg-muted/40 grid gap-3 rounded-lg border p-4 text-xs sm:grid-cols-3">
+                            <div className="bg-muted/40 grid gap-3 rounded-lg border p-4 text-xs sm:grid-cols-2 lg:grid-cols-4">
                                 <div>
                                     <span className="text-muted-foreground block">
                                         Expéditeur (EMAIL_FROM)
                                     </span>
                                     <span className="font-mono font-medium">
                                         {diagnostics.emailSender}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span className="text-muted-foreground block">
+                                        Relais Gmail (GMAIL_USER)
+                                    </span>
+                                    <span className="font-mono font-medium">
+                                        {diagnostics.gmailUser ||
+                                            "Non configuré"}
                                     </span>
                                 </div>
                                 <div>
@@ -542,14 +573,15 @@ export function StatusDashboard({
                                         setTestRecipient(e.target.value)
                                     }
                                     placeholder="Email destinataire (optionnel)"
-                                    aria-label="Adresse email destinataire pour le test Resend"
+                                    aria-label="Adresse email destinataire pour le test email"
                                     className="min-h-[44px] flex-1"
                                 />
                                 <Button
                                     type="submit"
                                     disabled={
                                         isSendingTest ||
-                                        !diagnostics.resendConfigured
+                                        (!diagnostics.resendConfigured &&
+                                            !diagnostics.gmailConfigured)
                                     }
                                     className="min-h-[44px] shrink-0 gap-2"
                                 >
@@ -565,6 +597,10 @@ export function StatusDashboard({
                                     Dernier test envoyé avec succès à{" "}
                                     <span className="font-mono font-medium">
                                         {lastTestResult.recipient}
+                                    </span>{" "}
+                                    via{" "}
+                                    <span className="font-mono font-semibold">
+                                        {lastTestResult.provider}
                                     </span>{" "}
                                     depuis{" "}
                                     <span className="font-mono">

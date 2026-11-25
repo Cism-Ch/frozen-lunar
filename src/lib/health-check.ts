@@ -1,10 +1,12 @@
 import { HeadBucketCommand } from "@aws-sdk/client-s3";
+import nodemailer from "nodemailer";
 import prisma from "@/lib/prisma";
 import { redis, resolveUpstashRedisConfig } from "@/lib/redis";
 import { s3Client } from "@/lib/storage";
 import {
     EMAIL_SENDER,
     isAnyEmailProviderConfigured,
+    isGmailFallbackConfigured,
     isResendConfigured,
     sendTransactionalEmail,
 } from "@/lib/email";
@@ -423,6 +425,79 @@ async function probeResend(): Promise<ServiceHealthItem> {
     }
 }
 
+async function probeGmailSmtp(): Promise<ServiceHealthItem> {
+    const startedAt = Date.now();
+    const checkedAt = new Date().toISOString();
+
+    if (!isGmailFallbackConfigured()) {
+        return {
+            id: "gmail-smtp",
+            name: "Gmail SMTP (Relais Email)",
+            category: "messaging",
+            critical: false,
+            status: "unconfigured",
+            latencyMs: null,
+            message: "Relais Gmail SMTP non configuré (GMAIL_USER / GMAIL_APP_PASSWORD).",
+            checkedAt,
+        };
+    }
+
+    const gmailUser = (process.env.GMAIL_USER || "").trim();
+    const gmailPass = (process.env.GMAIL_APP_PASSWORD || "")
+        .replace(/\s+/g, "")
+        .trim();
+
+    try {
+        const transporter = nodemailer.createTransport({
+            service: "gmail",
+            connectionTimeout: 2500,
+            greetingTimeout: 2500,
+            socketTimeout: 2500,
+            auth: {
+                user: gmailUser,
+                pass: gmailPass,
+            },
+        });
+
+        await withTimeout(transporter.verify(), PROBE_TIMEOUT_MS);
+        const latencyMs = Date.now() - startedAt;
+
+        return {
+            id: "gmail-smtp",
+            name: "Gmail SMTP (Relais Email)",
+            category: "messaging",
+            critical: false,
+            status: latencyMs > 2000 ? "degraded" : "operational",
+            latencyMs,
+            message:
+                latencyMs > 2000
+                    ? "Connexion SMTP Gmail active avec latence élevée."
+                    : "Relais SMTP Gmail opérationnel (authentification vérifiée).",
+            checkedAt,
+        };
+    } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message.toLowerCase() : "";
+        const isAuthError =
+            msg.includes("eauth") ||
+            msg.includes("535") ||
+            msg.includes("invalid login") ||
+            msg.includes("badcredentials");
+
+        return {
+            id: "gmail-smtp",
+            name: "Gmail SMTP (Relais Email)",
+            category: "messaging",
+            critical: false,
+            status: isAuthError ? "degraded" : "outage",
+            latencyMs: Date.now() - startedAt,
+            message: isAuthError
+                ? "Identifiants Gmail refusés (vérifiez GMAIL_APP_PASSWORD)."
+                : "Serveur Gmail SMTP injoignable ou délai dépassé.",
+            checkedAt,
+        };
+    }
+}
+
 async function probeGemini(): Promise<ServiceHealthItem> {
     const startedAt = Date.now();
     const checkedAt = new Date().toISOString();
@@ -715,9 +790,11 @@ export async function maybeSendCriticalOutageAlert(
         return false;
     }
 
-    // Ne tente pas d'envoyer un email si Resend est l'unique dépendance en panne
+    // Ne tente pas d'envoyer un email si Resend est l'unique dépendance en panne et qu'aucun relais Gmail SMTP n'est configuré
     const resendDownOnly =
-        criticalOutages.length === 1 && criticalOutages[0].id === "resend";
+        criticalOutages.length === 1 &&
+        criticalOutages[0].id === "resend" &&
+        !isGmailFallbackConfigured();
     if (resendDownOnly) {
         return false;
     }
@@ -805,6 +882,7 @@ export async function getSystemHealthReport(options?: {
         probeUpstashQStash(),
         probeTigrisS3(),
         probeResend(),
+        probeGmailSmtp(),
         probeGemini(),
         probeOpenRouter(),
         probeOpenStreetMap(),

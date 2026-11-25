@@ -14,6 +14,67 @@ import {
     type ClientDirectoryItem,
 } from "@/types/contact";
 import { logger } from "@/lib/logger";
+import { COMPANY_CONFIG } from "@/lib/company-config";
+import {
+    EMAIL_SENDER,
+    isAnyEmailProviderConfigured,
+    sendTransactionalEmail,
+} from "@/lib/email";
+
+function escapeHtml(value: string): string {
+    return value
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
+function sanitizeHeaderLine(value: string): string {
+    return value.replace(/[\r\n]+/g, " ").trim();
+}
+
+function buildContactEmailHtml(params: {
+    title: string;
+    intro: string;
+    fullName: string;
+    email: string;
+    phone: string;
+    message: string;
+    footerNote: string;
+}): string {
+    const safeTitle = escapeHtml(params.title);
+    const safeIntro = escapeHtml(params.intro);
+    const safeName = escapeHtml(params.fullName);
+    const safeEmail = escapeHtml(params.email);
+    const safePhone = escapeHtml(params.phone);
+    const safeMessage = escapeHtml(params.message).replace(/\n/g, "<br />");
+    const safeFooter = escapeHtml(params.footerNote);
+
+    return `<!DOCTYPE html>
+<html lang="fr">
+<body style="margin:0;padding:24px;background:#F2F5F7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0F172A;">
+  <div style="max-width:600px;margin:0 auto;background:#FFFFFF;border-radius:12px;overflow:hidden;border:1px solid #E2E8F0;">
+    <div style="background:#001F3D;padding:24px 28px;border-bottom:4px solid #FF7C24;">
+      <div style="font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#92A9BE;font-weight:700;">${escapeHtml(COMPANY_CONFIG.shortName)}</div>
+      <h1 style="margin:8px 0 0;font-size:20px;line-height:1.3;color:#FFFFFF;">${safeTitle}</h1>
+    </div>
+    <div style="padding:24px 28px;">
+      <p style="margin:0 0 18px;font-size:14px;line-height:1.6;color:#334155;">${safeIntro}</p>
+      <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:14px 16px;margin-bottom:18px;font-size:13px;line-height:1.6;">
+        <div><strong>Nom :</strong> ${safeName}</div>
+        <div><strong>Email :</strong> ${safeEmail}</div>
+        <div><strong>Téléphone :</strong> ${safePhone}</div>
+      </div>
+      <div style="border-left:3px solid #FF7C24;padding:10px 14px;background:#FFF7ED;border-radius:0 8px 8px 0;font-size:14px;line-height:1.6;color:#1E293B;">
+        ${safeMessage}
+      </div>
+      <p style="margin:22px 0 0;font-size:12px;line-height:1.5;color:#64748B;">${safeFooter}</p>
+    </div>
+  </div>
+</body>
+</html>`;
+}
 
 /**
  * Server Action publique : Enregistrement d'un message de contact en base de données.
@@ -38,16 +99,110 @@ export async function sendContactMessageAction(
         const validated = contactFormSchema.parse(input);
 
         // Persistance réelle dans la base de données PostgreSQL
+        const normalizedEmail = validated.email.toLowerCase().trim();
+        const normalizedPhone = validated.phone.trim();
+        const fullName = `${validated.firstName.trim()} ${validated.lastName.trim()}`;
+
         const createdMessage = await prisma.contactMessage.create({
             data: {
-                firstName: validated.firstName,
-                lastName: validated.lastName,
-                email: validated.email.toLowerCase().trim(),
-                phone: validated.phone.trim(),
-                message: validated.message,
+                firstName: validated.firstName.trim(),
+                lastName: validated.lastName.trim(),
+                email: normalizedEmail,
+                phone: normalizedPhone,
+                message: validated.message.trim(),
                 status: "UNREAD",
             },
         });
+
+        // Envoi réel des emails (Alerte Admin + Accusé de réception Visiteur) via Resend -> Fallback Gmail SMTP
+        if (isAnyEmailProviderConfigured()) {
+            const adminEmail =
+                process.env.ADMIN_NOTIFICATION_EMAIL?.trim() ||
+                COMPANY_CONFIG.contact.email;
+            const safeSubjectName = sanitizeHeaderLine(fullName);
+
+            const adminText = [
+                `Nouveau message reçu depuis le formulaire /contact :`,
+                `- Nom : ${fullName}`,
+                `- Email : ${normalizedEmail}`,
+                `- Téléphone : ${normalizedPhone}`,
+                "",
+                `Message :`,
+                validated.message.trim(),
+            ].join("\n");
+
+            const visitorText = [
+                `Bonjour ${fullName},`,
+                "",
+                `Nous avons bien reçu votre message et nous vous remercions d'avoir contacté ${COMPANY_CONFIG.shortName}.`,
+                `Notre équipe vous répondra sous 24h ouvrées.`,
+                "",
+                `Récapitulatif de votre message :`,
+                validated.message.trim(),
+                "",
+                `Besoin urgent ? Appelez-nous au ${COMPANY_CONFIG.contact.phoneDisplay}.`,
+            ].join("\n");
+
+            const emailResults = await Promise.allSettled([
+                sendTransactionalEmail({
+                    from: EMAIL_SENDER,
+                    to: [adminEmail],
+                    replyTo: normalizedEmail,
+                    subject: `[CONTACT] Nouveau message de ${safeSubjectName}`,
+                    html: buildContactEmailHtml({
+                        title: "Nouveau message client (/contact)",
+                        intro: "Un visiteur vient d'envoyer un message depuis la page Contact. Vous pouvez lui répondre directement depuis votre boîte mail.",
+                        fullName,
+                        email: normalizedEmail,
+                        phone: normalizedPhone,
+                        message: validated.message.trim(),
+                        footerNote: `Message enregistré dans la console admin (/admin/contacts) • ID ${createdMessage.id}`,
+                    }),
+                    text: adminText,
+                }),
+                sendTransactionalEmail({
+                    from: EMAIL_SENDER,
+                    to: [normalizedEmail],
+                    subject: `Accusé de réception — ${COMPANY_CONFIG.shortName}`,
+                    html: buildContactEmailHtml({
+                        title: "Votre message a bien été reçu",
+                        intro: `Bonjour ${fullName}, merci pour votre prise de contact. Notre équipe étudie votre demande et vous répondra sous 24h ouvrées.`,
+                        fullName,
+                        email: normalizedEmail,
+                        phone: normalizedPhone,
+                        message: validated.message.trim(),
+                        footerNote: `${COMPANY_CONFIG.legalName} • Tél : ${COMPANY_CONFIG.contact.phoneDisplay} • ${COMPANY_CONFIG.contact.email}`,
+                    }),
+                    text: visitorText,
+                }),
+            ]);
+
+            emailResults.forEach((res, idx) => {
+                const target = idx === 0 ? "admin" : "visitor";
+                if (res.status === "rejected") {
+                    logger.error(`Contact ${target} email exception`, {
+                        error:
+                            res.reason instanceof Error
+                                ? res.reason.message
+                                : String(res.reason),
+                    });
+                } else if (res.value.error) {
+                    logger.warn(`Contact ${target} email delivery failed`, {
+                        error: res.value.error.message,
+                        provider: res.value.provider,
+                    });
+                } else {
+                    logger.info(`Contact ${target} email delivered`, {
+                        provider: res.value.provider,
+                        messageId: createdMessage.id,
+                    });
+                }
+            });
+        } else {
+            logger.warn(
+                "Contact message saved in DB but no email provider is configured (RESEND_KEY / GMAIL_APP_PASSWORD)."
+            );
+        }
 
         // Revalidation du cache pour la boîte de réception admin
         revalidatePath("/admin/contacts");
