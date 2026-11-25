@@ -36,85 +36,109 @@ export const QuoteConfirmationEmail = ({
         process.env.NEXT_PUBLIC_APP_URL || COMPANY_CONFIG.contact.website;
 
     return (
-        <Html>
+        <Html lang="fr">
             <Head />
             <Preview>
-                Confirmation de votre demande de devis {quoteId} - HBC
-                Logistique
+                Confirmation de votre demande de devis {quoteId} —{" "}
+                {COMPANY_CONFIG.shortName}
             </Preview>
             <Body style={main}>
                 <Container style={container}>
-                    {/* Header Banner */}
+                    {/* Bandeau Institutionnel HBC Logistique */}
                     <Section style={headerBanner}>
-                        <Heading style={heading}>HBC LOGISTIQUE</Heading>
-                        <Text style={tagline}>
-                            Votre sécurité, Notre priorité
+                        <Text style={brandEyebrow}>
+                            TRANSPORT &amp; LOGISTIQUE • CÔTE D&apos;IVOIRE
                         </Text>
+                        <Heading style={heading}>HBC LOGISTIQUE</Heading>
+                        <Text style={tagline}>{COMPANY_CONFIG.slogan}</Text>
                     </Section>
+                    <Section style={accentBar} />
 
                     <Section style={contentSection}>
-                        <Text style={paragraph}>Bonjour {clientName},</Text>
+                        <Text style={greeting}>Bonjour {clientName},</Text>
                         <Text style={paragraph}>
-                            Nous avons bien reçu votre demande de devis et nous
-                            vous en remercions. Notre équipe spécialisée étudie
-                            actuellement votre besoin de transport et reviendra
-                            vers vous sous 24h ouvrées avec une proposition sur
-                            mesure.
+                            Nous vous confirmons la bonne réception de votre
+                            demande de devis. Notre cellule d&apos;exploitation
+                            étudie votre besoin et reviendra vers vous sous{" "}
+                            <strong>24h ouvrées</strong> avec une proposition
+                            chiffrée sur mesure.
                         </Text>
 
-                        {/* Order Summary Box */}
+                        {/* Badge Référence Horodatée */}
+                        <Section style={refBox}>
+                            <Text style={refLabel}>
+                                RÉFÉRENCE DE SUIVI DU DOSSIER
+                            </Text>
+                            <Text style={refValue}>{quoteId}</Text>
+                            {createdAt && (
+                                <Text style={refTimestamp}>
+                                    Enregistré le {createdAt}
+                                </Text>
+                            )}
+                        </Section>
+
+                        {/* Carte Récapitulative */}
                         <Section style={summaryCard}>
                             <Text style={cardTitle}>
-                                Récapitulatif de votre demande ({quoteId})
+                                DÉTAILS DE VOTRE OPÉRATION
                             </Text>
                             <Hr style={cardHr} />
                             <Text style={itemText}>
-                                <strong>Référence :</strong> {quoteId}
-                            </Text>
-                            {createdAt && (
-                                <Text style={itemText}>
-                                    <strong>Horodatage :</strong> {createdAt}
-                                </Text>
-                            )}
-                            <Text style={itemText}>
-                                <strong>Prestation :</strong> {itemType}
+                                <strong style={labelStrong}>Prestation :</strong>{" "}
+                                {itemType}
                             </Text>
                             <Text style={itemText}>
-                                <strong>Lieu de départ :</strong> {pickup}
+                                <strong style={labelStrong}>
+                                    Enlèvement / Départ :
+                                </strong>{" "}
+                                {pickup}
                             </Text>
                             <Text style={itemText}>
-                                <strong>Lieu d&apos;arrivée :</strong> {dropoff}
+                                <strong style={labelStrong}>
+                                    Livraison / Arrivée :
+                                </strong>{" "}
+                                {dropoff}
                             </Text>
-                            <Text style={itemText}>
-                                <strong>Échéance / Date &amp; heure souhaitée :</strong>{" "}
+                            <Text style={itemTextLast}>
+                                <strong style={labelStrong}>
+                                    Échéance souhaitée :
+                                </strong>{" "}
                                 {date}
                             </Text>
                         </Section>
 
                         <Text style={paragraph}>
-                            Vous pouvez suivre l&apos;avancement de votre
-                            dossier ou contacter directement nos équipes pour
-                            toute précision.
+                            Suivez l&apos;avancement de votre dossier, téléchargez
+                            votre devis PDF et échangez directement avec votre
+                            validateur depuis votre Espace Client.
                         </Text>
 
                         <Section style={buttonContainer}>
                             <Button
                                 style={ctaButton}
-                                href={`${siteUrl}/contact`}
+                                href={`${siteUrl}/espace-client`}
                             >
-                                Contacter un conseiller
+                                Suivre mon devis dans mon espace
                             </Button>
                         </Section>
+
+                        <Text style={secondaryNote}>
+                            Besoin d&apos;une précision immédiate ? Contactez notre
+                            exploitation au{" "}
+                            <strong>{COMPANY_CONFIG.contact.phoneDisplay}</strong>{" "}
+                            ou par retour d&apos;email.
+                        </Text>
 
                         <Hr style={hr} />
 
                         <Text style={footerText}>
-                            {COMPANY_CONFIG.legalName}
+                            <strong>{COMPANY_CONFIG.legalName}</strong>
                             <br />
-                            Transport de matériaux, conteneurs, charpentes,
-                            engins et personnel en Côte d&apos;Ivoire.
+                            {COMPANY_CONFIG.address.street},{" "}
+                            {COMPANY_CONFIG.address.city} —{" "}
+                            {COMPANY_CONFIG.address.country}
                             <br />
-                            Email : {COMPANY_CONFIG.contact.email} | Tél :{" "}
+                            {COMPANY_CONFIG.contact.email} •{" "}
                             {COMPANY_CONFIG.contact.phoneDisplay}
                         </Text>
                     </Section>
@@ -124,112 +148,179 @@ export const QuoteConfirmationEmail = ({
     );
 };
 
-// Styles - Brand compliant (Industrial Orange #FF6600 & Deep Blue #003366)
-const main = {
-    backgroundColor: "#f4f6f9",
+export default QuoteConfirmationEmail;
+
+const main: React.CSSProperties = {
+    backgroundColor: "#F2F5F7",
     fontFamily:
-        '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
+        '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif',
+    padding: "28px 12px",
 };
 
-const container = {
+const container: React.CSSProperties = {
     backgroundColor: "#ffffff",
     margin: "0 auto",
-    borderRadius: "12px",
-    overflow: "hidden",
-    marginTop: "32px",
-    marginBottom: "48px",
-    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)",
     maxWidth: "600px",
+    borderRadius: "14px",
+    overflow: "hidden",
+    border: "1px solid #E2E8F0",
 };
 
-const headerBanner = {
-    backgroundColor: "#003366", // Deep Blue
-    padding: "32px 24px",
-    textAlign: "center" as const,
+const headerBanner: React.CSSProperties = {
+    backgroundColor: "#001F3D",
+    padding: "28px 24px 22px",
+    textAlign: "center",
 };
 
-const heading = {
-    fontSize: "28px",
-    lineHeight: "1.2",
-    fontWeight: "800",
+const accentBar: React.CSSProperties = {
+    backgroundColor: "#FF7C24",
+    height: "4px",
+};
+
+const brandEyebrow: React.CSSProperties = {
+    color: "#92A9BE",
+    fontSize: "10px",
+    fontWeight: 700,
+    letterSpacing: "1.6px",
+    margin: "0 0 6px 0",
+};
+
+const heading: React.CSSProperties = {
     color: "#ffffff",
+    fontSize: "24px",
+    fontWeight: 800,
+    letterSpacing: "0.8px",
+    margin: "0 0 4px 0",
+};
+
+const tagline: React.CSSProperties = {
+    color: "#CBD5E1",
+    fontSize: "12px",
+    fontStyle: "italic",
     margin: "0",
+};
+
+const contentSection: React.CSSProperties = {
+    padding: "28px 28px 24px",
+};
+
+const greeting: React.CSSProperties = {
+    color: "#0F172A",
+    fontSize: "16px",
+    fontWeight: 700,
+    margin: "0 0 12px 0",
+};
+
+const paragraph: React.CSSProperties = {
+    color: "#334155",
+    fontSize: "14.5px",
+    lineHeight: "23px",
+    margin: "0 0 18px 0",
+};
+
+const refBox: React.CSSProperties = {
+    backgroundColor: "#0B1219",
+    borderRadius: "10px",
+    padding: "16px 20px",
+    textAlign: "center",
+    marginBottom: "20px",
+};
+
+const refLabel: React.CSSProperties = {
+    color: "#92A9BE",
+    fontSize: "10px",
+    fontWeight: 700,
+    letterSpacing: "1.2px",
+    margin: "0 0 6px 0",
+};
+
+const refValue: React.CSSProperties = {
+    color: "#FF7C24",
+    fontSize: "19px",
+    fontWeight: 800,
+    fontFamily: "ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace",
     letterSpacing: "0.5px",
+    margin: "0",
 };
 
-const tagline = {
-    fontSize: "14px",
-    color: "#FF6600", // Industrial Orange
+const refTimestamp: React.CSSProperties = {
+    color: "#CBD5E1",
+    fontSize: "11.5px",
     margin: "6px 0 0 0",
-    fontWeight: "600",
-    textTransform: "uppercase" as const,
+};
+
+const summaryCard: React.CSSProperties = {
+    backgroundColor: "#F8FAFC",
+    border: "1px solid #E2E8F0",
+    borderRadius: "10px",
+    padding: "18px 20px",
+    marginBottom: "22px",
+};
+
+const cardTitle: React.CSSProperties = {
+    color: "#001F3D",
+    fontSize: "11px",
+    fontWeight: 800,
     letterSpacing: "1px",
+    margin: "0 0 10px 0",
 };
 
-const contentSection = {
-    padding: "32px 24px",
+const cardHr: React.CSSProperties = {
+    borderColor: "#E2E8F0",
+    margin: "0 0 12px 0",
 };
 
-const paragraph = {
-    fontSize: "16px",
-    lineHeight: "1.6",
-    color: "#333333",
-    margin: "0 0 16px 0",
+const labelStrong: React.CSSProperties = {
+    color: "#0F172A",
 };
 
-const summaryCard = {
-    backgroundColor: "#f8fafc",
-    borderRadius: "8px",
-    border: "1px solid #e2e8f0",
-    padding: "20px",
-    margin: "24px 0",
-};
-
-const cardTitle = {
-    fontSize: "16px",
-    fontWeight: "700",
-    color: "#003366",
+const itemText: React.CSSProperties = {
+    color: "#334155",
+    fontSize: "14px",
+    lineHeight: "21px",
     margin: "0 0 8px 0",
 };
 
-const cardHr = {
-    borderColor: "#cbd5e1",
-    margin: "8px 0 12px 0",
+const itemTextLast: React.CSSProperties = {
+    color: "#334155",
+    fontSize: "14px",
+    lineHeight: "21px",
+    margin: "0",
 };
 
-const itemText = {
-    fontSize: "15px",
-    color: "#475569",
-    margin: "6px 0",
+const buttonContainer: React.CSSProperties = {
+    textAlign: "center",
+    margin: "24px 0 16px",
 };
 
-const buttonContainer = {
-    textAlign: "center" as const,
-    margin: "28px 0",
-};
-
-const ctaButton = {
-    backgroundColor: "#FF6600", // Industrial Orange
-    borderRadius: "6px",
+const ctaButton: React.CSSProperties = {
+    backgroundColor: "#FF7C24",
+    borderRadius: "10px",
     color: "#ffffff",
-    fontSize: "16px",
-    fontWeight: "600",
+    fontSize: "14.5px",
+    fontWeight: 700,
     textDecoration: "none",
-    textAlign: "center" as const,
+    padding: "13px 26px",
     display: "inline-block",
-    padding: "12px 28px",
 };
 
-const hr = {
-    borderColor: "#e2e8f0",
-    margin: "28px 0 20px 0",
+const secondaryNote: React.CSSProperties = {
+    color: "#64748B",
+    fontSize: "12.5px",
+    lineHeight: "19px",
+    textAlign: "center",
+    margin: "0 0 20px 0",
 };
 
-const footerText = {
-    fontSize: "12px",
-    lineHeight: "1.5",
-    color: "#94a3b8",
-    textAlign: "center" as const,
+const hr: React.CSSProperties = {
+    borderColor: "#E2E8F0",
+    margin: "18px 0",
 };
 
-export default QuoteConfirmationEmail;
+const footerText: React.CSSProperties = {
+    color: "#64748B",
+    fontSize: "11.5px",
+    lineHeight: "18px",
+    textAlign: "center",
+    margin: "0",
+};
