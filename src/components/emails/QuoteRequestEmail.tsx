@@ -19,6 +19,7 @@ interface QuoteRequestEmailProps {
     dropoff: string;
     itemType: string;
     date: string;
+    createdAt?: string;
     quoteId: string;
 }
 
@@ -30,12 +31,15 @@ export const QuoteRequestEmail = ({
     dropoff,
     itemType,
     date,
+    createdAt,
     quoteId,
 }: QuoteRequestEmailProps) => {
     return (
         <Html>
             <Head />
-            <Preview>Nouvelle demande de devis de {clientName}</Preview>
+            <Preview>
+                Nouvelle demande de devis {quoteId} — {clientName}
+            </Preview>
             <Body style={main}>
                 <Container style={container}>
                     <Heading style={heading}>HBC Logistique</Heading>
@@ -55,17 +59,24 @@ export const QuoteRequestEmail = ({
                     <Hr style={hr} />
 
                     <Section style={section}>
-                        <Text style={subHeading}>Logistique</Text>
+                        <Text style={subHeading}>Logistique &amp; Échéance</Text>
                         <Text style={text}>Type: {itemType}</Text>
                         <Text style={text}>Départ: {pickup}</Text>
                         <Text style={text}>Arrivée: {dropoff}</Text>
-                        <Text style={text}>Date souhaitée: {date}</Text>
+                        <Text style={text}>
+                            Date &amp; heure souhaitée: {date}
+                        </Text>
+                        {createdAt && (
+                            <Text style={text}>
+                                Horodatage de création: {createdAt}
+                            </Text>
+                        )}
                     </Section>
 
                     <Hr style={hr} />
 
                     <Text style={paragraph}>
-                        ID du devis : <strong>{quoteId}</strong>
+                        Référence du devis : <strong>{quoteId}</strong>
                     </Text>
                 </Container>
             </Body>

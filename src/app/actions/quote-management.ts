@@ -18,6 +18,7 @@ import {
     formatQuoteReference,
     generateTrackingCode,
 } from "@/lib/tracking-code";
+import { safeFormatDate } from "@/lib/date-utils";
 import { logger } from "@/lib/logger";
 
 type QuoteWithHistory = Quote & {
@@ -268,6 +269,16 @@ export async function createQuoteAction(
         });
 
         // Déclencher les tâches asynchrones via Upstash QStash (Non-bloquant)
+        const formattedRef = formatQuoteReference(quote);
+        const formattedTransportDeadline = safeFormatDate(
+            quote.transportDate,
+            "dd/MM/yyyy 'à' HH:mm"
+        );
+        const formattedCreatedAt = safeFormatDate(
+            quote.date,
+            "dd/MM/yyyy 'à' HH:mm:ss"
+        );
+
         try {
             const payload = {
                 clientName: quote.clientName,
@@ -276,8 +287,9 @@ export async function createQuoteAction(
                 pickup: quote.pickupLocation,
                 dropoff: quote.dropoffLocation,
                 itemType: quote.itemType,
-                date: quote.transportDate.toISOString().split("T")[0],
-                quoteId: quote.id,
+                date: formattedTransportDeadline,
+                createdAt: formattedCreatedAt,
+                quoteId: formattedRef,
             };
 
             await emailQueue.enqueue({
@@ -291,9 +303,9 @@ export async function createQuoteAction(
             });
 
             await pdfQueue.enqueue({
-                id: quote.id,
+                id: formattedRef,
                 clientName: quote.clientName,
-                date: quote.date.toISOString(),
+                date: formattedCreatedAt,
             });
         } catch (enqueueError: unknown) {
             logger.warn("⚠️ Warning: QStash enqueue non-blocking error", {
@@ -411,7 +423,7 @@ export async function getQuotesAction(filters?: {
             quotes: quotes.map((quote: QuoteWithHistory) => ({
                 id: quote.id,
                 trackingCode: formatQuoteReference(quote),
-                date: quote.date.toISOString().split("T")[0],
+                date: quote.date.toISOString(),
                 client: quote.clientName,
                 email: quote.email,
                 phone: quote.phone,
@@ -504,7 +516,7 @@ export async function getQuoteByIdAction(id: string) {
             quote: {
                 id: quote.id,
                 trackingCode: formatQuoteReference(quote),
-                date: quote.date.toISOString().split("T")[0],
+                date: quote.date.toISOString(),
                 client: quote.clientName,
                 email: quote.email,
                 phone: quote.phone,

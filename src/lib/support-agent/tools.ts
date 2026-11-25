@@ -1,6 +1,8 @@
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { COMPANY_CONFIG } from "@/lib/company-config";
+import { formatQuoteReference } from "@/lib/tracking-code";
+import { safeFormatDate } from "@/lib/date-utils";
 import { logger } from "@/lib/logger";
 
 /**
@@ -77,12 +79,14 @@ export async function lookupQuoteStatusTool(
         const quote = await prisma.quote.findFirst({
             where: {
                 OR: [
+                    { trackingCode: { equals: reference, mode: "insensitive" } },
                     { id: reference },
                     { id: { startsWith: normalizedRef, mode: "insensitive" } },
                 ],
             },
             select: {
                 id: true,
+                trackingCode: true,
                 email: true,
                 phone: true,
                 status: true,
@@ -117,7 +121,7 @@ export async function lookupQuoteStatusTool(
         return {
             success: true,
             data: {
-                reference: quote.id,
+                reference: formatQuoteReference(quote),
                 status: quote.status,
                 statusLabel:
                     STATUS_LABELS_FR[quote.status] ||
@@ -125,7 +129,10 @@ export async function lookupQuoteStatusTool(
                 itemType: quote.itemType,
                 pickupLocation: quote.pickupLocation,
                 dropoffLocation: quote.dropoffLocation,
-                transportDate: quote.transportDate.toISOString().split("T")[0],
+                transportDate: safeFormatDate(
+                    quote.transportDate,
+                    "dd/MM/yyyy 'à' HH:mm"
+                ),
             },
         };
     } catch (error: unknown) {

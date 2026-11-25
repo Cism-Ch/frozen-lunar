@@ -29,6 +29,7 @@ export type QuoteEmailWorkflowPayload = {
     dropoff: string;
     itemType: string;
     date: string;
+    createdAt?: string;
     quoteId: string;
 };
 

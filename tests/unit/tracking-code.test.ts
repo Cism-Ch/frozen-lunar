@@ -4,11 +4,14 @@ import {
     generateTrackingCode,
 } from "@/lib/tracking-code";
 
-describe("Readable Quote Tracking Codes (HBC-YYYY-XXXX)", () => {
-    it("generates unambiguous HBC-YYYY-XXXX tracking codes without 0/O/1/I/L", () => {
-        for (let i = 0; i < 20; i++) {
-            const code = generateTrackingCode(new Date("2026-11-23T00:00:00Z"));
-            expect(code).toMatch(/^HBC-2026-[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{4}$/);
+describe("Timestamped Quote Tracking Codes (HBC-YYYY-HHMMSS-XXXXXX)", () => {
+    it("generates unambiguous HBC-YYYY-HHMMSS-XXXXXX codes without 0/O/1/I/L", () => {
+        const fixedDate = new Date("2026-11-25T14:05:09Z");
+        for (let i = 0; i < 25; i++) {
+            const code = generateTrackingCode(fixedDate);
+            expect(code).toMatch(
+                /^HBC-2026-140509-[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{6}$/
+            );
         }
     });
 
@@ -16,9 +19,9 @@ describe("Readable Quote Tracking Codes (HBC-YYYY-XXXX)", () => {
         expect(
             formatQuoteReference({
                 id: "cm3x9a8b123456",
-                trackingCode: "HBC-2026-4K8M",
+                trackingCode: "HBC-2026-140509-4K8M2P",
             })
-        ).toBe("HBC-2026-4K8M");
+        ).toBe("HBC-2026-140509-4K8M2P");
 
         expect(
             formatQuoteReference({

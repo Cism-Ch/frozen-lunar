@@ -19,6 +19,7 @@ interface QuoteConfirmationEmailProps {
     dropoff: string;
     itemType: string;
     date: string;
+    createdAt?: string;
     quoteId: string;
 }
 
@@ -28,6 +29,7 @@ export const QuoteConfirmationEmail = ({
     dropoff,
     itemType,
     date,
+    createdAt,
     quoteId,
 }: QuoteConfirmationEmailProps) => {
     const siteUrl =
@@ -37,7 +39,7 @@ export const QuoteConfirmationEmail = ({
         <Html>
             <Head />
             <Preview>
-                Confirmation de votre demande de devis #{quoteId} - HBC
+                Confirmation de votre demande de devis {quoteId} - HBC
                 Logistique
             </Preview>
             <Body style={main}>
@@ -63,9 +65,17 @@ export const QuoteConfirmationEmail = ({
                         {/* Order Summary Box */}
                         <Section style={summaryCard}>
                             <Text style={cardTitle}>
-                                Récapitulatif de votre demande (#{quoteId})
+                                Récapitulatif de votre demande ({quoteId})
                             </Text>
                             <Hr style={cardHr} />
+                            <Text style={itemText}>
+                                <strong>Référence :</strong> {quoteId}
+                            </Text>
+                            {createdAt && (
+                                <Text style={itemText}>
+                                    <strong>Horodatage :</strong> {createdAt}
+                                </Text>
+                            )}
                             <Text style={itemText}>
                                 <strong>Prestation :</strong> {itemType}
                             </Text>
@@ -76,7 +86,8 @@ export const QuoteConfirmationEmail = ({
                                 <strong>Lieu d&apos;arrivée :</strong> {dropoff}
                             </Text>
                             <Text style={itemText}>
-                                <strong>Date souhaitée :</strong> {date}
+                                <strong>Échéance / Date &amp; heure souhaitée :</strong>{" "}
+                                {date}
                             </Text>
                         </Section>
 

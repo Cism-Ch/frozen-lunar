@@ -56,9 +56,11 @@ export const generateQuotePDF = (quote: Quote) => {
             id: quote.id,
         })
     );
-    const createdDate = sanitizePdfText(safeFormatDate(quote.date, "dd/MM/yyyy"));
+    const createdDate = sanitizePdfText(
+        safeFormatDate(quote.date, "dd/MM/yyyy 'à' HH:mm")
+    );
     const transportDate = sanitizePdfText(
-        safeFormatDate(quote.transportDate, "dd MMMM yyyy")
+        safeFormatDate(quote.transportDate, "dd MMMM yyyy 'à' HH:mm")
     );
     const statusLabel = sanitizePdfText(quote.status || "En attente");
 

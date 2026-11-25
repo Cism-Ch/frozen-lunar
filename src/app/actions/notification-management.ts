@@ -3,6 +3,7 @@
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-guard";
 import { handleError } from "@/lib/error-handler";
+import { formatQuoteReference } from "@/lib/tracking-code";
 import {
     QuoteStatus,
     ContactStatus,
@@ -163,7 +164,10 @@ export async function getNotificationsAction(): Promise<{
                 suppInfo?.urgency === "urgent" ||
                 suppInfo?.urgency === "very_urgent" ||
                 Boolean(suppInfo?.hazardous);
-            const ref = q.trackingCode || `#${q.id.slice(0, 8)}`;
+            const ref = formatQuoteReference({
+                id: q.id,
+                trackingCode: q.trackingCode,
+            });
             const key = `quote-${q.id}`;
 
             return {
@@ -187,7 +191,10 @@ export async function getNotificationsAction(): Promise<{
             : [];
         const cancelledNotifications: Notification[] = safeCancelled.map(
             (q) => {
-                const ref = q.trackingCode || `#${q.id.slice(0, 8)}`;
+                const ref = formatQuoteReference({
+                id: q.id,
+                trackingCode: q.trackingCode,
+            });
                 const key = `cancelled-${q.id}`;
                 return {
                     id: key,
@@ -241,8 +248,10 @@ export async function getNotificationsAction(): Promise<{
 
         const chatNotifications: Notification[] = humanTakeoverThreads.map(
             (t) => {
-                const ref =
-                    t.quote?.trackingCode || `#${t.quoteId.slice(0, 8)}`;
+                const ref = formatQuoteReference({
+                    id: t.quoteId,
+                    trackingCode: t.quote?.trackingCode,
+                });
                 const key = `thread-${t.id}-${t.updatedAt.getTime()}`;
                 return {
                     id: key,

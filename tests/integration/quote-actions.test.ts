@@ -4,6 +4,7 @@ import {
     getQuotesAction,
 } from "@/app/actions/quote-management";
 import prisma from "@/lib/prisma";
+import { emailQueue, pdfQueue } from "@/lib/qstash";
 import type { Quote, QuoteHistory } from "@prisma/client";
 
 // Mock next/cache revalidatePath
@@ -48,9 +49,17 @@ describe("Quote Management Server Actions", () => {
     });
 
     describe("createQuoteAction", () => {
-        it("should successfully validate data, call prisma.quote.create, and return formatted quote", async () => {
+        it("should successfully validate data, call prisma.quote.create, and enqueue emails with timestamped HBC trackingCode", async () => {
+            const emailEnqueueSpy = vi
+                .spyOn(emailQueue, "enqueue")
+                .mockResolvedValue({ messageId: "test-email-id" });
+            const pdfEnqueueSpy = vi
+                .spyOn(pdfQueue, "enqueue")
+                .mockResolvedValue({ messageId: "test-pdf-id" });
+
             const mockQuoteFromDb = {
                 id: "quote-123",
+                trackingCode: "HBC-2026-100000-4K8M2P",
                 date: new Date("2026-07-25T10:00:00Z"),
                 clientName: "HBC Client",
                 email: "client@hbc.com",
@@ -58,7 +67,7 @@ describe("Quote Management Server Actions", () => {
                 itemType: "Container 20ft",
                 pickupLocation: "Abidjan Port",
                 dropoffLocation: "Bouaké Zone Industrielle",
-                transportDate: new Date("2026-08-01T00:00:00Z"),
+                transportDate: new Date("2026-08-01T09:30:00Z"),
                 status: "PENDING",
                 amount: "À calculer",
                 userNotes: "Fragile",
@@ -80,7 +89,7 @@ describe("Quote Management Server Actions", () => {
                 itemType: "Container 20ft",
                 pickupLocation: "Abidjan Port",
                 dropoffLocation: "Bouaké Zone Industrielle",
-                transportDate: "2026-08-01T00:00:00Z",
+                transportDate: "2026-08-01T09:30:00Z",
                 userNotes: "Fragile",
                 source: "form" as const,
             };
@@ -90,11 +99,33 @@ describe("Quote Management Server Actions", () => {
             expect(result.success).toBe(true);
             if (result.success && result.quote) {
                 expect(result.quote.id).toBe("quote-123");
+                expect(result.quote.trackingCode).toBe("HBC-2026-100000-4K8M2P");
                 expect(result.quote.client).toBe("HBC Client");
                 expect(result.quote.status).toBe("En attente");
                 expect(result.quote.source).toBe("form");
             }
             expect(prisma.quote.create).toHaveBeenCalledOnce();
+            expect(emailEnqueueSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    type: "client_confirmation",
+                    quoteId: "HBC-2026-100000-4K8M2P",
+                    createdAt: expect.any(String),
+                })
+            );
+            expect(emailEnqueueSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    type: "admin_notification",
+                    quoteId: "HBC-2026-100000-4K8M2P",
+                    date: expect.stringMatching(/\d{2}:\d{2}/),
+                })
+            );
+            expect(pdfEnqueueSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    id: "HBC-2026-100000-4K8M2P",
+                })
+            );
+            emailEnqueueSpy.mockRestore();
+            pdfEnqueueSpy.mockRestore();
             expect(prisma.quoteHistory.create).toHaveBeenCalledWith({
                 data: expect.objectContaining({
                     quoteId: "quote-123",

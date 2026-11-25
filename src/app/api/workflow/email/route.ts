@@ -21,6 +21,7 @@ const quoteEmailSchema = z.object({
     dropoff: z.string().min(1).max(500),
     itemType: z.string().min(1).max(200),
     date: z.string().min(1).max(100),
+    createdAt: z.string().max(100).optional(),
     quoteId: z.string().min(1).max(100),
 });
 
@@ -142,13 +143,14 @@ async function handler(req: NextRequest) {
             const { data, error, provider } = await sendTransactionalEmail({
                 from: EMAIL_SENDER,
                 to: [payload.email],
-                subject: `Confirmation de votre demande de devis #${payload.quoteId} - ${COMPANY_CONFIG.shortName}`,
+                subject: `Confirmation de votre demande de devis ${payload.quoteId} - ${COMPANY_CONFIG.shortName}`,
                 react: QuoteConfirmationEmail({
                     clientName: payload.clientName,
                     pickup: payload.pickup,
                     dropoff: payload.dropoff,
                     itemType: payload.itemType,
                     date: payload.date,
+                    createdAt: payload.createdAt,
                     quoteId: payload.quoteId,
                 }),
             });
@@ -172,7 +174,7 @@ async function handler(req: NextRequest) {
         const { data, error, provider } = await sendTransactionalEmail({
             from: EMAIL_SENDER,
             to: [adminEmail],
-            subject: `[ADMIN] Nouvelle demande de devis : ${payload.itemType} (#${payload.quoteId})`,
+            subject: `[ADMIN] Nouvelle demande de devis : ${payload.itemType} (${payload.quoteId})`,
             react: QuoteRequestEmail({
                 clientName: payload.clientName,
                 email: payload.email,
@@ -181,6 +183,7 @@ async function handler(req: NextRequest) {
                 dropoff: payload.dropoff,
                 itemType: payload.itemType,
                 date: payload.date,
+                createdAt: payload.createdAt,
                 quoteId: payload.quoteId,
             }),
         });

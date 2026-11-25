@@ -20,8 +20,25 @@
 |                         |  |                         |  | [x] TASK-QWS-01..04     |
 |                         |  |                         |  | [x] TASK-UX-01..02      |
 |                         |  |                         |  | [x] TASK-SUP-01         |
+|                         |  |                         |  | [x] TASK-REF-01..03     |
 +-------------------------+  +-------------------------+  +-------------------------+
 ```
+
+---
+
+## Completed Sprint 30: Timestamped Quote References (`HBC-YYYY-HHMMSS-XXXXXX`), Emails & Deadline Time Tracking
+
+- [x] **`TASK-REF-01` - Timestamped Tracking Code Format & Full Server Parity**
+  - **Target files:** `src/lib/tracking-code.ts`, `src/lib/qstash.ts`, `src/app/actions/quote-management.ts`, `src/app/actions/notification-management.ts`, `src/lib/support-agent/tools.ts`, `src/app/api/workflow/email/route.ts`, `src/components/emails/QuoteConfirmationEmail.tsx`, `src/components/emails/QuoteRequestEmail.tsx`
+  - **Criteria:** [x] Generated `HBC-YYYY-HHMMSS-XXXXXX`; passed `formatQuoteReference(quote)` + formatted deadline date/time + `createdAt` to email/PDF queues; preserved full ISO timestamps in `getQuotesAction`, `getQuoteByIdAction`, and `lookupQuoteStatusTool` (now searching `trackingCode`).
+
+- [x] **`TASK-REF-02` - Quote Deadline Time Picker & UI/PDF Timestamp Display**
+  - **Target files:** `src/components/features/quote-wizard/steps/StepDate.tsx`, `src/components/features/QuoteSummaryDialog.tsx`, `src/app/admin/quotes/[id]/page.tsx`, `src/components/features/admin/QuoteDetailsModal.tsx`, `src/lib/pdf-generator.ts`
+  - **Criteria:** [x] Added `HH:mm` time picker attached to `transportDate` in `StepDate`; displayed date + time across summary dialog, workspace, details modal, and PDF.
+
+- [x] **`TASK-REF-03` - Unit Tests & Full RSI Validation**
+  - **Target files:** `tests/unit/tracking-code.test.ts`, `tests/integration/quote-actions.test.ts`
+  - **Criteria:** [x] Verified `HBC-YYYY-HHMMSS-XXXXXX` generation and email/PDF queue payloads with formatted reference + timestamps; passed `vitest`, `pnpm next build` (`35/35` routes), and `python evals/run_fullstack_eval.py --quick` (`100/100` PASS).
 
 ---
 

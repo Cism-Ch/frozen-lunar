@@ -60,15 +60,19 @@ interface QuoteDetailsModalProps {
     onUpdate: () => void;
 }
 
-function safeFormatDate(dateString: string | undefined): string {
+function safeFormatDate(
+    dateString: string | undefined,
+    withTime = false
+): string {
     if (!dateString) return "Non spécifié";
+    const pattern = withTime ? "dd MMM yyyy 'à' HH:mm" : "dd MMM yyyy";
     const parsed = parseISO(dateString);
     if (isValid(parsed)) {
-        return format(parsed, "dd MMM yyyy", { locale: fr });
+        return format(parsed, pattern, { locale: fr });
     }
     const direct = new Date(dateString);
     if (isValid(direct)) {
-        return format(direct, "dd MMM yyyy", { locale: fr });
+        return format(direct, pattern, { locale: fr });
     }
     return dateString;
 }
@@ -271,7 +275,7 @@ export function QuoteDetailsModal({
                                 </div>
                                 <DialogDescription className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
                                     <span>
-                                        Créé le {safeFormatDate(quote.date)}
+                                        Créé le {safeFormatDate(quote.date, true)}
                                     </span>
                                     <span>•</span>
                                     <button
@@ -451,7 +455,8 @@ export function QuoteDetailsModal({
                                         <span className="text-muted-foreground flex items-center gap-1.5 text-xs font-medium">
                                             <CalendarIcon className="h-3.5 w-3.5" />
                                             {safeFormatDate(
-                                                quote.transportDate
+                                                quote.transportDate,
+                                                true
                                             )}
                                         </span>
                                     </div>

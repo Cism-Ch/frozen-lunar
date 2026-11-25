@@ -123,7 +123,7 @@ export function QuoteSummaryDialog({
                                 <span className="text-sm font-medium sm:text-base">
                                     {format(
                                         data.transportDate,
-                                        "dd MMMM yyyy",
+                                        "dd MMMM yyyy 'à' HH:mm",
                                         { locale: fr }
                                     )}
                                 </span>

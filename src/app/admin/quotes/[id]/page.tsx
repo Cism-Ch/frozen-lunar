@@ -411,7 +411,7 @@ export default function QuoteWorkspacePage() {
                         </div>
                         <p className="text-muted-foreground mt-0.5 text-xs">
                             {quote.client} • Créé le{" "}
-                            {safeFormatDate(quote.date, "dd MMMM yyyy")}
+                            {safeFormatDate(quote.date, "dd MMM yyyy 'à' HH:mm")}
                         </p>
                     </div>
                 </div>
@@ -528,12 +528,12 @@ export default function QuoteWorkspacePage() {
                                             <CalendarIcon className="text-primary h-4 w-4" />
                                             <div>
                                                 <p className="text-muted-foreground text-xs">
-                                                    Date prévue
+                                                    Échéance / Date &amp; heure prévue
                                                 </p>
                                                 <p className="text-sm font-semibold">
                                                     {safeFormatDate(
                                                         quote.transportDate,
-                                                        "dd MMM yyyy"
+                                                        "dd MMM yyyy 'à' HH:mm"
                                                     )}
                                                 </p>
                                             </div>
