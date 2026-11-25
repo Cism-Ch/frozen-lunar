@@ -54,10 +54,12 @@ import {
     updateUserRoleAction,
 } from "@/app/actions/user-management";
 import {
+    computeOverallKycStatus,
     getKycDocLabel,
     type ClientKycState,
     type KycDocType,
 } from "@/lib/client-kyc";
+import { KycValidationQueue } from "@/components/features/admin/KycValidationQueue";
 import { resolveAttachmentProxyUrl } from "@/lib/attachment-url";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
@@ -179,6 +181,26 @@ export function UserList({ users, currentUserId }: UserListProps) {
     const totalSessions = useMemo(
         () => users.reduce((sum, u) => sum + u.activeSessionsCount, 0),
         [users]
+    );
+
+    const kycClients = useMemo(
+        () =>
+            clientAccounts.filter(
+                (u) => u.kyc && u.kyc.documents.length > 0
+            ),
+        [clientAccounts]
+    );
+
+    const pendingKycCount = useMemo(
+        () =>
+            kycClients.filter((u) => {
+                const status = computeOverallKycStatus(
+                    u.accountType === "COMPANY" ? "COMPANY" : "INDIVIDUAL",
+                    u.kyc?.documents || []
+                );
+                return status === "PENDING";
+            }).length,
+        [kycClients]
     );
 
     const userToDelete = users.find((u) => u.id === confirmDeleteId);
@@ -355,6 +377,18 @@ export function UserList({ users, currentUserId }: UserListProps) {
                     >
                         <Users className="h-4 w-4" />
                         Comptes Clients ({filteredClients.length})
+                    </TabsTrigger>
+                    <TabsTrigger
+                        value="kyc-queue"
+                        className="min-h-[40px] gap-2 px-4"
+                    >
+                        <FileCheck2 className="text-primary h-4 w-4" />
+                        Validations KYC ({kycClients.length})
+                        {pendingKycCount > 0 && (
+                            <Badge className="ml-1 bg-amber-500 px-1.5 py-0 text-[10px] text-white">
+                                {pendingKycCount} à valider
+                            </Badge>
+                        )}
                     </TabsTrigger>
                 </TabsList>
 
@@ -699,6 +733,22 @@ export function UserList({ users, currentUserId }: UserListProps) {
                             </TableBody>
                         </Table>
                     </div>
+                </TabsContent>
+
+                {/* Onglet 3 : File Dédiée de Validation KYC Clients */}
+                <TabsContent value="kyc-queue" className="space-y-4">
+                    <KycValidationQueue
+                        clients={kycClients.map((c) => ({
+                            id: c.id,
+                            name: c.name,
+                            email: c.email,
+                            accountType: c.accountType,
+                            companyName: c.companyName,
+                            phone: c.phone,
+                            kyc: c.kyc!,
+                        }))}
+                        searchQuery={searchQuery}
+                    />
                 </TabsContent>
             </Tabs>
 

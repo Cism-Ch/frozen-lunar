@@ -19,9 +19,21 @@
 |                         |  |                         |  | [x] TASK-QUAL-01..02    |
 |                         |  |                         |  | [x] TASK-SUP-02         |
 |                         |  |                         |  | [x] TASK-MAIL-01        |
-|                         |  |                         |  | [x] TASK-KYC-01..02     |
+|                         |  |                         |  | [x] TASK-KYC-01..04     |
 +-------------------------+  +-------------------------+  +-------------------------+
 ```
+
+---
+
+## Completed Sprint 38: Dedicated Admin KYC Validation Queue & Verified Client Visual Indicators
+
+- [x] **`TASK-KYC-03` - Dedicated Admin `KycValidationQueue` Component on `/admin/users`**
+  - **Target files:** `src/components/features/admin/KycValidationQueue.tsx`, `src/components/features/admin/UserList.tsx`
+  - **Criteria:** [x] Created a dedicated intuitive card-based component managing all clients with uploaded KYC documents (filters: All / À valider / Profils validés / Refusés, inline Open/Download/Approve/Reject with optional rejection reason, live status update, green ring around verified user icons).
+
+- [x] **`TASK-KYC-04` - Green Circle Ring & Verified Badge in Client Space**
+  - **Target files:** `src/components/features/client/ClientSpaceDashboard.tsx`
+  - **Criteria:** [x] Displayed an emerald green circle ring around the User icon and a prominent "Profil validé" badge in the Espace Client header when KYC status is `VERIFIED`; validated with `pnpm next build` (`36/36` routes) and `python evals/run_fullstack_eval.py --quick` (`100/100` PASS).
 
 ---
 

@@ -54,7 +54,11 @@ import { authClient } from "@/lib/auth-client";
 import { safeFormatDate } from "@/lib/date-utils";
 import { LocationPicker } from "@/components/features/LocationPicker";
 import { ClientKycSection } from "@/components/features/client/ClientKycSection";
-import { EMPTY_KYC_STATE, type ClientKycState } from "@/lib/client-kyc";
+import {
+    computeOverallKycStatus,
+    EMPTY_KYC_STATE,
+    type ClientKycState,
+} from "@/lib/client-kyc";
 import {
     cancelClientQuoteAction,
     getClientDashboardAction,
@@ -464,26 +468,57 @@ export function ClientSpaceDashboard() {
     }
 
     const quotes = dashboard?.quotes ?? [];
+    const kycOverallStatus = computeOverallKycStatus(
+        accountType,
+        kycState.documents
+    );
+    const isProfileVerified = kycOverallStatus === "VERIFIED";
 
     return (
         <div className="space-y-8">
             {/* En-tête Client Connecté */}
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <div className="flex items-center gap-2">
-                        <Building2 className="text-primary h-5 w-5" />
-                        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-                            Espace Client —{" "}
-                            {dashboard?.profile?.companyName ||
-                                session.user.name}
-                        </h1>
+                <div className="flex items-start gap-3.5">
+                    {/* Cercle vert autour de l'icône utilisateur dès que le profil KYC est validé */}
+                    <div
+                        className={`mt-0.5 flex h-12 w-12 shrink-0 items-center justify-center rounded-full transition-all ${
+                            isProfileVerified
+                                ? "bg-emerald-500/15 text-emerald-600 ring-2 ring-emerald-500 ring-offset-2 ring-offset-background dark:text-emerald-400"
+                                : "bg-primary/10 text-primary border-primary/20 border"
+                        }`}
+                        title={
+                            isProfileVerified
+                                ? "Profil vérifié et validé par HBC Logistique"
+                                : "Profil client"
+                        }
+                    >
+                        {accountType === "COMPANY" ? (
+                            <Building2 className="h-6 w-6" />
+                        ) : (
+                            <User className="h-6 w-6" />
+                        )}
                     </div>
-                    <p className="text-muted-foreground text-sm">
-                        Connecté en tant que{" "}
-                        <span className="font-mono font-medium">
-                            {session.user.email}
-                        </span>
-                    </p>
+                    <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+                                Espace Client —{" "}
+                                {dashboard?.profile?.companyName ||
+                                    session.user.name}
+                            </h1>
+                            {isProfileVerified && (
+                                <Badge className="gap-1.5 bg-emerald-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-emerald-700">
+                                    <CheckCircle2 className="h-3.5 w-3.5" />
+                                    Profil validé
+                                </Badge>
+                            )}
+                        </div>
+                        <p className="text-muted-foreground text-sm">
+                            Connecté en tant que{" "}
+                            <span className="font-mono font-medium">
+                                {session.user.email}
+                            </span>
+                        </p>
+                    </div>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
