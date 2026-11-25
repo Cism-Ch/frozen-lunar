@@ -1,7 +1,7 @@
 # [SSOT] TASKS.md - Central Registry & Task Tracker
 
 > Single Source of Truth (SSOT) for orchestrating technical and functional tasks.
-> Strict ceiling: 250 lines. Archives: `SPRINT_01_05_ARCHIVE.md`, `SPRINT_06_11_ARCHIVE.md`, `SPRINT_12_23_ARCHIVE.md`.
+> Strict ceiling: 250 lines. Archives: `SPRINT_01_05_ARCHIVE.md`, `SPRINT_06_11_ARCHIVE.md`, `SPRINT_12_23_ARCHIVE.md`, `SPRINT_24_31_ARCHIVE.md`.
 
 ---
 
@@ -11,118 +11,45 @@
 +-------------------------+  +-------------------------+  +-------------------------+
 | [>] IN PROGRESS         |  |  [?] ROADMAP            |  |       [X] ARCHIVES      |
 +-------------------------+  +-------------------------+  +-------------------------+
-| (None)                  |  | (None)                  |  | [x] SP 01..11 (Archived)|
-|                         |  |                         |  | [x] SP 12..23 (Archived)|
-|                         |  |                         |  | [x] TASK-SEC-01..04     |
-|                         |  |                         |  | [x] TASK-BUG-01..03     |
-|                         |  |                         |  | [x] TASK-CLN-01..02     |
-|                         |  |                         |  | [x] TASK-RSI-01         |
-|                         |  |                         |  | [x] TASK-QWS-01..04     |
-|                         |  |                         |  | [x] TASK-UX-01..03      |
-|                         |  |                         |  | [x] TASK-SUP-01         |
-|                         |  |                         |  | [x] TASK-REF-01..03     |
+| [-] TASK-SEC-05         |  | [ ] TASK-QUAL-01        |  | [x] SP 01..11 (Archived)|
+| [-] TASK-SEC-06         |  | [ ] TASK-QUAL-02        |  | [x] SP 12..23 (Archived)|
+|                         |  |                         |  | [x] SP 24..31 (Archived)|
+|                         |  |                         |  | [x] TASK-PERF-01..02    |
 +-------------------------+  +-------------------------+  +-------------------------+
 ```
 
 ---
 
-## Completed Sprint 31: Mobile Theme Toggle Fix & Secure Attachment Download Proxy
+## Completed Sprint 32: Performance, Bundle Lazy-Loading & Database Indexing
 
-- [x] **`TASK-UX-03` - Fix Mobile Drawer Theme Toggle (`resolvedTheme` + Positioning + 44px Target)**
-  - **Target files:** `src/components/theme-toggle.tsx`
-  - **Criteria:** [x] Switched to `resolvedTheme` so system-dark toggles on first tap; removed uncontained `absolute` icon positioning inside scrollable drawers; enforced 44x44px mobile touch target.
+- [x] **`TASK-PERF-01` - Lazy-Load `jspdf` / `pdf-generator` on Client Pages**
+  - **Target files:** `src/app/admin/quotes/[id]/page.tsx`, `src/app/espace-client/quotes/[id]/page.tsx`, `src/components/features/client/ClientSpaceDashboard.tsx`
+  - **Criteria:** [x] Replaced static top-level `generateQuotePDF` imports with dynamic `await import("@/lib/pdf-generator")` on click to remove ~350KB `jspdf` from initial client bundles.
 
-- [x] **`TASK-SEC-04` - Authenticated Attachment Proxy (`GET /api/attachments/[...key]`) & Download UI**
-  - **Target files:** `src/lib/attachment-url.ts`, `src/app/api/attachments/[...key]/route.ts`, `src/app/api/upload/route.ts`, `src/app/admin/quotes/[id]/page.tsx`, `src/components/features/admin/QuoteDetailsModal.tsx`, `tests/unit/security-hardening.test.ts`
-  - **Criteria:** [x] Enforced admin auth (`401`/`403`), prefix/path-traversal checks, safe MIME allowlist, `X-Content-Type-Options: nosniff`, `Cache-Control: private, no-store`, and `?download=1` (`Content-Disposition: attachment`); added Open + Download buttons on admin quote views; passed `vitest` (`5/5`), `pnpm next build` (`36/36` routes), and `python evals/run_fullstack_eval.py --quick` (`100/100` PASS).
-
----
-
-## Completed Sprint 30: Timestamped Quote References (`HBC-YYYY-HHMMSS-XXXXXX`), Emails & Deadline Time Tracking
-
-- [x] **`TASK-REF-01` - Timestamped Tracking Code Format & Full Server Parity**
-  - **Target files:** `src/lib/tracking-code.ts`, `src/lib/qstash.ts`, `src/app/actions/quote-management.ts`, `src/app/actions/notification-management.ts`, `src/lib/support-agent/tools.ts`, `src/app/api/workflow/email/route.ts`, `src/components/emails/QuoteConfirmationEmail.tsx`, `src/components/emails/QuoteRequestEmail.tsx`
-  - **Criteria:** [x] Generated `HBC-YYYY-HHMMSS-XXXXXX`; passed `formatQuoteReference(quote)` + formatted deadline date/time + `createdAt` to email/PDF queues; preserved full ISO timestamps in `getQuotesAction`, `getQuoteByIdAction`, and `lookupQuoteStatusTool` (now searching `trackingCode`).
-
-- [x] **`TASK-REF-02` - Quote Deadline Time Picker & UI/PDF Timestamp Display**
-  - **Target files:** `src/components/features/quote-wizard/steps/StepDate.tsx`, `src/components/features/QuoteSummaryDialog.tsx`, `src/app/admin/quotes/[id]/page.tsx`, `src/components/features/admin/QuoteDetailsModal.tsx`, `src/lib/pdf-generator.ts`
-  - **Criteria:** [x] Added `HH:mm` time picker attached to `transportDate` in `StepDate`; displayed date + time across summary dialog, workspace, details modal, and PDF.
-
-- [x] **`TASK-REF-03` - Unit Tests & Full RSI Validation**
-  - **Target files:** `tests/unit/tracking-code.test.ts`, `tests/integration/quote-actions.test.ts`
-  - **Criteria:** [x] Verified `HBC-YYYY-HHMMSS-XXXXXX` generation and email/PDF queue payloads with formatted reference + timestamps; passed `vitest`, `pnpm next build` (`35/35` routes), and `python evals/run_fullstack_eval.py --quick` (`100/100` PASS).
+- [x] **`TASK-PERF-02` - Prisma Query Indexes & Fail-Open Redis Fleet Cache**
+  - **Target files:** `prisma/schema.prisma`, `src/app/actions/fleet-actions.ts`
+  - **Criteria:** [x] Added strategic `@@index` declarations on `Quote`, `QuoteHistory`, `ContactMessage`, `PartnerApplication`, `SupportMessage`, and `Vehicle`; cached `getPublicFleetAction` in Upstash Redis (120s TTL, fail-open) with invalidation on admin fleet mutations.
 
 ---
 
-## Completed Sprint 29: PDF Template Overhaul, Post-Quote Navigation Modal & Interactive Support Testing
+## Active Sprint 33: Security & Abuse-Prevention Hardening
 
-- [x] **`TASK-UX-01` - Executive A4 Quote PDF Template Overhaul (Zero Malformed/Overlapping Blocks)**
-  - **Target files:** `src/lib/pdf-generator.ts`, `src/lib/pdf.ts`
-  - **Criteria:** [x] Replaced fixed-Y colliding blocks with dynamic cursor layout (`splitTextToSize`), sanitized `\u202F`/`\u00A0` spaces for Helvetica compatibility, added brand header/cards/structured pricing table with footer pagination guard (`didDrawPage`).
+- [-] **`TASK-SEC-05` - Rate Limiting on Password Reset & Public AI Endpoints**
+  - **Target files:** `src/app/actions/auth-actions.ts`, `src/app/actions/ai-actions.ts`
+  - **Criteria:** [ ] Enforce fail-open Upstash Redis rate limiting on `requestPasswordResetAction`, `resetPasswordWithTokenAction`, `generateSupportAiAction`, and `estimateTransportAction`.
 
-- [x] **`TASK-UX-02` - Post-Quote Submission Choice Modal (Stay vs View My Quotes)**
-  - **Target files:** `src/components/features/QuoteSummaryDialog.tsx`, `src/components/features/QuoteWizard.tsx`
-  - **Criteria:** [x] After validating a quote, displays a clear choice modal asking whether to stay on the page ("Rester ici (nouveau devis)") or navigate to `/espace-client` ("Afficher mes devis") with 44px touch targets and `trackingCode` display.
-
-- [x] **`TASK-SUP-01` - Interactive Support Agent Testing & Bug Fixes**
-  - **Target files:** `src/lib/support-agent/mock-responses.ts`, `src/lib/support-agent/quote-flow.ts`, `tests/unit/support-interactive.test.ts`
-  - **Criteria:** [x] Fixed `HBC-YYYY-XXXX` tracking reference truncation in `mock-responses.ts` and added email validation in `quote-flow.ts`; passed `vitest` (`27/27` files, `138/138` tests), `pnpm next build` (`35/35` routes), and `python evals/run_fullstack_eval.py --quick` (`100/100` PASS).
-
----
-
-## Completed Sprint 28: Quote Workspace, Pricing Studio & End-to-End Parity
-
-- [x] **`TASK-QWS-01` - Quote DTO, Vehicle & Audit Parity (`quote-management` + `quote-storage`)**
-  - **Target files:** `src/lib/quote-storage.ts`, `src/app/actions/quote-management.ts`, `src/app/actions/whatsapp-actions.ts`, `src/app/admin/quotes/[id]/components/QuoteTimeline.tsx`
-  - **Criteria:** [x] Included `trackingCode`, `cancellationReason`, `cancelledAt`, `vehicleId`, `vehicleQuantity`, and `vehicle` in both `getQuoteByIdAction` and `getQuotesAction`; logged real admin identity; blocked status transitions on `CANCELLED` quotes; revalidated `/espace-client`; mapped `WHATSAPP_CONTACT` and `Chiffrage` in `QuoteTimeline`.
-
-- [x] **`TASK-QWS-02` - Pricing Studio & AI Structured Quote Engine Overhaul**
-  - **Target files:** `src/app/actions/quote-pricing-actions.ts`, `src/components/features/admin/QuotePricingStudio.tsx`, `src/lib/pdf-generator.ts`
-  - **Criteria:** [x] Loaded `quote.vehicle` + `quote.vehicleQuantity` in `assistQuotePricingAction` and factored real `dailyRateFcfa × quantity`; fixed FCFA amount parser (`.` / `,` + range midpoint); removed hardcoded 400k `DEFAULT_LINES`; synced `QuotePricingStudio` state with `initialBreakdown`; rendered structured breakdown & `Devis_HBC-YYYY-XXXX.pdf` in `generateQuotePDF`.
-
-- [x] **`TASK-QWS-03` - Admin Quote Workspace (`/admin/quotes/[id]`) & Modal Fixes**
-  - **Target files:** `src/app/admin/quotes/[id]/page.tsx`, `src/components/features/admin/QuoteDetailsModal.tsx`, `src/app/actions/ai-actions.ts`
-  - **Criteria:** [x] Replaced client-side `geminiService.draftEmail` with server-side `draftEmailAction` + added `sendAdminQuoteEmailAction`; used `useSearchParams()` for `?tab=...`; displayed selected vehicle & quantity; made attachments clickable; normalized `+225` phone on WhatsApp edit; fixed `QuoteDetailsModal` history slice order and locked `Annulé` status controls.
-
-- [x] **`TASK-QWS-04` - Regression Tests & Full RSI Validation**
-  - **Target files:** `tests/unit/quote-pricing.test.ts`
-  - **Criteria:** [x] Added unit tests covering FCFA parsing, `vehicleQuantity` pricing calculation, `getQuoteByIdAction` DTO parity, and `CANCELLED` status guard; verified `vitest` (`26/26` files, `134/134` tests), `pnpm next build` (`35/35` routes), and `python evals/run_fullstack_eval.py --quick` (`100/100` PASS).
-
----
-
-## Completed Sprint 27: RSI Procedural Memory Enrichment
-
-- [x] **`TASK-RSI-01` - Integrate Sprint 24-26 Lessons into RSI Rule Modules**
-  - **Target files:** `.agents/rules/modules/security_auth.md`, `.agents/rules/modules/api_backend.md`, `.agents/rules/modules/ui_frontend.md`, `.agents/rules/modules/pattern_recognition.md`
-  - **Criteria:** [x] Added `[R-SEC-05..06]`, `[R-API-05..06]`, `[R-UI-05..06]`, and `[R-PAT-07]` keeping every module strictly under 80 lines; validated via `python evals/run_fullstack_eval.py --quick` (`100/100` PASS).
-
----
-
-## Completed Sprint 24: Defensive Security Hardening, Anti-Spoofing & Rate Limiting
-
-- [x] **`TASK-SEC-01` - Binary Magic-Byte Upload Verification & Fleet Proxy Hardening**
-  - **Target files:** `src/lib/file-signature.ts`, `src/app/api/upload/route.ts`, `src/app/api/fleet-image/[...key]/route.ts`, `src/app/actions/upload-management.ts`
-  - **Criteria:** [x] Reject spoofed MIME types via binary magic-byte inspection; enforce `requireAdmin()` on `fleet-images` in `getPresignedUploadUrlAction`; enforce strict image MIME allowlist + `X-Content-Type-Options: nosniff` on fleet proxy.
-
-- [x] **`TASK-SEC-02` - Upstash Redis Rate Limiting on Public Abuse Vectors & CSP Hardening**
-  - **Target files:** `src/lib/rate-limit.ts`, `src/app/api/upload/route.ts`, `src/app/actions/contact.ts`, `src/app/api/admin/init/route.ts`, `next.config.ts`
-  - **Criteria:** [x] Applied rate limiting to upload, contact form, and admin init; updated CSP `connect-src` (`openrouter.ai`) and `upgrade-insecure-requests` in prod.
-
-- [x] **`TASK-SEC-03` - Defensive Security Regression Test Suite**
+- [ ] **`TASK-SEC-06` - Security Rate-Limit Regression Tests**
   - **Target files:** `tests/unit/security-hardening.test.ts`
-  - **Criteria:** [x] Verified magic-byte spoofing rejection, unauthenticated `fleet-images` presign rejection, and path traversal defenses (`100/100` RSI PASS).
+  - **Criteria:** [ ] Add unit tests verifying rate-limit rejection on password reset and support AI actions.
 
 ---
 
-## Completed Sprint 25: Critical Action & Data Consistency Fixes
+## Planned Sprint 34: Code Quality, SPA Navigation & Overnight Report
 
-- [x] **`TASK-BUG-01` (SP 25)** - Preserved uploaded `attachments` in `createQuoteAction` (`supplementaryInfoSchema`) + added rate limiting.
-- [x] **`TASK-BUG-02` (SP 25)** - Fixed `searchAdminAction` (`trackingCode` search, `QuoteStatus.CANCELLED` mapping, missing admin navigation routes).
-- [x] **`TASK-BUG-03` (SP 25)** - Replaced legacy `#id.slice(0,8)` with `HBC-YYYY-XXXX` in `thread-actions.ts` welcome message (`100/100` RSI PASS).
+- [ ] **`TASK-QUAL-01` - Eliminate Remaining ESLint Warning & Wire Chat Validation Errors**
+  - **Target files:** `src/hooks/useSupportChat.ts`
+  - **Criteria:** [ ] Replace `window.location.href = "/devis"` with `useRouter().push("/devis")` (zero ESLint warnings); display `processFlowAnswer` validation errors (e.g. invalid email) cleanly in chat.
 
----
-
-## Completed Sprint 26: Admin UI Consistency & Dead Code Removal
-
-- [x] **`TASK-CLN-01` (SP 26)** - Upgraded `src/app/admin/dashboard/page.tsx` from legacy `QuoteDetailsSheet` to responsive centered `QuoteDetailsModal` (live ID sync).
-- [x] **`TASK-CLN-02` (SP 26)** - Removed dead legacy `src/components/features/QuoteDetailsSheet.tsx` & verified full build/tests/RSI (`133/133` tests PASS, `pnpm next build` 35/35 routes PASS, `100/100` RSI PASS).
+- [ ] **`TASK-QUAL-02` - Full Verification Suite & Overnight Audit Report**
+  - **Target files:** `docs/TASKS.md`
+  - **Criteria:** [ ] Pass full `pnpm vitest run`, `pnpm next build`, and `python evals/run_fullstack_eval.py --quick` (`100/100` PASS); commit Sprints 32, 33, 34 separately.

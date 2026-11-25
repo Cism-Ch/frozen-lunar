@@ -60,7 +60,6 @@ import {
 } from "lucide-react";
 import { safeFormatDate } from "@/lib/date-utils";
 import { toast } from "sonner";
-import { generateQuotePDF } from "@/lib/pdf-generator";
 import {
     draftEmailAction,
     sendAdminQuoteEmailAction,
@@ -238,6 +237,7 @@ export default function QuoteWorkspacePage() {
 
     const handleDownloadPDF = async () => {
         if (!quote) return;
+        const { generateQuotePDF } = await import("@/lib/pdf-generator");
         generateQuotePDF(quote);
         toast.success("PDF téléchargé");
         try {

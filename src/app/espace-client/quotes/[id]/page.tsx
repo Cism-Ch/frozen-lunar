@@ -25,7 +25,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { OrderChat } from "@/components/features/client/OrderChat";
 import { getClientQuoteDetailAction } from "@/app/actions/client-space-actions";
-import { generateQuotePDF } from "@/lib/pdf-generator";
 import { safeFormatDate } from "@/lib/date-utils";
 
 type QuoteDetailData = NonNullable<
@@ -88,7 +87,8 @@ export default function ClientQuoteDetailPage() {
         );
     }
 
-    const handleDownloadPdf = () => {
+    const handleDownloadPdf = async () => {
+        const { generateQuotePDF } = await import("@/lib/pdf-generator");
         generateQuotePDF({
             id: quote.id,
             date: quote.date,

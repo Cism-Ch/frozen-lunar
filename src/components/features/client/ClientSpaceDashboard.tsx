@@ -51,7 +51,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { authClient } from "@/lib/auth-client";
-import { generateQuotePDF } from "@/lib/pdf-generator";
 import { safeFormatDate } from "@/lib/date-utils";
 import {
     cancelClientQuoteAction,
@@ -311,7 +310,8 @@ export function ClientSpaceDashboard() {
         }
     };
 
-    const handleDownloadPdf = (q: ClientQuoteSummaryDTO) => {
+    const handleDownloadPdf = async (q: ClientQuoteSummaryDTO) => {
+        const { generateQuotePDF } = await import("@/lib/pdf-generator");
         generateQuotePDF({
             id: q.id,
             trackingCode: q.trackingCode,

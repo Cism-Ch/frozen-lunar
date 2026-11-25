@@ -5,7 +5,11 @@ import { z } from "zod";
 import { Prisma, Vehicle, VehicleCategory } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-guard";
+import { hasValidUpstashRedisRestConfig, redis } from "@/lib/redis";
 import { logger } from "@/lib/logger";
+
+const PUBLIC_FLEET_CACHE_KEY = "hbc:fleet:public:v1";
+const PUBLIC_FLEET_CACHE_TTL_SEC = 120;
 import {
     AFRICAN_FLEET_CATALOG,
     resolveVehicleImageUrl,
@@ -126,6 +130,9 @@ function getFallbackCatalog(): FleetVehicleItem[] {
 }
 
 function revalidateFleetPaths() {
+    if (hasValidUpstashRedisRestConfig) {
+        void redis.del(PUBLIC_FLEET_CACHE_KEY).catch(() => {});
+    }
     revalidatePath("/flotte");
     revalidatePath("/admin/fleet");
     revalidatePath("/devis");
@@ -201,6 +208,19 @@ export async function getPublicFleetAction(): Promise<{
     error: string | null;
 }> {
     try {
+        if (hasValidUpstashRedisRestConfig) {
+            try {
+                const cached = await redis.get<FleetVehicleItem[]>(
+                    PUBLIC_FLEET_CACHE_KEY
+                );
+                if (Array.isArray(cached) && cached.length > 0) {
+                    return { data: cached, error: null };
+                }
+            } catch {
+                // Fail-open : si Redis est lent ou indisponible, on lit Prisma
+            }
+        }
+
         await ensureDefaultFleetInDb();
 
         const vehicles = await prisma.vehicle.findMany({
@@ -208,8 +228,18 @@ export async function getPublicFleetAction(): Promise<{
             orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
         });
 
+        const mapped = vehicles.map(toFleetVehicleItem);
+
+        if (hasValidUpstashRedisRestConfig && mapped.length > 0) {
+            void redis
+                .set(PUBLIC_FLEET_CACHE_KEY, mapped, {
+                    ex: PUBLIC_FLEET_CACHE_TTL_SEC,
+                })
+                .catch(() => {});
+        }
+
         return {
-            data: vehicles.map(toFleetVehicleItem),
+            data: mapped,
             error: null,
         };
     } catch (error: unknown) {
