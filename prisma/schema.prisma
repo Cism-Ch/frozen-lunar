@@ -338,4 +338,25 @@ model AdminNotificationRead {
   @@map("admin_notification_read")
 }
 
+// --- Abonnés Newsletter HBC Logistique ---
+
+enum NewsletterStatus {
+  ACTIVE
+  UNSUBSCRIBED
+}
+
+model NewsletterSubscriber {
+  id               String           @id @default(cuid())
+  email            String           @unique
+  status           NewsletterStatus @default(ACTIVE)
+  source           String           @default("footer")
+  unsubscribeToken String           @unique @default(cuid())
+  subscribedAt     DateTime         @default(now())
+  unsubscribedAt   DateTime?
+  updatedAt        DateTime         @updatedAt
+
+  @@index([status, subscribedAt])
+  @@map("newsletter_subscriber")
+}
+
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import {
     Truck,
@@ -9,10 +10,14 @@ import {
     Facebook,
     Linkedin,
     Instagram,
+    Loader2,
+    CheckCircle2,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { COMPANY_CONFIG } from "@/lib/company-config";
+import { subscribeNewsletterAction } from "@/app/actions/newsletter-actions";
 
 function XIcon({ className }: { className?: string }) {
     return (
@@ -29,6 +34,36 @@ function XIcon({ className }: { className?: string }) {
 
 export function Footer() {
     const currentYear = new Date().getFullYear();
+    const [newsletterEmail, setNewsletterEmail] = useState("");
+    const [subscribing, setSubscribing] = useState(false);
+    const [subscribed, setSubscribed] = useState(false);
+
+    const handleNewsletterSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const trimmed = newsletterEmail.trim();
+        if (!trimmed || subscribing) return;
+
+        setSubscribing(true);
+        try {
+            const res = await subscribeNewsletterAction({
+                email: trimmed,
+                source: "footer",
+            });
+            if (res.error || !res.data) {
+                toast.error(
+                    res.error || "Impossible de finaliser votre inscription."
+                );
+            } else {
+                toast.success(res.data.message);
+                setSubscribed(true);
+                setNewsletterEmail("");
+            }
+        } catch {
+            toast.error("Erreur réseau lors de l'inscription à la newsletter.");
+        } finally {
+            setSubscribing(false);
+        }
+    };
 
     return (
         <footer className="bg-muted/30 w-full border-t">
@@ -212,17 +247,44 @@ export function Footer() {
                         {/* Newsletter */}
                         <div className="space-y-2 pt-4">
                             <p className="text-sm font-medium">Newsletter</p>
-                            <div className="flex flex-col justify-center gap-2 sm:flex-row sm:justify-start">
-                                <Input
-                                    type="email"
-                                    placeholder="Votre email"
-                                    className="h-11 text-sm sm:h-10"
-                                    aria-label="Adresse email pour la newsletter"
-                                />
-                                <Button className="h-11 w-full px-5 font-semibold sm:h-10 sm:w-auto">
-                                    S&apos;inscrire
-                                </Button>
-                            </div>
+                            {subscribed ? (
+                                <div className="flex items-center justify-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-xs font-medium text-emerald-700 sm:justify-start dark:text-emerald-400">
+                                    <CheckCircle2 className="h-4 w-4 shrink-0" />
+                                    <span>
+                                        Inscription confirmée ! Vérifiez votre
+                                        boîte mail.
+                                    </span>
+                                </div>
+                            ) : (
+                                <form
+                                    onSubmit={handleNewsletterSubmit}
+                                    className="flex flex-col justify-center gap-2 sm:flex-row sm:justify-start"
+                                >
+                                    <Input
+                                        type="email"
+                                        required
+                                        value={newsletterEmail}
+                                        onChange={(e) =>
+                                            setNewsletterEmail(e.target.value)
+                                        }
+                                        disabled={subscribing}
+                                        placeholder="Votre email"
+                                        className="h-11 text-sm sm:h-10"
+                                        aria-label="Adresse email pour la newsletter"
+                                    />
+                                    <Button
+                                        type="submit"
+                                        disabled={subscribing}
+                                        className="h-11 w-full px-5 font-semibold sm:h-10 sm:w-auto"
+                                    >
+                                        {subscribing ? (
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                        ) : (
+                                            "S'inscrire"
+                                        )}
+                                    </Button>
+                                </form>
+                            )}
                         </div>
                     </div>
                 </div>

@@ -4,23 +4,27 @@ import { Suspense } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ContactMessagesInbox } from "./ContactMessagesInbox";
 import { ClientDirectory } from "./ClientDirectory";
+import { NewsletterAdminPanel } from "@/components/features/admin/NewsletterAdminPanel";
+import type { NewsletterSubscriberDTO } from "@/app/actions/newsletter-actions";
 import {
     type ContactMessageItem,
     type ClientDirectoryItem,
     ContactStatus,
 } from "@/types/contact";
-import { Inbox, Users, ArrowRight, Shield } from "lucide-react";
+import { Inbox, Users, Mail, ArrowRight, Shield } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 interface ContactsDashboardViewProps {
     initialMessages: ContactMessageItem[];
     initialClients: ClientDirectoryItem[];
+    initialSubscribers: NewsletterSubscriberDTO[];
 }
 
 export function ContactsDashboardView({
     initialMessages,
     initialClients,
+    initialSubscribers,
 }: ContactsDashboardViewProps) {
     const unreadCount = initialMessages.filter(
         (m) => m.status === ContactStatus.UNREAD
@@ -82,6 +86,20 @@ export function ContactsDashboardView({
                                 {initialClients.length}
                             </span>
                         </TabsTrigger>
+                        <TabsTrigger
+                            value="newsletter"
+                            className="flex-1 gap-2 px-4 text-xs font-semibold whitespace-nowrap sm:flex-initial"
+                        >
+                            <Mail className="text-primary h-4 w-4 shrink-0" />
+                            <span>Newsletter</span>
+                            <span className="bg-muted text-muted-foreground ml-1 inline-flex items-center justify-center rounded-full px-2 py-0.5 font-mono text-[11px] font-semibold">
+                                {
+                                    initialSubscribers.filter(
+                                        (s) => s.status === "ACTIVE"
+                                    ).length
+                                }
+                            </span>
+                        </TabsTrigger>
                     </TabsList>
                 </div>
 
@@ -110,6 +128,15 @@ export function ContactsDashboardView({
                     className="animate-in fade-in slide-in-from-bottom-2 duration-300"
                 >
                     <ClientDirectory initialClients={initialClients} />
+                </TabsContent>
+
+                <TabsContent
+                    value="newsletter"
+                    className="animate-in fade-in slide-in-from-bottom-2 duration-300"
+                >
+                    <NewsletterAdminPanel
+                        initialSubscribers={initialSubscribers}
+                    />
                 </TabsContent>
             </Tabs>
         </div>

@@ -11,8 +11,8 @@
 +-------------------------+  +-------------------------+  +-------------------------+
 | [>] IN PROGRESS         |  |  [?] ROADMAP            |  |       [X] ARCHIVES      |
 +-------------------------+  +-------------------------+  +-------------------------+
-| (None)                  |  | [ ] TASK-NWS-01         |  | [x] SP 01..11 (Archived)|
-|                         |  | [ ] TASK-NWS-02         |  | [x] SP 12..23 (Archived)|
+| (None)                  |  | (None)                  |  | [x] SP 01..11 (Archived)|
+|                         |  |                         |  | [x] SP 12..23 (Archived)|
 |                         |  |                         |  | [x] SP 24..31 (Archived)|
 |                         |  |                         |  | [x] TASK-PERF-01..04    |
 |                         |  |                         |  | [x] TASK-SEC-05..08     |
@@ -23,6 +23,7 @@
 |                         |  |                         |  | [x] TASK-PRT-01..02     |
 |                         |  |                         |  | [x] TASK-CNT-01         |
 |                         |  |                         |  | [x] TASK-OPS-01         |
+|                         |  |                         |  | [x] TASK-NWS-01..02     |
 +-------------------------+  +-------------------------+  +-------------------------+
 ```
 
@@ -40,15 +41,15 @@
 
 ---
 
-## Planned Sprint 44: End-to-End Newsletter System (Subscription, Double Safety & Admin)
+## Completed Sprint 44: End-to-End Newsletter System (Subscription, Double Safety & Admin)
 
-- [ ] **`TASK-NWS-01` - Newsletter Backend, Rate-Limited Subscription, Welcome Email & Unsubscribe**
+- [x] **`TASK-NWS-01` - Newsletter Backend, Rate-Limited Subscription, Welcome Email & Unsubscribe**
   - **Target files:** `prisma/schema.prisma`, `src/app/actions/newsletter-actions.ts`, `src/app/api/newsletter/unsubscribe/route.ts`, `tests/unit/newsletter.test.ts`
-  - **Criteria:** [ ] Add `NewsletterSubscriber` model (or persistent table with `email` unique, `status`, `unsubscribeToken`), Zod-validated & rate-limited `subscribeNewsletterAction`, HBC-branded welcome email with 1-click signed unsubscribe link, and idempotent re-subscription handling.
+  - **Criteria:** [x] Added `NewsletterSubscriber` model synced to Supabase PostgreSQL; implemented Zod-validated, rate-limited & idempotent `subscribeNewsletterAction` sending an HBC-branded welcome email with 1-click unsubscribe link via `/api/newsletter/unsubscribe`.
 
-- [ ] **`TASK-NWS-02` - Functional Footer Newsletter Form & Admin Subscribers/Broadcast Panel**
-  - **Target files:** `src/components/layout/Footer.tsx`, `src/app/admin/contacts/page.tsx` (or `/admin/newsletter`), `tests/unit/newsletter.test.ts`
-  - **Criteria:** [ ] Wire real submit/loading/success/error states in `Footer.tsx`, provide an admin view to list/export subscribers and send a branded newsletter campaign via `sendTransactionalEmail`, and verify with tests, `next build`, and RSI eval (`100/100`).
+- [x] **`TASK-NWS-02` - Functional Footer Newsletter Form & Admin Subscribers/Broadcast Panel**
+  - **Target files:** `src/components/layout/Footer.tsx`, `src/app/admin/contacts/page.tsx`, `src/app/admin/contacts/components/ContactsDashboardView.tsx`, `src/components/features/admin/NewsletterAdminPanel.tsx`, `tests/unit/newsletter.test.ts`
+  - **Criteria:** [x] Wired real submit/loading/success/error states in `Footer.tsx`; added Admin Newsletter tab in `/admin/contacts` with KPIs, CSV export, subscriber deletion, and batched campaign broadcast; verified with `vitest` (`4/4`), `pnpm next build`, and RSI eval (`100/100` PASS).
 
 ---
 

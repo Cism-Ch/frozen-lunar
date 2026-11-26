@@ -4,12 +4,13 @@ import {
     getContactMessagesAction,
     getClientsDirectoryAction,
 } from "@/app/actions/contact";
+import { getNewsletterSubscribersAction } from "@/app/actions/newsletter-actions";
 import { ContactsDashboardView } from "./components/ContactsDashboardView";
 
 export const metadata: Metadata = {
     title: "Contacts & Boîte de Réception | Administration HBC Logistique",
     description:
-        "Gestion des messages de contact entrants et répertoire des clients de la plateforme.",
+        "Gestion des messages de contact entrants, répertoire des clients et abonnés newsletter.",
 };
 
 export default async function ContactsPage() {
@@ -17,18 +18,21 @@ export default async function ContactsPage() {
     await requireAdmin();
 
     // Récupération simultanée et asynchrone des données réelles PostgreSQL
-    const [messagesRes, clientsRes] = await Promise.all([
+    const [messagesRes, clientsRes, newsletterRes] = await Promise.all([
         getContactMessagesAction(),
         getClientsDirectoryAction(),
+        getNewsletterSubscribersAction(),
     ]);
 
     const messages = messagesRes.data || [];
     const clients = clientsRes.data || [];
+    const subscribers = newsletterRes.data || [];
 
     return (
         <ContactsDashboardView
             initialMessages={messages}
             initialClients={clients}
+            initialSubscribers={subscribers}
         />
     );
 }
