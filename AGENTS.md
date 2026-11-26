@@ -19,13 +19,16 @@ This document governs engineering guidelines, codebase governance, and the Recur
 3. **RSI Protocol (Recursive Self-Improvement):**
    - **Modular Procedural Memory:** Consult `.agents/rules/modules/` for specialized rules (< 80 lines per file).
    - **Adaptive Deterministic Judge:** Validate progress with `python evals/run_fullstack_eval.py --quick`.
-   - **Meta-Cognitive Loop:** Adopt `.agents/prompts/meta_optimizer.md` to extract lessons and enrich sub-playbooks when fixing bugs or after security audits.
-   - **Dedicated Workflow:** Use the `/rsi-feature` command.
+   - **Meta-Cognitive Loop:** Adopt `.agents/prompts/meta_optimizer.md` (or `--persona meta`) to extract lessons and enrich sub-playbooks when fixing bugs, after security audits, or from `CAPITALIZATION_CANDIDATE` findings.
+   - **On-Demand Specialist Reviews (`rsi-specialist`):** For `M`/`L`/`XL` tasks or sensitive layers (DB, security, UI, QA), invoke an isolated read-only persona via `python evals/memory_engine.py --persona <architect|db|security|ui|qa>` (0 overhead on `XS`/`S` tasks).
+   - **Dedicated Workflow:** Use the `/rsi-feature` command. See `docs/AGENT_OPERATIONS.md` for full agent operating guidelines.
    - **Post-Commit Target Sync:** On the source protocol repository, after work & commit, always ask the user before running `--sync-all` / `--sync-to <dir>` on registered targets and ask for the disk path of any other unsynchronized project. If `--sync-to` backs up a pre-existing `AGENTS.md`, evaluate its rules against `system_core.md` / `.agents/rules/modules/` and ask the user how to merge uncovered or conflicting rules.
 4. **Anti-Saturation Test Cadence:**
-   - Micro-edits without global test suite -> Milestone checkpoint with compact `--quick` -> Task closure with full validation.
+   - Micro-edits without global test suite -> Milestone checkpoint with compact `--quick` -> Task closure with full validation -> Sprint closure with `--sprint-gate` (net-new CVE & performance checks only, without re-running passed task suites).
 5. **Memory Duality:**
    - IDE Artifacts for episodic session tracking; `.agents/rules/modules/` files for durable procedural memory.
+6. **Mandatory Pre-Commit Security & Performance Audit:**
+   - Before any `git commit`, agents MUST perform a security & performance audit on the changed scope without duplicating already-passed task checks: verify `evals/security_audit.py` (0 secrets, anti-patterns, or supply-chain alerts), run `python evals/rsi_orchestrator.py --sprint-gate` (prod dependency CVEs, oversized `public/` assets, N+1 DB loops, and LCP review on modified UI pages), and confirm zero unvalidated inputs, missing rate-limits, or insecure shortcuts in the diff.
 <!-- RSI-PROTOCOL:END -->
 
 ## Project-Specific Rules

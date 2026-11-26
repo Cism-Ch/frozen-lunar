@@ -24,10 +24,16 @@ if sys.stdout.encoding != 'utf-8':
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 MODULES_DIR = ROOT_DIR / ".agents" / "rules" / "modules"
+SPECIALIST_CATALOG_FILE = ROOT_DIR / ".agents" / "prompts" / "rsi_specialist.md"
 TRAJECTORY_FILE = ROOT_DIR / "evals" / "logs" / "trajectory_latest.json"
 ACTIVE_SESSION_FILE = ROOT_DIR / ".agents" / "telemetry" / "active_session.json"
 MAX_LINES_PER_MODULE = 80
+MAX_LINES_PER_PERSONA = 40
 RULE_ID_PATTERN = re.compile(r"\[(R-[A-Z0-9\-]+)\]")
+PERSONA_BLOCK_RE = re.compile(
+    r"<!--\s*PERSONA:([a-zA-Z0-9_\-]+):START\s*-->(.*?)<!--\s*PERSONA:\1:END\s*-->",
+    re.DOTALL,
+)
 
 MODULE_TRIGGERS = {
     "db.md": ["prisma", "schema", "model", "migration", "database", "sql", "mongo", "db", "drizzle"],
@@ -71,37 +77,97 @@ KNOWN_ERROR_PATTERNS = [
     )
 ]
 
+def parse_specialist_personas(catalog_path: Path | None = None) -> tuple[str, dict[str, str]]:
+    """Parses CORE and tagged PERSONA blocks from .agents/prompts/rsi_specialist.md."""
+    target = catalog_path or SPECIALIST_CATALOG_FILE
+    if not target.exists():
+        return "", {}
+    text = target.read_text(encoding="utf-8", errors="ignore")
+    core = ""
+    personas: dict[str, str] = {}
+    for match in PERSONA_BLOCK_RE.finditer(text):
+        key = match.group(1).strip().lower()
+        body = match.group(2).strip()
+        if key == "core":
+            core = body
+        else:
+            personas[key] = body
+    return core, personas
+
+def resolve_persona(persona_name: str, catalog_path: Path | None = None) -> tuple[bool, str]:
+    """Extracts CORE + requested specialist persona block without loading unrelated personas."""
+    core, personas = parse_specialist_personas(catalog_path)
+    if not personas:
+        return False, "[WARN] Specialist catalog not found or contains 0 tagged personas."
+    key = persona_name.strip().lower()
+    if key not in personas:
+        avail = ", ".join(sorted(personas.keys()))
+        return False, f"[FAIL] Unknown persona '{persona_name}'. Available personas: {avail}"
+    parts = [f"[RSI Specialist Persona: {key}]"]
+    if core:
+        parts.append("\n" + core)
+    parts.append("\n" + personas[key])
+    return True, "\n".join(parts)
+
+def list_personas(catalog_path: Path | None = None) -> list[str]:
+    """Prints available specialist personas with non-empty line counts."""
+    _, personas = parse_specialist_personas(catalog_path)
+    if not personas:
+        print("[INFO] No specialist personas configured in .agents/prompts/rsi_specialist.md.")
+        return []
+    print(f"[RSI Specialist Catalog] {len(personas)} available persona(s):")
+    for name in sorted(personas.keys()):
+        lines = len([ln for ln in personas[name].splitlines() if ln.strip()])
+        print(f"  - {name} ({lines}/{MAX_LINES_PER_PERSONA} lines) -> python evals/memory_engine.py --persona {name}")
+    return sorted(personas.keys())
+
 def audit_memory_modules() -> bool:
-    """Verifies that each module strictly remains under the maximum line ceiling."""
-    if not MODULES_DIR.exists():
-        print(f"[WARN] [RSI Memory Audit] Modules directory not found at {MODULES_DIR}")
-        return True
-
-    modules = list(MODULES_DIR.glob("*.md"))
-    if not modules:
-        print("[INFO] [RSI Memory Audit] No modules found.")
-        return True
-
-    print(f"[RSI Memory Audit] {len(modules)} modules detected.")
+    """Verifies that each rule module (< 80L) and specialist persona block (< 40L) stays compact."""
     has_violation = False
 
-    for mod in modules:
-        try:
-            content = mod.read_text(encoding="utf-8")
-            line_count = len([line for line in content.splitlines() if line.strip()])
-            if line_count > MAX_LINES_PER_MODULE:
-                print(f"  [FAIL] {mod.name}: {line_count}/{MAX_LINES_PER_MODULE} lines (LIMIT EXCEEDED!)")
+    if not MODULES_DIR.exists():
+        print(f"[WARN] [RSI Memory Audit] Modules directory not found at {MODULES_DIR}")
+    else:
+        modules = list(MODULES_DIR.glob("*.md"))
+        if not modules:
+            print("[INFO] [RSI Memory Audit] No modules found.")
+        else:
+            print(f"[RSI Memory Audit] {len(modules)} modules detected.")
+            for mod in modules:
+                try:
+                    content = mod.read_text(encoding="utf-8")
+                    line_count = len([line for line in content.splitlines() if line.strip()])
+                    if line_count > MAX_LINES_PER_MODULE:
+                        print(f"  [FAIL] {mod.name}: {line_count}/{MAX_LINES_PER_MODULE} lines (LIMIT EXCEEDED!)")
+                        has_violation = True
+                    else:
+                        print(f"  [OK] {mod.name}: {line_count}/{MAX_LINES_PER_MODULE} lines")
+                except Exception as e:
+                    print(f"  [WARN] Error reading {mod.name}: {e}")
+
+    if SPECIALIST_CATALOG_FILE.exists():
+        core, personas = parse_specialist_personas()
+        print(f"[RSI Specialist Audit] {len(personas)} persona block(s) detected in rsi_specialist.md.")
+        if core:
+            core_lines = len([ln for ln in core.splitlines() if ln.strip()])
+            if core_lines > MAX_LINES_PER_PERSONA:
+                print(f"  [FAIL] persona:CORE: {core_lines}/{MAX_LINES_PER_PERSONA} lines (LIMIT EXCEEDED!)")
                 has_violation = True
             else:
-                print(f"  [OK] {mod.name}: {line_count}/{MAX_LINES_PER_MODULE} lines")
-        except Exception as e:
-            print(f"  [WARN] Error reading {mod.name}: {e}")
+                print(f"  [OK] persona:CORE: {core_lines}/{MAX_LINES_PER_PERSONA} lines")
+        for name, body in sorted(personas.items()):
+            p_lines = len([ln for ln in body.splitlines() if ln.strip()])
+            if p_lines > MAX_LINES_PER_PERSONA:
+                print(f"  [FAIL] persona:{name}: {p_lines}/{MAX_LINES_PER_PERSONA} lines (LIMIT EXCEEDED!)")
+                has_violation = True
+            else:
+                print(f"  [OK] persona:{name}: {p_lines}/{MAX_LINES_PER_PERSONA} lines")
 
     if has_violation:
-        print("\n[FAIL] Some modules exceed the maximum allowed line count. Summarize or split them!")
+        print("\n[FAIL] Some modules or specialist personas exceed their maximum line ceiling. Summarize or split them!")
         return False
     else:
-        print("\n[OK] All modules comply with the strict compactness limit!")
+        print("\n[OK] All modules and specialist personas comply with the strict compactness limits!")
         return True
 
 def load_active_session() -> dict:
@@ -233,14 +299,25 @@ def diagnose_trajectory() -> bool:
 
 def main():
     parser = argparse.ArgumentParser(description="RSI Modular Memory Engine")
-    parser.add_argument("--audit", action="store_true", help="Verify module compactness ceiling")
+    parser.add_argument("--audit", action="store_true", help="Verify module (<80L) and specialist persona (<40L) ceilings")
     parser.add_argument("--inject", nargs="*", help="Dynamically inject relevant rule modules for specified files")
     parser.add_argument("--diagnose", action="store_true", help="Instant pattern diagnosis on latest failed trajectory")
+    parser.add_argument("--persona", type=str, metavar="NAME", help="Extract CORE + targeted specialist persona from rsi_specialist.md")
+    parser.add_argument("--list-personas", action="store_true", help="List available specialist personas and line counts")
     args = parser.parse_args()
 
     if args.audit:
         success = audit_memory_modules()
         sys.exit(0 if success else 1)
+
+    if args.list_personas:
+        list_personas()
+        sys.exit(0)
+
+    if args.persona:
+        ok, output = resolve_persona(args.persona)
+        print(output)
+        sys.exit(0 if ok else 1)
 
     if args.diagnose:
         diagnose_trajectory()

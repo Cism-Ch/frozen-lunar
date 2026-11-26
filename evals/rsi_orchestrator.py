@@ -7,8 +7,10 @@ Drives reflexive retry loops (up to 3 attempts) and verifies integrity guardrail
 """
 
 import sys
+import os
 import re
 import fnmatch
+import shutil
 import subprocess
 import json
 import argparse
@@ -665,6 +667,151 @@ def run_session_pulse() -> None:
     except Exception:
         pass
 
+PUBLIC_ASSET_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp", ".svg", ".mp4", ".mov", ".webm"}
+MAX_PUBLIC_ASSET_BYTES = 512_000
+FOR_LOOP_RE = re.compile(r'^\s*for\s*\(')
+DB_AWAIT_RE = re.compile(r'\bawait\s+(?:prisma|db)\.[a-zA-Z0-9_]+\.(?:findUnique|findFirst|findMany|create|update|upsert|delete)\s*\(')
+
+def audit_heavy_public_assets() -> list[dict]:
+    """Detects oversized media/image assets (> 500 KB) inside public/."""
+    public_dir = ROOT_DIR / "public"
+    if not public_dir.is_dir():
+        return []
+    heavy = []
+    for root, dirs, files in os.walk(public_dir):
+        dirs[:] = [d for d in dirs if not (Path(root) / d).is_symlink()]
+        for fname in files:
+            p = Path(root) / fname
+            if p.is_symlink() or p.suffix.lower() not in PUBLIC_ASSET_EXTENSIONS:
+                continue
+            try:
+                sz = p.stat().st_size
+                if sz > MAX_PUBLIC_ASSET_BYTES:
+                    heavy.append({
+                        "file": str(p.relative_to(ROOT_DIR)).replace("\\", "/"),
+                        "size_kb": round(sz / 1024, 1)
+                    })
+            except OSError:
+                continue
+    return sorted(heavy, key=lambda x: -x["size_kb"])
+
+def audit_n_plus_one_queries() -> list[dict]:
+    """Static check for awaited Prisma/DB queries directly inside for-loops in src/."""
+    src_dir = ROOT_DIR / "src"
+    if not src_dir.is_dir():
+        return []
+    findings = []
+    for root, dirs, files in os.walk(src_dir):
+        dirs[:] = [d for d in dirs if d not in ("node_modules", ".next") and not (Path(root) / d).is_symlink()]
+        for fname in files:
+            p = Path(root) / fname
+            if p.is_symlink() or p.suffix.lower() not in (".ts", ".tsx", ".js", ".jsx"):
+                continue
+            try:
+                content = p.read_text(encoding="utf-8", errors="ignore")
+            except Exception:
+                continue
+            if "await" not in content or "for" not in content:
+                continue
+            lines = content.splitlines()
+            for_window = 0
+            for idx, line in enumerate(lines, start=1):
+                stripped = line.strip()
+                if stripped.startswith("//") or stripped.startswith("*"):
+                    continue
+                if FOR_LOOP_RE.match(line):
+                    for_window = 8
+                    continue
+                if for_window > 0:
+                    if DB_AWAIT_RE.search(line):
+                        findings.append({
+                            "file": str(p.relative_to(ROOT_DIR)).replace("\\", "/"),
+                            "line": idx,
+                            "sample": stripped[:70]
+                        })
+                        for_window = 0
+                    else:
+                        for_window -= 1
+    return findings
+
+def run_dependency_cve_audit() -> tuple[str, str]:
+    """Runs production dependency CVE audit (high/critical) if package.json exists."""
+    if not (ROOT_DIR / "package.json").exists():
+        return ("SKIP", "No package.json detected (protocol or non-Node repository).")
+    pm = "npm"
+    if (ROOT_DIR / "pnpm-lock.yaml").exists():
+        pm = "pnpm"
+    elif (ROOT_DIR / "yarn.lock").exists():
+        pm = "yarn"
+    pm_bin = shutil.which(pm)
+    if not pm_bin:
+        return ("WARN", f"Package manager '{pm}' not found in PATH.")
+
+    if pm == "pnpm":
+        cmd = [pm_bin, "audit", "--prod", "--audit-level=high"]
+    elif pm == "yarn":
+        cmd = [pm_bin, "audit", "--groups", "dependencies", "--level", "high"]
+    else:
+        cmd = [pm_bin, "audit", "--omit=dev", "--audit-level=high"]
+
+    try:
+        res = subprocess.run(cmd, cwd=str(ROOT_DIR), shell=False, capture_output=True, text=True, timeout=45, encoding="utf-8", errors="replace")
+        if res.returncode == 0:
+            return ("OK", f"{pm} prod dependency audit passed (0 high/critical CVEs).")
+        combined = (res.stderr or res.stdout or "").strip()
+        low = combined.lower()
+        if any(net_err in low for net_err in ("enotfound", "eai_again", "etimedout", "network", "offline", "econnrefused")):
+            return ("WARN", f"{pm} audit skipped (network unavailable).")
+        tail = " | ".join([l.strip() for l in combined.splitlines() if l.strip()][-3:])
+        return ("FAIL", f"{pm} audit reported high/critical CVEs: {tail[:180]}")
+    except subprocess.TimeoutExpired:
+        return ("WARN", f"{pm} audit timed out after 45s.")
+    except Exception as e:
+        return ("WARN", f"{pm} audit error: {e}")
+
+def run_sprint_gate() -> bool:
+    """Executes ONLY net-new sprint-end security & performance checks (no re-running passed task suites)."""
+    print("=== [RSI SPRINT-END SECURITY & PERFORMANCE GATE] ===")
+    passed = True
+
+    # 1. Dependency CVE Audit (net-new vs task evals)
+    cve_status, cve_msg = run_dependency_cve_audit()
+    print(f"1. Dependency CVEs : [{cve_status}] {cve_msg}")
+    if cve_status == "FAIL":
+        passed = False
+
+    # 2. Heavy Public Assets (> 500 KB)
+    heavy = audit_heavy_public_assets()
+    if heavy:
+        print(f"2. Public Assets   : [WARN] {len(heavy)} oversized asset(s) (> 500 KB):")
+        for item in heavy[:10]:
+            print(f"   - {item['file']} ({item['size_kb']} KB)")
+    else:
+        print("2. Public Assets   : [OK] 0 oversized static assets (> 500 KB) in public/.")
+
+    # 3. Static N+1 Query Patterns in src/
+    n1_hits = audit_n_plus_one_queries()
+    if n1_hits:
+        print(f"3. DB N+1 Guard    : [WARN] {len(n1_hits)} potential awaited DB query inside for-loop:")
+        for hit in n1_hits[:10]:
+            print(f"   - {hit['file']}:{hit['line']} -> {hit['sample']}")
+    else:
+        print("3. DB N+1 Guard    : [OK] 0 obvious N+1 DB loop patterns detected in src/.")
+
+    # 4. Touched UI Pages LCP Check Advisory
+    mod_files = get_modified_workspace_files()
+    ui_pages = [f for f in mod_files if f.startswith("src/app/") and f.endswith("page.tsx")]
+    if ui_pages:
+        print(f"4. UI LCP Check    : [INFO] {len(ui_pages)} modified UI page(s) -> run DevTools/LCP check before final commit:")
+        for up in ui_pages[:8]:
+            print(f"   - {up}")
+    else:
+        print("4. UI LCP Check    : [OK] No modified UI page.tsx files pending LCP review.")
+
+    print("-" * 52)
+    print(f"[{'PASS' if passed else 'FAIL'}] Sprint-End Gate complete.")
+    return passed
+
 def main():
     parser = argparse.ArgumentParser(description="RSI Protocol Orchestrator")
     parser.add_argument("--pulse", action="store_true", help="1-command Cold-Start Cockpit Briefing (<50ms)")
@@ -675,11 +822,16 @@ def main():
     parser.add_argument("--strict-scope", action="store_true", help="Fail with exit code 1 on any scope drift or unregistered coding")
     parser.add_argument("--rollover", action="store_true", help="Archive completed [x] sprint blocks from docs/TASKS.md to docs/archive/tasks/")
     parser.add_argument("--dry-run", action="store_true", help="Preview --rollover without modifying files")
+    parser.add_argument("--sprint-gate", action="store_true", help="Run net-new sprint-end security (CVE) and performance (assets, N+1, LCP) gate")
     parser.add_argument("--sync-to", metavar="TARGET_DIR", help="Synchronize or update protocol engine into a target project workspace")
     parser.add_argument("--init-target", metavar="TARGET_DIR", help="Initialize protocol structure and sync into a new target project")
     parser.add_argument("--sync-targets", action="store_true", help="List locally registered consumer target projects")
     parser.add_argument("--sync-all", action="store_true", help="Synchronize protocol updates to all locally registered target projects")
     args = parser.parse_args()
+
+    if args.sprint_gate:
+        ok = run_sprint_gate()
+        sys.exit(0 if ok else 1)
 
     if args.sync_targets:
         from version_manager import list_sync_targets

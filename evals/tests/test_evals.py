@@ -16,6 +16,7 @@ EVALS_DIR = Path(__file__).resolve().parent.parent
 if str(EVALS_DIR) not in sys.path:
     sys.path.insert(0, str(EVALS_DIR))
 
+import memory_engine
 import rsi_orchestrator
 import security_audit
 import telemetry_hook
@@ -130,6 +131,29 @@ class TestOrchestratorParsers(unittest.TestCase):
                 self.assertEqual(len(just_closed), 1)
                 self.assertEqual(just_closed[0]["id"], "TASK-DONE-01")
                 self.assertEqual(just_closed[0]["status"], "closed")
+
+    def test_sprint_gate_detects_oversized_assets_and_n_plus_one(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "public").mkdir()
+            (root / "public" / "small.png").write_bytes(b"\x89PNG" + b"0" * 100)
+            (root / "public" / "huge.png").write_bytes(b"\x89PNG" + b"0" * (rsi_orchestrator.MAX_PUBLIC_ASSET_BYTES + 10))
+            (root / "src").mkdir()
+            (root / "src" / "service.ts").write_text(
+                "for (const id of ids) {\n"
+                "  const row = await prisma.user.findUnique({ where: { id } });\n"
+                "}\n",
+                encoding="utf-8",
+            )
+            with patch.object(rsi_orchestrator, "ROOT_DIR", root):
+                heavy = rsi_orchestrator.audit_heavy_public_assets()
+                self.assertEqual(len(heavy), 1)
+                self.assertEqual(heavy[0]["file"], "public/huge.png")
+
+                n1 = rsi_orchestrator.audit_n_plus_one_queries()
+                self.assertEqual(len(n1), 1)
+                self.assertEqual(n1[0]["file"], "src/service.ts")
+                self.assertEqual(n1[0]["line"], 2)
 
 
 class TestSecurityAudit(unittest.TestCase):
@@ -362,6 +386,37 @@ class TestSyncTargetsRegistry(unittest.TestCase):
             merged_txt = dst_agents.read_text(encoding="utf-8")
             self.assertIn("# Protocol v2", merged_txt)
             self.assertIn("Custom Rule: Preserve GraphQL schema", merged_txt)
+
+
+class TestSpecialistPersonas(unittest.TestCase):
+    def test_parse_resolve_and_audit_specialist_personas(self):
+        core, personas = memory_engine.parse_specialist_personas()
+        self.assertTrue(len(core) > 0)
+        for expected in ("architect", "db", "security", "ui", "qa", "meta"):
+            self.assertIn(expected, personas)
+
+        ok, out = memory_engine.resolve_persona("security")
+        self.assertTrue(ok)
+        self.assertIn("CAPITALIZATION_CANDIDATE", out)
+        self.assertIn("Persona: security", out)
+
+        ok_bad, msg_bad = memory_engine.resolve_persona("nonexistent")
+        self.assertFalse(ok_bad)
+        self.assertIn("Unknown persona", msg_bad)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            oversized = Path(tmp) / "rsi_specialist.md"
+            bloated_lines = "\n".join(f"- Line {i}" for i in range(45))
+            oversized.write_text(
+                f"<!-- PERSONA:bloated:START -->\n{bloated_lines}\n<!-- PERSONA:bloated:END -->\n",
+                encoding="utf-8",
+            )
+            empty_mods = Path(tmp) / "modules"
+            empty_mods.mkdir()
+            with patch.object(memory_engine, "SPECIALIST_CATALOG_FILE", oversized), patch.object(
+                memory_engine, "MODULES_DIR", empty_mods
+            ):
+                self.assertFalse(memory_engine.audit_memory_modules())
 
 
 if __name__ == "__main__":
