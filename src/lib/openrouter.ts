@@ -5,9 +5,9 @@ export const OPENROUTER_API_URL =
     "https://openrouter.ai/api/v1/chat/completions";
 
 /**
- * Modèle OpenRouter par défaut (NVIDIA Nemotron open-source, modifiable via OPENROUTER_MODEL).
+ * Modèle OpenRouter par défaut (routeur gratuit stable, modifiable via OPENROUTER_MODEL).
  */
-export const DEFAULT_OPENROUTER_MODEL = "nvidia/llama-3.1-nemotron-70b-instruct";
+export const DEFAULT_OPENROUTER_MODEL = "openrouter/free";
 
 export interface OpenRouterChatOptions {
     systemPrompt?: string;
@@ -74,13 +74,25 @@ export function isOpenRouterAvailable(): boolean {
 }
 
 /**
- * Extrait et parse un objet JSON depuis une réponse texte IA (avec ou sans balises Markdown).
+ * Supprime les blocs de raisonnement `<think>...</think>` éventuellement renvoyés par les modèles.
+ */
+export function stripAiThinkingTags(rawText: string): string {
+    return rawText
+        .replace(/<think>[\s\S]*?<\/think>/gi, "")
+        .replace(/<think>[\s\S]*$/gi, "")
+        .trim();
+}
+
+/**
+ * Extrait et parse un objet JSON depuis une réponse texte IA (avec ou sans balises Markdown / <think>).
  */
 export function extractJsonFromAiText<T>(rawText: string): T | null {
-    const cleaned = rawText
+    const cleaned = stripAiThinkingTags(rawText)
         .replace(/```json/gi, "")
         .replace(/```/g, "")
         .trim();
+
+    if (!cleaned) return null;
 
     try {
         return JSON.parse(cleaned) as T;
@@ -146,6 +158,20 @@ export async function callOpenRouterChat(
         });
 
         if (!response.ok) {
+            // Si le modèle configuré dans .env est déprécié/indisponible, repli automatique sur openrouter/free
+            if (
+                model !== DEFAULT_OPENROUTER_MODEL &&
+                (response.status === 400 ||
+                    response.status === 404 ||
+                    response.status === 429 ||
+                    response.status === 503)
+            ) {
+                clearTimeout(timeoutId);
+                return callOpenRouterChat({
+                    ...options,
+                    model: DEFAULT_OPENROUTER_MODEL,
+                });
+            }
             return {
                 success: false,
                 error: `OpenRouter HTTP ${response.status}`,

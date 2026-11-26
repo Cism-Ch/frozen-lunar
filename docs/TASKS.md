@@ -11,13 +11,13 @@
 +-------------------------+  +-------------------------+  +-------------------------+
 | [>] IN PROGRESS         |  |  [?] ROADMAP            |  |       [X] ARCHIVES      |
 +-------------------------+  +-------------------------+  +-------------------------+
-| (None)                  |  | (None)                  |  | [x] SP 01..11 (Archived)|
-|                         |  |                         |  | [x] SP 12..23 (Archived)|
+| (None)                  |  | [ ] TASK-NWS-01         |  | [x] SP 01..11 (Archived)|
+|                         |  | [ ] TASK-NWS-02         |  | [x] SP 12..23 (Archived)|
 |                         |  |                         |  | [x] SP 24..31 (Archived)|
 |                         |  |                         |  | [x] TASK-PERF-01..04    |
 |                         |  |                         |  | [x] TASK-SEC-05..08     |
 |                         |  |                         |  | [x] TASK-QUAL-01..02    |
-|                         |  |                         |  | [x] TASK-SUP-02         |
+|                         |  |                         |  | [x] TASK-SUP-02..04     |
 |                         |  |                         |  | [x] TASK-MAIL-01        |
 |                         |  |                         |  | [x] TASK-KYC-01..04     |
 |                         |  |                         |  | [x] TASK-PRT-01..02     |
@@ -25,6 +25,30 @@
 |                         |  |                         |  | [x] TASK-OPS-01         |
 +-------------------------+  +-------------------------+  +-------------------------+
 ```
+
+---
+
+## Completed Sprint 43: Human-First Support Chat Agent, Real DB Tracking & Rich UI Blocks
+
+- [x] **`TASK-SUP-03` - Fix Premature Robot Fallback, Real DB Quote Lookup & Anti-Hallucination**
+  - **Target files:** `src/lib/gemini.ts`, `src/lib/openrouter.ts`, `src/app/actions/ai-actions.ts`, `src/lib/support-agent/mock-responses.ts`, `src/hooks/useSupportChat.ts`
+  - **Criteria:** [x] Fixed JSON truncation/`<think>` parsing traps (`maxOutputTokens: 2048`, `stripAiThinkingTags`, `recoverSupportPayloadFromRawText`); removed fabricated `HBC-...` status in robot mode; wired real `lookupQuoteStatusTool` (requiring reference + email/phone verification) for both AI and Robot modes.
+
+- [x] **`TASK-SUP-04` - Human Advisor Persona, AI-Triggered Rich Blocks (`TutorialCard`) & Tests**
+  - **Target files:** `src/lib/support-agent/knowledge.ts`, `src/hooks/useSupportChat.ts`, `tests/unit/support-agent-human.test.ts`
+  - **Criteria:** [x] Rewrote system prompt to a warm human advisor persona with 10-turn memory; allowed AI responses to trigger `TutorialCard` (`tutorialId`) just like Robot mode; verified with `vitest` (`9/9`), `pnpm next build`, and RSI eval (`100/100` PASS).
+
+---
+
+## Planned Sprint 44: End-to-End Newsletter System (Subscription, Double Safety & Admin)
+
+- [ ] **`TASK-NWS-01` - Newsletter Backend, Rate-Limited Subscription, Welcome Email & Unsubscribe**
+  - **Target files:** `prisma/schema.prisma`, `src/app/actions/newsletter-actions.ts`, `src/app/api/newsletter/unsubscribe/route.ts`, `tests/unit/newsletter.test.ts`
+  - **Criteria:** [ ] Add `NewsletterSubscriber` model (or persistent table with `email` unique, `status`, `unsubscribeToken`), Zod-validated & rate-limited `subscribeNewsletterAction`, HBC-branded welcome email with 1-click signed unsubscribe link, and idempotent re-subscription handling.
+
+- [ ] **`TASK-NWS-02` - Functional Footer Newsletter Form & Admin Subscribers/Broadcast Panel**
+  - **Target files:** `src/components/layout/Footer.tsx`, `src/app/admin/contacts/page.tsx` (or `/admin/newsletter`), `tests/unit/newsletter.test.ts`
+  - **Criteria:** [ ] Wire real submit/loading/success/error states in `Footer.tsx`, provide an admin view to list/export subscribers and send a branded newsletter campaign via `sendTransactionalEmail`, and verify with tests, `next build`, and RSI eval (`100/100`).
 
 ---
 

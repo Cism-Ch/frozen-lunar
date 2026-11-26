@@ -213,13 +213,13 @@ export async function generateMockResponse(userMessage: string): Promise<
     let quickReplyContext = "initial";
     let suggestedActions: string[] | undefined;
 
-    // Direct check for tracking reference (e.g. HBC-12345 or HBC-2026-4412)
+    // Vérification honnête d'une référence de suivi (ne jamais inventer un statut sans vérification DB)
     const hbcMatch = userMessage.match(
         /hbc[-\s]?[0-9a-zA-Z]+(?:-[0-9a-zA-Z]+)*/i
     );
     if (hbcMatch) {
         const orderRef = hbcMatch[0].toUpperCase().replace(/\s+/g, "-");
-        message = `Votre référence **${orderRef}** a bien été prise en compte.\n\nStatut estimé : Convoi planifié et en cours de coordination avec notre transporteur partenaire. Vous pouvez contacter directement notre service d'exploitation pour obtenir la position GPS en temps réel du véhicule.`;
+        message = `Pour vérifier le statut réel du dossier **${orderRef}** en toute confidentialité, merci de m'indiquer **l'adresse email ou le numéro de téléphone** utilisé lors de votre demande de devis.`;
         conversationState.awaitingSelection = false;
         conversationState.lastCategory = "transport";
         conversationState.context = "afterTrackingHelp";
@@ -227,7 +227,7 @@ export async function generateMockResponse(userMessage: string): Promise<
         return {
             message,
             category: "transport",
-            sentiment: "positive",
+            sentiment: "neutral",
             shouldEscalate: false,
             suggestedActions: ["contact_human"],
             options: [
@@ -235,7 +235,7 @@ export async function generateMockResponse(userMessage: string): Promise<
                     id: "speak-dispatcher",
                     label: "Contacter le service exploitation",
                     response:
-                        "Notre régulation logistique est disponible pour vous renseigner en direct sur la position du chauffeur et le délai d'arrivée.",
+                        "Notre régulation logistique est disponible pour vous renseigner en direct sur votre dossier.",
                     action: "contact_human",
                 },
                 {

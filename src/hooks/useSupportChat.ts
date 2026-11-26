@@ -28,6 +28,7 @@ import { createQuoteAction } from "@/app/actions/quote-management";
 import {
     getAiStatusAction,
     generateSupportAiAction,
+    lookupSupportQuoteAction,
 } from "@/app/actions/ai-actions";
 import { logger } from "@/lib/logger";
 
@@ -412,6 +413,22 @@ export function useSupportChat(onClose: () => void) {
                             },
                         ]);
 
+                        if (aiResult.data.tutorialId) {
+                            const tutorial = getTutorial(
+                                aiResult.data.tutorialId
+                            );
+                            if (tutorial) {
+                                setChatItems((prev) => [
+                                    ...prev,
+                                    {
+                                        type: "tutorial",
+                                        data: tutorial,
+                                        id: `tutorial_${Date.now()}`,
+                                    },
+                                ]);
+                            }
+                        }
+
                         if (
                             aiResult.data.suggestedAction ===
                             "start_quote_flow"
@@ -465,12 +482,91 @@ export function useSupportChat(onClose: () => void) {
                 }
             }
 
-            // Tier 2 : Mode Robot de secours (sur cet échange sans verrouiller définitivement le mode IA si l'IA est configurée)
+            // Tier 2 : Mode Robot de secours (avec vérification réelle en base pour les références HBC-...)
             if (!handledByAi) {
                 if (!aiAvailable) {
                     setActiveMode("robot");
+                    setAiMode("resilient_local");
                 }
-                setAiMode("resilient_local");
+
+                // Vérification réelle en base PostgreSQL si référence HBC-... + email/téléphone présents
+                const recentUserTexts = [
+                    content,
+                    ...chatItems
+                        .filter(
+                            (item): item is ChatItem & { data: Message } =>
+                                item.type === "message" &&
+                                (item.data as Message).role === "user"
+                        )
+                        .slice(-5)
+                        .reverse()
+                        .map((item) => item.data.content),
+                ];
+                let detectedRef: string | null = null;
+                let detectedContact: string | null = null;
+                for (const txt of recentUserTexts) {
+                    if (!detectedRef) {
+                        const m = txt.match(
+                            /hbc[-\s]?[0-9a-zA-Z]+(?:-[0-9a-zA-Z]+)*/i
+                        );
+                        if (m) detectedRef = m[0].toUpperCase().replace(/\s+/g, "-");
+                    }
+                    if (!detectedContact) {
+                        const em = txt.match(
+                            /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/
+                        );
+                        if (em) {
+                            detectedContact = em[0].trim();
+                        } else {
+                            const ph = txt.match(/(?:\+?\d[\d\s.-]{7,18}\d)/);
+                            if (ph && ph[0].replace(/\D/g, "").length >= 8) {
+                                detectedContact = ph[0].trim();
+                            }
+                        }
+                    }
+                    if (detectedRef && detectedContact) break;
+                }
+
+                if (detectedRef && detectedContact) {
+                    const lookupRes = await lookupSupportQuoteAction({
+                        reference: detectedRef,
+                        emailOrPhone: detectedContact,
+                    });
+
+                    setChatItems((prev) =>
+                        prev.filter(
+                            (item) =>
+                                !(
+                                    item.type === "message" &&
+                                    (item.data as Message).isTyping
+                                )
+                        )
+                    );
+
+                    const lookupMessage = lookupRes.data
+                        ? `Voici le statut vérifié de votre dossier **${lookupRes.data.reference}** :\n\n• **Statut :** ${lookupRes.data.statusLabel}\n• **Prestation :** ${lookupRes.data.itemType}\n• **Trajet :** ${lookupRes.data.pickupLocation} → ${lookupRes.data.dropoffLocation}\n• **Date prévue :** ${lookupRes.data.transportDate}`
+                        : `Je n'ai pas pu confirmer le dossier **${detectedRef}** : ${lookupRes.error || "référence introuvable ou coordonnées non concordantes."}\n\nVérifiez votre code de suivi ou contactez directement notre équipe pour une assistance immédiate.`;
+
+                    const assistantMessage = createMessage(
+                        lookupMessage,
+                        "assistant",
+                        "transport",
+                        lookupRes.data ? "positive" : "neutral"
+                    );
+                    setChatItems((prev) => [
+                        ...prev,
+                        {
+                            type: "message",
+                            data: assistantMessage,
+                            id: assistantMessage.id,
+                        },
+                    ]);
+                    setCurrentQuickReplies(
+                        getContextualQuickReplies("afterTrackingHelp")
+                    );
+                    return;
+                }
+
                 const response = await generateMockResponse(content);
 
                 setChatItems((prev) =>

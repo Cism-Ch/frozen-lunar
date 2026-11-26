@@ -8,7 +8,9 @@ import {
     getGeminiModel,
     isGeminiAvailable,
     EstimationResult,
+    type SupportTutorialId,
 } from "@/lib/gemini";
+import { lookupQuoteStatusTool } from "@/lib/support-agent/tools";
 import {
     getOpenRouterApiKey,
     getOpenRouterModel,
@@ -275,6 +277,99 @@ export async function sendAdminQuoteEmailAction(input: unknown): Promise<{
     }
 }
 
+const HBC_REF_REGEX = /hbc[-\s]?[0-9a-zA-Z]+(?:-[0-9a-zA-Z]+)*/i;
+const EMAIL_REGEX = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
+const PHONE_REGEX = /(?:\+?\d[\d\s.-]{7,18}\d)/;
+
+function extractTrackingLookupParams(
+    currentMessage: string,
+    history: Array<{ role: "user" | "assistant"; content: string }>
+): { reference: string | null; emailOrPhone: string | null } {
+    const userTexts = [
+        currentMessage,
+        ...history
+            .filter((h) => h.role === "user")
+            .slice(-6)
+            .reverse()
+            .map((h) => h.content),
+    ];
+
+    let reference: string | null = null;
+    let emailOrPhone: string | null = null;
+
+    for (const text of userTexts) {
+        if (!reference) {
+            const refMatch = text.match(HBC_REF_REGEX);
+            if (refMatch) {
+                reference = refMatch[0].toUpperCase().replace(/\s+/g, "-");
+            }
+        }
+        if (!emailOrPhone) {
+            const emailMatch = text.match(EMAIL_REGEX);
+            if (emailMatch) {
+                emailOrPhone = emailMatch[0].trim();
+            } else {
+                const phoneMatch = text.match(PHONE_REGEX);
+                if (phoneMatch) {
+                    const digits = phoneMatch[0].replace(/\D/g, "");
+                    if (digits.length >= 8) {
+                        emailOrPhone = phoneMatch[0].trim();
+                    }
+                }
+            }
+        }
+        if (reference && emailOrPhone) break;
+    }
+
+    return { reference, emailOrPhone };
+}
+
+/**
+ * Vérification sécurisée en base PostgreSQL du statut d'un devis pour le chat support
+ * (utilisée en Mode IA et en Mode Robot pour ne jamais inventer un statut).
+ */
+export async function lookupSupportQuoteAction(input: {
+    reference: string;
+    emailOrPhone: string;
+}): Promise<{
+    data: {
+        reference: string;
+        status: string;
+        statusLabel: string;
+        itemType: string;
+        pickupLocation: string;
+        dropoffLocation: string;
+        transportDate: string;
+    } | null;
+    error: string | null;
+}> {
+    try {
+        const rl = await checkRateLimit({
+            scope: "support-quote-lookup",
+            limit: 15,
+            windowSeconds: 600,
+        });
+        if (!rl.allowed) {
+            return {
+                data: null,
+                error: "Trop de tentatives de vérification récentes. Veuillez patienter quelques minutes.",
+            };
+        }
+
+        const result = await lookupQuoteStatusTool(input);
+        if (!result.success) {
+            return { data: null, error: result.error };
+        }
+        return { data: result.data, error: null };
+    } catch (error: unknown) {
+        logger.error("Erreur lookupSupportQuoteAction", error);
+        return {
+            data: null,
+            error: "Service de vérification temporairement indisponible.",
+        };
+    }
+}
+
 /**
  * Traitement des requêtes conversationnelles du support client (Mode IA).
  * Tente Gemini 2.5 Flash puis OpenRouter ; si indisponible ou erreur, renvoie data=null
@@ -287,6 +382,7 @@ export async function generateSupportAiAction(input: unknown): Promise<{
         sentiment: "positive" | "neutral" | "negative";
         shouldEscalate: boolean;
         suggestedAction?: "start_quote_flow" | "contact_human" | null;
+        tutorialId?: SupportTutorialId;
         source: "gemini" | "openrouter" | "resilient_local";
     } | null;
     error: string | null;
@@ -305,9 +401,34 @@ export async function generateSupportAiAction(input: unknown): Promise<{
         }
 
         const validated = supportChatSchema.parse(input);
+        const history = validated.history || [];
+
+        // Vérification réelle en base dès qu'une référence HBC-... est mentionnée
+        let verifiedTrackingContext: string | undefined;
+        const { reference, emailOrPhone } = extractTrackingLookupParams(
+            validated.message,
+            history
+        );
+        if (reference) {
+            if (emailOrPhone) {
+                const lookup = await lookupQuoteStatusTool({
+                    reference,
+                    emailOrPhone,
+                });
+                if (lookup.success) {
+                    verifiedTrackingContext = `RÉSULTAT VÉRIFIÉ EN BASE POSTGRESQL pour ${lookup.data.reference} : Statut = "${lookup.data.statusLabel}" (${lookup.data.status}) | Fret = ${lookup.data.itemType} | Trajet = ${lookup.data.pickupLocation} -> ${lookup.data.dropoffLocation} | Date prévue = ${lookup.data.transportDate}. Communique ces informations réelles chaleureusement au client.`;
+                } else {
+                    verifiedTrackingContext = `RÉSULTAT VÉRIFIÉ EN BASE POSTGRESQL pour ${reference} : ÉCHEC (${lookup.error}). Ne jamais inventer un statut ; explique poliment cet échec au client et propose-lui de vérifier sa référence ou ses coordonnées, ou de joindre un conseiller.`;
+                }
+            } else {
+                verifiedTrackingContext = `Le client mentionne la référence ${reference} mais n'a pas encore fourni son email ou son numéro de téléphone. INTERDICTION d'inventer un statut : demande-lui chaleureusement l'adresse email ou le numéro de téléphone utilisé lors de sa demande afin de vérifier son dossier en base en toute confidentialité.`;
+            }
+        }
+
         const aiResponse = await generateSupportAiResponse(
             validated.message,
-            validated.history || []
+            history,
+            verifiedTrackingContext
         );
 
         if (aiResponse) {
