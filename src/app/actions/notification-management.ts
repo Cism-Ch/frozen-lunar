@@ -11,6 +11,12 @@ import {
     SupportThreadStatus,
 } from "@prisma/client";
 import { logger } from "@/lib/logger";
+import {
+    getChangelogReadKey,
+    getLatestChangelogEntry,
+    isChangelogEntryFresh,
+    type ChangelogEntry,
+} from "@/lib/changelog";
 
 /**
  * Server Actions pour le Centre de Notifications Opérationnelles Réelles.
@@ -40,12 +46,20 @@ export interface Notification {
     userId?: string;
 }
 
+export interface AdminWhatsNewState {
+    enabled: boolean;
+    latest: ChangelogEntry | null;
+    isFresh: boolean;
+    hasUnreadUpdate: boolean;
+}
+
 /**
  * Récupère les alertes et notifications opérationnelles réelles pour l'administrateur.
  */
 export async function getNotificationsAction(): Promise<{
     success: boolean;
     notifications: Notification[];
+    whatsNew?: AdminWhatsNewState;
     error?: string;
 }> {
     try {
@@ -58,6 +72,7 @@ export async function getNotificationsAction(): Promise<{
             pendingPartners,
             humanTakeoverThreads,
             readReceipts,
+            systemSettings,
         ] = await Promise.all([
             prisma.quote.findMany({
                 where: { status: QuoteStatus.PENDING },
@@ -150,6 +165,14 @@ export async function getNotificationsAction(): Promise<{
                       })
                       .catch(() => [])
                 : Promise.resolve([]),
+            prisma.systemSettings?.findUnique
+                ? prisma.systemSettings
+                      .findUnique({
+                          where: { id: "default" },
+                          select: { notifySystemUpdates: true },
+                      })
+                      .catch(() => null)
+                : Promise.resolve(null),
         ]);
 
         const readKeys = new Set(readReceipts.map((r) => r.notificationKey));
@@ -267,7 +290,40 @@ export async function getNotificationsAction(): Promise<{
             }
         );
 
+        const notifySystemUpdates =
+            systemSettings?.notifySystemUpdates ?? true;
+        const latestChangelog = getLatestChangelogEntry();
+        const isFresh = latestChangelog
+            ? isChangelogEntryFresh(latestChangelog)
+            : false;
+        const changelogReadKey = latestChangelog
+            ? getChangelogReadKey(latestChangelog.key)
+            : "";
+        const hasUnreadUpdate = Boolean(
+            notifySystemUpdates &&
+                latestChangelog &&
+                isFresh &&
+                !readKeys.has(changelogReadKey)
+        );
+
+        const systemUpdateNotifications: Notification[] =
+            notifySystemUpdates && latestChangelog && isFresh
+                ? [
+                      {
+                          id: changelogReadKey,
+                          title: `Mise à jour v${latestChangelog.version} • ${latestChangelog.sprint}`,
+                          description: latestChangelog.title,
+                          type: "success",
+                          read: readKeys.has(changelogReadKey),
+                          timestamp: latestChangelog.publishedAt,
+                          href: "/admin/changelog",
+                          isUrgent: false,
+                      },
+                  ]
+                : [];
+
         const combined = [
+            ...systemUpdateNotifications,
             ...quoteNotifications,
             ...cancelledNotifications,
             ...contactNotifications,
@@ -282,6 +338,12 @@ export async function getNotificationsAction(): Promise<{
         return {
             success: true,
             notifications: combined.slice(0, 15),
+            whatsNew: {
+                enabled: notifySystemUpdates,
+                latest: latestChangelog,
+                isFresh,
+                hasUnreadUpdate,
+            },
         };
     } catch (error: unknown) {
         logger.error("Get Notifications Error", error);
@@ -290,6 +352,105 @@ export async function getNotificationsAction(): Promise<{
             success: false,
             error: errorResponse.message,
             notifications: [],
+        };
+    }
+}
+
+/**
+ * Récupère l'état What's New (dernière évolution JSON + préférence `notifySystemUpdates` + statut lu).
+ */
+export async function getAdminWhatsNewAction(): Promise<{
+    data: AdminWhatsNewState | null;
+    error: string | null;
+}> {
+    try {
+        const admin = await requireAdmin();
+        const latest = getLatestChangelogEntry();
+        const [settings, readReceipt] = await Promise.all([
+            prisma.systemSettings?.findUnique
+                ? prisma.systemSettings
+                      .findUnique({
+                          where: { id: "default" },
+                          select: { notifySystemUpdates: true },
+                      })
+                      .catch(() => null)
+                : Promise.resolve(null),
+            latest && prisma.adminNotificationRead?.findUnique
+                ? prisma.adminNotificationRead
+                      .findUnique({
+                          where: {
+                              userId_notificationKey: {
+                                  userId: admin.id,
+                                  notificationKey: getChangelogReadKey(
+                                      latest.key
+                                  ),
+                              },
+                          },
+                          select: { id: true },
+                      })
+                      .catch(() => null)
+                : Promise.resolve(null),
+        ]);
+
+        const enabled = settings?.notifySystemUpdates ?? true;
+        const isFresh = latest ? isChangelogEntryFresh(latest) : false;
+
+        return {
+            data: {
+                enabled,
+                latest,
+                isFresh,
+                hasUnreadUpdate: Boolean(
+                    enabled && latest && isFresh && !readReceipt
+                ),
+            },
+            error: null,
+        };
+    } catch (error: unknown) {
+        logger.error("getAdminWhatsNewAction error", error);
+        return {
+            data: null,
+            error: "Impossible de vérifier les nouveautés système.",
+        };
+    }
+}
+
+/**
+ * Marque une clé de changelog comme vue par l'administrateur connecté.
+ */
+export async function acknowledgeChangelogUpdateAction(
+    changelogKey: string
+): Promise<{ data: { acknowledged: boolean } | null; error: string | null }> {
+    try {
+        const admin = await requireAdmin();
+        const cleanKey = changelogKey.trim();
+        if (!cleanKey || cleanKey.length > 100) {
+            return { data: null, error: "Clé de mise à jour invalide." };
+        }
+
+        const readKey = getChangelogReadKey(cleanKey);
+        await prisma.adminNotificationRead.upsert({
+            where: {
+                userId_notificationKey: {
+                    userId: admin.id,
+                    notificationKey: readKey,
+                },
+            },
+            create: {
+                userId: admin.id,
+                notificationKey: readKey,
+            },
+            update: {
+                readAt: new Date(),
+            },
+        });
+
+        return { data: { acknowledged: true }, error: null };
+    } catch (error: unknown) {
+        logger.error("acknowledgeChangelogUpdateAction error", error);
+        return {
+            data: null,
+            error: "Impossible d'enregistrer l'acquittement.",
         };
     }
 }

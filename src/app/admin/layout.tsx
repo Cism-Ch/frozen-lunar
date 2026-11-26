@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AdminNotifications } from "@/components/features/AdminNotifications";
+import { AdminWhatsNew } from "@/components/features/admin/AdminWhatsNew";
 import { SidebarContent } from "@/components/features/admin/SidebarContent";
 import { AdminCommandPalette } from "@/components/features/admin/AdminCommandPalette";
 import {
@@ -221,6 +222,7 @@ export default function AdminLayout({
                     </div>
 
                     <div className="ml-auto flex items-center gap-1.5 sm:gap-3">
+                        <AdminWhatsNew />
                         <AdminNotifications />
 
                         <DropdownMenu>

@@ -24,8 +24,26 @@
 |                         |  |                         |  | [x] TASK-CNT-01         |
 |                         |  |                         |  | [x] TASK-OPS-01         |
 |                         |  |                         |  | [x] TASK-NWS-01..02     |
+|                         |  |                         |  | [x] TASK-NOTIF-01..02   |
+|                         |  |                         |  | [x] TASK-SET-01         |
 +-------------------------+  +-------------------------+  +-------------------------+
 ```
+
+---
+
+## Completed Sprint 45: Notification Settings Enforcement, JSON Changelog, What's New & Settings UI
+
+- [x] **`TASK-NOTIF-01` - Enforce Notification Preferences & Wire System Update Alerts**
+  - **Target files:** `src/app/actions/notification-management.ts`, `src/app/actions/quote-management.ts`, `src/lib/health-check.ts`, `tests/unit/changelog-notifications.test.ts`
+  - **Criteria:** [x] Read `SystemSettings` (`notifyNewQuoteEmail`, `notifySystemUpdates`) in admin notifications, quote admin emails, and critical outage alerts; exposed `whatsNew` state + `acknowledgeChangelogUpdateAction` backed by `AdminNotificationRead`.
+
+- [x] **`TASK-NOTIF-02` - Keyed JSON Changelog, `/admin/changelog` Page & Header `!` What's New Modal**
+  - **Target files:** `src/data/changelog.json`, `src/lib/changelog.ts`, `src/components/features/admin/AdminWhatsNew.tsx`, `src/components/features/admin/ChangelogViewer.tsx`, `src/app/admin/changelog/page.tsx`, `src/app/admin/layout.tsx`, `src/components/features/admin/SidebarContent.tsx`
+  - **Criteria:** [x] Created keyed JSON changelog distilled from sprint history; rendered `/admin/changelog` with filters/search; displayed header `!` indicator with "What's New" tooltip during 14-day freshness window and interactive update modal linked to `notifySystemUpdates`.
+
+- [x] **`TASK-SET-01` - Redesign Admin Settings Interface (`/admin/settings`)**
+  - **Target files:** `src/app/admin/settings/components/SettingsClient.tsx`
+  - **Criteria:** [x] Upgraded Settings UI styling (executive header banner, clean pill tabs, `?tab=` deep-link support, Active/Inactive status pills on toggles, updated AI model labels, direct link to `/admin/changelog`) and verified with `vitest` (`4/4`), `pnpm next build` (`36/36`), and RSI eval (`100/100` PASS).
 
 ---
 

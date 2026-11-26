@@ -292,10 +292,20 @@ export async function createQuoteAction(
                 quoteId: formattedRef,
             };
 
-            await emailQueue.enqueue({
-                type: "admin_notification",
-                ...payload,
-            });
+            // Respecte le paramètre admin `notifyNewQuoteEmail` (actif par défaut si absent)
+            const notifPrefs = await prisma.systemSettings
+                ?.findUnique({
+                    where: { id: "default" },
+                    select: { notifyNewQuoteEmail: true },
+                })
+                .catch(() => null);
+
+            if (notifPrefs?.notifyNewQuoteEmail !== false) {
+                await emailQueue.enqueue({
+                    type: "admin_notification",
+                    ...payload,
+                });
+            }
 
             await emailQueue.enqueue({
                 type: "client_confirmation",

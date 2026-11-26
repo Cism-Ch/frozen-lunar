@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
@@ -31,6 +33,8 @@ import {
     ShieldAlert,
     HelpCircle,
     ShieldCheck,
+    History,
+    ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { FadeIn, AnimatedCard, motion } from "@/components/ui/motion";
@@ -48,6 +52,17 @@ interface SettingsClientProps {
 }
 
 export function SettingsClient({ initialData }: SettingsClientProps) {
+    const searchParams = useSearchParams();
+    const rawTab = searchParams.get("tab");
+    const initialTab =
+        rawTab === "notifications" ||
+        rawTab === "whatsapp" ||
+        rawTab === "company" ||
+        rawTab === "security"
+            ? rawTab
+            : "general";
+    const [activeTab, setActiveTab] = useState(initialTab);
+
     // 1. Profil Administrateur (Général)
     const [profileName, setProfileName] = useState(initialData.admin.name);
     const [profileEmail, setProfileEmail] = useState(initialData.admin.email);
@@ -270,69 +285,91 @@ export function SettingsClient({ initialData }: SettingsClientProps) {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="mx-auto max-w-5xl space-y-6">
             <FadeIn direction="down">
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <h3 className="text-3xl font-bold tracking-tight">
-                            Paramètres
-                        </h3>
-                        <p className="text-muted-foreground mt-1 text-sm">
-                            Gérez les préférences de votre compte, de
-                            l&apos;entreprise et des automatisations.
+                <div className="from-card via-card to-primary/5 flex flex-col justify-between gap-4 rounded-2xl border bg-linear-to-r p-6 shadow-xs sm:flex-row sm:items-center">
+                    <div className="space-y-1.5">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <Badge className="gap-1 bg-[#001F3D] text-white">
+                                <ShieldCheck className="h-3 w-3 text-[#FF7C24]" />
+                                Console Configuration
+                            </Badge>
+                            <Badge
+                                variant="secondary"
+                                className="gap-1.5 font-mono text-[11px]"
+                            >
+                                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                                Synchronisé PostgreSQL
+                            </Badge>
+                        </div>
+                        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+                            Paramètres &amp; Préférences
+                        </h1>
+                        <p className="text-muted-foreground text-sm">
+                            Pilotez votre compte, les alertes en temps réel,
+                            WhatsApp/IA et la sécurité de la plateforme.
                         </p>
                     </div>
-                    <Badge
-                        variant="secondary"
-                        className="w-fit gap-1.5 px-3 py-1 font-mono text-xs"
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="min-h-[40px] w-fit gap-1.5"
+                        asChild
                     >
-                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-                        Synchronisé avec PostgreSQL
-                    </Badge>
+                        <Link href="/admin/changelog">
+                            <History className="text-primary h-4 w-4" />
+                            Voir le Changelog
+                            <ArrowRight className="h-3.5 w-3.5 opacity-60" />
+                        </Link>
+                    </Button>
                 </div>
             </FadeIn>
 
             <FadeIn direction="up" delay={0.1}>
-                <Tabs defaultValue="general" className="space-y-4">
+                <Tabs
+                    value={activeTab}
+                    onValueChange={setActiveTab}
+                    className="space-y-5"
+                >
                     <div className="relative w-full">
-                        <TabsList className="no-scrollbar flex h-auto w-full items-center justify-start gap-1.5 overflow-x-auto scroll-smooth p-1.5 sm:inline-flex sm:w-auto">
+                        <TabsList className="no-scrollbar bg-muted/60 flex h-auto w-full items-center justify-start gap-1.5 overflow-x-auto rounded-xl border p-1.5 scroll-smooth sm:inline-flex sm:w-auto">
                             <TabsTrigger
                                 value="general"
-                                className="inline-flex shrink-0 items-center gap-2 px-3.5 py-2 text-xs font-medium sm:text-sm"
+                                className="data-[state=active]:bg-background data-[state=active]:text-primary inline-flex min-h-[40px] shrink-0 items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold sm:text-sm"
                             >
                                 <User className="h-4 w-4 shrink-0" />
                                 <span>Général</span>
                             </TabsTrigger>
                             <TabsTrigger
                                 value="notifications"
-                                className="inline-flex shrink-0 items-center gap-2 px-3.5 py-2 text-xs font-medium sm:text-sm"
+                                className="data-[state=active]:bg-background data-[state=active]:text-primary inline-flex min-h-[40px] shrink-0 items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold sm:text-sm"
                             >
                                 <Bell className="h-4 w-4 shrink-0" />
                                 <span>Notifications</span>
                             </TabsTrigger>
                             <TabsTrigger
                                 value="whatsapp"
-                                className="inline-flex shrink-0 items-center gap-2 px-3.5 py-2 text-xs font-medium sm:text-sm"
+                                className="data-[state=active]:bg-background data-[state=active]:text-primary inline-flex min-h-[40px] shrink-0 items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold sm:text-sm"
                             >
                                 <MessageCircle className="h-4 w-4 shrink-0" />
-                                <span>WhatsApp & IA</span>
+                                <span>WhatsApp &amp; IA</span>
                             </TabsTrigger>
                             <TabsTrigger
                                 value="company"
-                                className="inline-flex shrink-0 items-center gap-2 px-3.5 py-2 text-xs font-medium sm:text-sm"
+                                className="data-[state=active]:bg-background data-[state=active]:text-primary inline-flex min-h-[40px] shrink-0 items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold sm:text-sm"
                             >
                                 <Building className="h-4 w-4 shrink-0" />
                                 <span>Entreprise</span>
                             </TabsTrigger>
                             <TabsTrigger
                                 value="security"
-                                className="inline-flex shrink-0 items-center gap-2 px-3.5 py-2 text-xs font-medium sm:text-sm"
+                                className="data-[state=active]:bg-background data-[state=active]:text-primary inline-flex min-h-[40px] shrink-0 items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold sm:text-sm"
                             >
                                 <Lock className="h-4 w-4 shrink-0" />
                                 <span>Sécurité</span>
                             </TabsTrigger>
                         </TabsList>
-                        <div className="from-background pointer-events-none absolute top-0 right-0 bottom-0 w-6 bg-gradient-to-l to-transparent sm:hidden" />
+                        <div className="from-background pointer-events-none absolute top-0 right-0 bottom-0 w-6 bg-linear-to-l to-transparent sm:hidden" />
                     </div>
 
                     {/* 1. ONGLET GÉNÉRAL */}
@@ -428,23 +465,40 @@ export function SettingsClient({ initialData }: SettingsClientProps) {
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <motion.div
-                                        className="flex flex-col justify-between gap-3 rounded-lg border p-4 sm:flex-row sm:items-center"
+                                        className="bg-muted/20 hover:border-primary/40 flex flex-col justify-between gap-3 rounded-xl border p-4 transition-colors sm:flex-row sm:items-center"
                                         initial={{ opacity: 0, x: -10 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         transition={{ delay: 0.1 }}
-                                        whileHover={{ x: 4 }}
                                     >
-                                        <div className="space-y-0.5">
-                                            <Label
-                                                htmlFor="notify-quote"
-                                                className="cursor-pointer text-base"
-                                            >
-                                                Nouvelles demandes de devis
-                                            </Label>
-                                            <p className="text-muted-foreground text-sm">
-                                                Recevoir un email instantané à
-                                                chaque nouvelle demande de
-                                                transport.
+                                        <div className="space-y-1">
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <Label
+                                                    htmlFor="notify-quote"
+                                                    className="cursor-pointer text-sm font-semibold sm:text-base"
+                                                >
+                                                    Nouvelles demandes de devis
+                                                </Label>
+                                                <Badge
+                                                    variant={
+                                                        notifyNewQuote
+                                                            ? "default"
+                                                            : "secondary"
+                                                    }
+                                                    className={
+                                                        notifyNewQuote
+                                                            ? "bg-emerald-600 text-[10px] text-white"
+                                                            : "text-[10px]"
+                                                    }
+                                                >
+                                                    {notifyNewQuote
+                                                        ? "Actif"
+                                                        : "Désactivé"}
+                                                </Badge>
+                                            </div>
+                                            <p className="text-muted-foreground text-xs sm:text-sm">
+                                                Déclenche l&apos;email d&apos;alerte
+                                                administrateur dès qu&apos;un client
+                                                soumet un nouveau devis.
                                             </p>
                                         </div>
                                         <Switch
@@ -455,23 +509,41 @@ export function SettingsClient({ initialData }: SettingsClientProps) {
                                     </motion.div>
 
                                     <motion.div
-                                        className="flex flex-col justify-between gap-3 rounded-lg border p-4 sm:flex-row sm:items-center"
+                                        className="bg-muted/20 hover:border-primary/40 flex flex-col justify-between gap-3 rounded-xl border p-4 transition-colors sm:flex-row sm:items-center"
                                         initial={{ opacity: 0, x: -10 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         transition={{ delay: 0.2 }}
-                                        whileHover={{ x: 4 }}
                                     >
-                                        <div className="space-y-0.5">
-                                            <Label
-                                                htmlFor="notify-weekly"
-                                                className="cursor-pointer text-base"
-                                            >
-                                                Rapport d&apos;activité
-                                                hebdomadaire
-                                            </Label>
-                                            <p className="text-muted-foreground text-sm">
-                                                Recevoir un résumé consolidé des
-                                                statistiques chaque lundi matin.
+                                        <div className="space-y-1">
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <Label
+                                                    htmlFor="notify-weekly"
+                                                    className="cursor-pointer text-sm font-semibold sm:text-base"
+                                                >
+                                                    Rapport d&apos;activité
+                                                    hebdomadaire
+                                                </Label>
+                                                <Badge
+                                                    variant={
+                                                        notifyWeekly
+                                                            ? "default"
+                                                            : "secondary"
+                                                    }
+                                                    className={
+                                                        notifyWeekly
+                                                            ? "bg-emerald-600 text-[10px] text-white"
+                                                            : "text-[10px]"
+                                                    }
+                                                >
+                                                    {notifyWeekly
+                                                        ? "Actif"
+                                                        : "Désactivé"}
+                                                </Badge>
+                                            </div>
+                                            <p className="text-muted-foreground text-xs sm:text-sm">
+                                                Préférence pour le résumé
+                                                consolidé des statistiques
+                                                hebdomadaires.
                                             </p>
                                         </div>
                                         <Switch
@@ -482,23 +554,46 @@ export function SettingsClient({ initialData }: SettingsClientProps) {
                                     </motion.div>
 
                                     <motion.div
-                                        className="flex flex-col justify-between gap-3 rounded-lg border p-4 sm:flex-row sm:items-center"
+                                        className="bg-muted/20 hover:border-primary/40 flex flex-col justify-between gap-3 rounded-xl border p-4 transition-colors sm:flex-row sm:items-center"
                                         initial={{ opacity: 0, x: -10 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         transition={{ delay: 0.3 }}
-                                        whileHover={{ x: 4 }}
                                     >
-                                        <div className="space-y-0.5">
-                                            <Label
-                                                htmlFor="notify-system"
-                                                className="cursor-pointer text-base"
-                                            >
-                                                Mises à jour système & alertes
-                                            </Label>
-                                            <p className="text-muted-foreground text-sm">
-                                                Être informé des maintenances,
-                                                seuils d&apos;erreurs et logs
-                                                critiques.
+                                        <div className="space-y-1">
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <Label
+                                                    htmlFor="notify-system"
+                                                    className="cursor-pointer text-sm font-semibold sm:text-base"
+                                                >
+                                                    Mises à jour système,
+                                                    What&apos;s New &amp;
+                                                    alertes uptime
+                                                </Label>
+                                                <Badge
+                                                    variant={
+                                                        notifySystem
+                                                            ? "default"
+                                                            : "secondary"
+                                                    }
+                                                    className={
+                                                        notifySystem
+                                                            ? "bg-emerald-600 text-[10px] text-white"
+                                                            : "text-[10px]"
+                                                    }
+                                                >
+                                                    {notifySystem
+                                                        ? "Actif"
+                                                        : "Désactivé"}
+                                                </Badge>
+                                            </div>
+                                            <p className="text-muted-foreground text-xs sm:text-sm">
+                                                Contrôle le badge{" "}
+                                                <span className="font-semibold">
+                                                    « ! » What&apos;s New
+                                                </span>{" "}
+                                                dans l&apos;en-tête, la modale
+                                                de nouveautés du changelog et
+                                                les alertes critiques Uptime.
                                             </p>
                                         </div>
                                         <Switch
@@ -599,8 +694,8 @@ export function SettingsClient({ initialData }: SettingsClientProps) {
                                                 </p>
                                                 <p className="text-muted-foreground">
                                                     Cascade automatique : Gemini
-                                                    2.5 Flash → OpenRouter →
-                                                    Template déterministe
+                                                    3.1 / 3.5 Flash → OpenRouter
+                                                    → Template déterministe
                                                     ci-dessous.
                                                 </p>
                                             </div>

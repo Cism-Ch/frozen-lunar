@@ -790,6 +790,17 @@ export async function maybeSendCriticalOutageAlert(
         return false;
     }
 
+    // Respecte la préférence admin `notifySystemUpdates` (actif par défaut si absent)
+    const systemPrefs = await prisma.systemSettings
+        ?.findUnique({
+            where: { id: "default" },
+            select: { notifySystemUpdates: true },
+        })
+        .catch(() => null);
+    if (systemPrefs?.notifySystemUpdates === false) {
+        return false;
+    }
+
     // Ne tente pas d'envoyer un email si Resend est l'unique dépendance en panne et qu'aucun relais Gmail SMTP n'est configuré
     const resendDownOnly =
         criticalOutages.length === 1 &&

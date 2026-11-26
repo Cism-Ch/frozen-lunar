@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "freshnessWindowDays": 14,
+  "entries": [
+    {
+      "key": "rel-2026-11-s45",
+      "version": "1.10.0",
+      "sprint": "Sprint 45",
+      "publishedAt": "2026-11-26T06:30:00Z",
+      "category": "feature",
+      "title": "Notifications pilotées, Changelog Admin & Modale What's New",
+      "summary": "Les préférences de notifications contrôlent désormais réellement les alertes, accompagnées d'un changelog JSON consultable et d'une nouvelle interface Paramètres.",
+      "highlights": [
+        "Branchement effectif de notifyNewQuoteEmail et notifySystemUpdates sur les alertes devis, uptime et mises à jour.",
+        "Nouvelle page /admin/changelog alimentée par un JSON structuré à clé unique.",
+        "Badge '!' What's New dans le header admin avec tooltip et modale dédiée.",
+        "Refonte visuelle complète de /admin/settings avec badges d'état actifs/inactifs."
+      ]
+    },
+    {
+      "key": "rel-2026-11-s44",
+      "version": "1.9.0",
+      "sprint": "Sprint 44",
+      "publishedAt": "2026-11-26T01:30:00Z",
+      "category": "feature",
+      "title": "Système Newsletter complet & Campagnes Admin",
+      "summary": "Collecte d'abonnés depuis le footer, email de bienvenue HBC, désinscription en 1 clic et diffusion de campagnes depuis l'administration.",
+      "highlights": [
+        "Table PostgreSQL newsletter_subscriber avec jeton unique de désinscription.",
+        "Formulaire Newsletter fonctionnel dans le footer avec validation Zod et rate-limiting.",
+        "Nouvel onglet Newsletter dans /admin/contacts avec export CSV et envoi de campagnes."
+      ]
+    },
+    {
+      "key": "rel-2026-11-s43",
+      "version": "1.8.0",
+      "sprint": "Sprint 43",
+      "publishedAt": "2026-11-26T01:15:00Z",
+      "category": "improvement",
+      "title": "Agent Chat Support humain, suivi réel en base & fiches visuelles IA",
+      "summary": "Refonte complète de l'assistant support : réponses chaleureuses, auto-guérison Gemini/OpenRouter et vérification réelle des devis HBC en base.",
+      "highlights": [
+        "Cascade automatique Gemini (3.1 Flash Lite -> 3.5 Flash) et OpenRouter sans bascule prématurée en Mode Robot.",
+        "Vérification réelle en PostgreSQL des références HBC-... avec contrôle d'identité email/téléphone.",
+        "Déclenchement des cartes visuelles (TutorialCard) directement par l'IA."
+      ]
+    },
+    {
+      "key": "rel-2026-11-s42",
+      "version": "1.7.0",
+      "sprint": "Sprint 42",
+      "publishedAt": "2026-11-25T22:50:00Z",
+      "category": "fix",
+      "title": "Envoi réel des emails /contact & sonde Gmail SMTP sur l'Uptime",
+      "summary": "Les messages de contact déclenchent désormais un email admin et un accusé visiteur, et la console Uptime supervise Gmail SMTP en direct.",
+      "highlights": [
+        "Alerte admin (replyTo visiteur) + accusé de réception HTML HBC via Resend/Gmail SMTP.",
+        "Sonde SMTP live (nodemailer.verify) ajoutée dans /api/health et /admin/status.",
+        "Bouton de test email activé dès que Resend ou Gmail SMTP est configuré."
+      ]
+    },
+    {
+      "key": "rel-2026-11-s41",
+      "version": "1.6.0",
+      "sprint": "Sprint 41",
+      "publishedAt": "2026-11-25T21:45:00Z",
+      "category": "feature",
+      "title": "Simulateur Partenaires FCFA & Dispatch Partenaire sur les Devis",
+      "summary": "Les transporteurs estiment leurs gains mensuels sur /partenaires et l'admin affecte un partenaire agréé directement sur chaque devis.",
+      "highlights": [
+        "Simulateur interactif de revenus nets FCFA par catégorie de véhicule et rotations/mois.",
+        "Widget Dispatch Partenaire dans /admin/quotes/[id] avec calcul auto de marge HBC.",
+        "Envoi de fiche mission en 1 clic par WhatsApp ou Email et masquage strict de la marge côté client."
+      ]
+    },
+    {
+      "key": "rel-2026-11-s39-40",
+      "version": "1.5.0",
+      "sprint": "Sprints 39-40",
+      "publishedAt": "2026-11-25T18:00:00Z",
+      "category": "security",
+      "title": "Durcissement Sécurité, Headers HTTP & Requêtes DB bornées",
+      "summary": "Renforcement des en-têtes de sécurité, rate-limiting étendu, plafonnement des requêtes Prisma et optimisation images AVIF/WebP.",
+      "highlights": [
+        "Headers COOP/CORP, suppression X-Powered-By et rate-limiting sur /api/admin/check et KYC.",
+        "Plafonnement explicite (take) sur toutes les requêtes admin et client.",
+        "Activation des formats d'image Next.js AVIF et WebP."
+      ]
+    },
+    {
+      "key": "rel-2026-11-s37-38",
+      "version": "1.4.0",
+      "sprint": "Sprints 37-38",
+      "publishedAt": "2026-11-25T14:00:00Z",
+      "category": "feature",
+      "title": "File de validation KYC Admin, Badge Profil Validé & LocationPicker",
+      "summary": "Suivi des pièces d'identité/entreprise dans l'espace client, relance 1/jour vers l'admin et file de validation intuitive sur /admin/users.",
+      "highlights": [
+        "Composant KycValidationQueue dédié sur /admin/users avec filtres et validation/refus en ligne.",
+        "Anneau vert et badge 'Profil validé' dans l'Espace Client dès validation KYC.",
+        "Connexion du LocationPicker aux adresses favorites et lieux par défaut du profil."
+      ]
+    },
+    {
+      "key": "rel-2026-11-s35-36",
+      "version": "1.3.0",
+      "sprint": "Sprints 35-36",
+      "publishedAt": "2026-11-25T09:00:00Z",
+      "category": "improvement",
+      "title": "Templates Email Charte HBC & Résilience Parcours Devis Chat",
+      "summary": "Harmonisation visuelle des emails clients/admin sur la charte HBC Logistique et sécurisation du parcours devis dans le chat.",
+      "highlights": [
+        "Refonte des 3 templates React Email aux couleurs #001F3D / #FF7C24.",
+        "Annulation propre mid-flow ('annuler'/'stop') et parsing des dates françaises dans le chat."
+      ]
+    },
+    {
+      "key": "rel-2026-11-s32-34",
+      "version": "1.2.0",
+      "sprint": "Sprints 32-34",
+      "publishedAt": "2026-11-24T22:00:00Z",
+      "category": "performance",
+      "title": "Lazy-loading PDF, Index Prisma & Cache Redis Flotte",
+      "summary": "Réduction du bundle client initial (~350 Ko économisés), indexation base de données et mise en cache fail-open de la flotte publique.",
+      "highlights": [
+        "Chargement dynamique à la demande de jsPDF sur les pages devis client et admin.",
+        "Index composites Prisma sur Quote, QuoteHistory, ContactMessage, PartnerApplication et Vehicle.",
+        "Cache Upstash Redis (120s TTL) pour le catalogue flotte public."
+      ]
+    }
+  ]
+}

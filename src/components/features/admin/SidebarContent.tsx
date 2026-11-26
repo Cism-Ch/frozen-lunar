@@ -14,6 +14,7 @@ import {
     Activity,
     Handshake,
     Sparkles,
+    History,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -70,6 +71,11 @@ const navItems = [
         title: "Statut & Uptime",
         href: "/admin/status",
         icon: Activity,
+    },
+    {
+        title: "Nouveautés",
+        href: "/admin/changelog",
+        icon: History,
     },
     {
         title: "Paramètres",
